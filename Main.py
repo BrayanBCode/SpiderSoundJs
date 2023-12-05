@@ -160,6 +160,9 @@ async def check_voice_activity(guild):
         await asyncio.sleep(10)  # Verificar la inactividad cada 10 segundos
 
 @bot.event # Ejecutar la función cuando el bot se una a un canal de voz en un servidor
+
+#!  toca arreglar No funciona, detecta mal que el bot se desconecto ---------------------------------
+
 async def on_voice_state_update(member, before, after):
     if member == bot.user and after.channel:
         afterguild = after.channel.guild
@@ -167,14 +170,12 @@ async def on_voice_state_update(member, before, after):
             beforeguild = before.channel.guild
 
             if beforeguild.id in Servidores_PlayList:
-                Servidores_PlayList[beforeguild.id].clear()  # Borrar la lista de reproducción del servidor
-                print(f"La lista de reproducción para el servidor {beforeguild.name} ha sido borrada.")
+                #Servidores_PlayList[beforeguild.id].clear()  # Borrar la lista de reproducción del servidor
+                print(f"La lista de reproducción para el servidor {beforeguild.name} ha sido limpiada.")
+
         except:
             pass
 
-
-
-        Servidores_PlayList[afterguild.id].clear()
         if afterguild.id not in inactive_timers:
             inactive_timers[afterguild.id] = bot.loop.create_task(check_voice_activity(afterguild))
 
@@ -405,6 +406,9 @@ async def AddSongs(ctx, command):
 
     else:
         await ctx.send("¡Debes estar en un canal de voz para reproducir música!")
+    
+    ##print(f'Lista de reproducción actual en Guild {GuildActual}: {Servidores_PlayList[GuildActual]}')
+
 
 async def play_next(ctx):
     GuildActual = ctx.guild.id
@@ -446,7 +450,9 @@ async def play_next(ctx):
 
                 await asyncio.sleep(30)
             except Exception as e:
-                await ctx.send(f'Error al reproducir música: {str(e)}')
+                await ctx.send(f'Error al descargar la canción: {str(e)}')
+                print(f'Error al descargar la canción: {str(e)}')
+                
 
 
-bot.run("MTE3NzM0NDE3MDYzODE4MDUwMw.GFJ8F9.lRhsn1gbIvAclAyPqqBZqwASO2Rq8QBI9tuqh0")
+bot.run("MTE3NzM0NDE3MDYzODE4MDUwMw.GFUo6m.en-Q2Eufy50XWnxijU0Vls9ZO_WuqlobgY7Jb8")
