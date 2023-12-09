@@ -1,6 +1,6 @@
+import os, sys, re, asyncio, discord
 from discord.ext import commands
 from discord import Embed, FFmpegPCMAudio, Activity, ActivityType, Status
-import os, sys, re, asyncio, discord
 from youtubesearchpython import VideosSearch
 from pytube import Playlist, YouTube
 
@@ -25,18 +25,6 @@ def clearMusicFolder():
                 print(f"Archivo '{archivo}' eliminado correctamente.")
             except Exception as e:
                 continue  # Pasar al siguiente archivo si no se puede eliminar este
-
-def check_folder_contents():
-    folder_path = './Musica'  # Ruta a la carpeta
-
-    # Lista los archivos en la carpeta
-    files_in_folder = os.listdir(folder_path)
-
-    # Comprueba si hay algún archivo en la carpeta
-    if files_in_folder:
-        print("La carpeta contiene archivos.")
-    else:
-        print("La carpeta está vacía.")
         
 async def startup():
     ids_servidores = await GetAllGuilds()
@@ -56,8 +44,10 @@ def check_folder_contents():
 
     # Comprueba si hay algún archivo en la carpeta
     if files_in_folder:
+        print("La carpeta contiene archivos.")
         return True
     else:
+        print("La carpeta está vacía.")
         return False
     
 @bot.command() #Reinicia el bot con un comando
@@ -155,6 +145,7 @@ async def check_voice_activity(guild):
                 await asyncio.sleep(120)  # Esperar 2 minutos (120 segundos) para verificar la inactividad
                 if not voice_client.is_playing() and not voice_client.is_paused():
                     await voice_client.disconnect()
+                    
                     print(f"El bot ha sido desconectado del canal de voz en '{guild.name}' debido a la inactividad.")
                     inactive_timers.pop(guild.id)  # Eliminar el temporizador de inactividad para este servidor
         await asyncio.sleep(10)  # Verificar la inactividad cada 10 segundos
@@ -455,4 +446,4 @@ async def play_next(ctx):
                 
 
 
-bot.run("MTE3NzM0NDE3MDYzODE4MDUwMw.GFUo6m.en-Q2Eufy50XWnxijU0Vls9ZO_WuqlobgY7Jb8")
+bot.run("")
