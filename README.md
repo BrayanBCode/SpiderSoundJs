@@ -21,6 +21,27 @@ EL prefijo del bot es " = " el prefijo es aquel caracter el cual el bot utiliza 
 + **remove** - Quita de la playlist la cancion que el usuario desee ejemplo: **=remove 5**.
 + **clear** - Limpia la playlist".
 
+### Instalacion de librerias necesarias
+pipenv
+discord.py
+youtube-search-python
+pytube
+
+#### Como instalarlas
+pip install pipenv
+pipenv install discord.py
+pipenv install youtube-search-python
+pipenv install pytube
+
+### Adicion al PATH necesaria
+Se debe añadir al path el archivo bin encontrado en la carpeta "utils\ffmpeg-master-latest-win64-gpl-shared"
+<img src="https://github.com/BrayanBCode/ProyectoFinalKodland/assets/134159765/c5fbac21-2854-40ef-9c06-2dd9f4ce59cc" alt="image" width="50%">
+
+Para añadir bin al PATH utilize el buscador de windows y escriba Variables de entorno
+![Variable de entrono](https://github.com/BrayanBCode/ProyectoFinalKodland/assets/134159765/7fa8bdb3-e799-4bc0-89d5-e35258d4de34)
+
+![PATH1](https://github.com/BrayanBCode/ProyectoFinalKodland/assets/134159765/a15ef044-cade-4972-8d05-5ab317184c17)
+
 ### Parches
 1.0 - Fixeo de error de borrado de playlist y adicion de desconexion por ausencia de usuario
 
