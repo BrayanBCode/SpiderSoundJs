@@ -1,7 +1,7 @@
 # Proyecto Final Kodland
 
-## Mi bot Araña Sound
-![Araña Sound Logo](https://github.com/BrayanBCode/ProyectoFinalKodland/assets/134159765/7f81ca3a-6e63-437d-baaf-6799bca6109c)
+## Araña Sound
+![Araña Sound Logo](https://github.com/BrayanBCode/ProyectoFinalKodland/assets/134159765/7f81ca3a-6e63-437d-baaf-6799bca6109c){width=25hv}
 El bot suele estar hosteado 24/7 a no ser que no pueda tenerlo hosteado.
 
 ## Bot de Musica de discord
