@@ -19,7 +19,7 @@ EL prefijo del bot es " = " el prefijo es aquel caracter el cual el bot utiliza 
 + **remove**" - Quita de la playlist la cancion que el usuario desee ejemplo: **=remove 5**.
 + **clear**" - Limpia la playlist".
 
-#Parches 
+### Parches
 1.0 - Fixeo de error de borrado de playlist y adicion de desconexion por ausencia de usuario
 
 
