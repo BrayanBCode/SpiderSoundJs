@@ -13,12 +13,12 @@ Mi proyecto consta de un bot de discord el cual es capaz de reproducir musica ut
 ### Guia de comandos
 EL prefijo del bot es " = " el prefijo es aquel caracter el cual el bot utiliza para darse cuenta de si lo que escribio el usuario es un comando o simplemente texto
 
-+ **play**" - Para reproducir música, simplemente escribe **=play** seguido del nombre de la canción, el artista o la URL de la canción que desees escuchar.
-+ **stop**" - Para pausar la musica utilize **=stop** una vez para reanudar la musica utilize **=stop** nuevamente.
-+ **skip**" - Para saltear una cancion utilize **=skip**, para saltear varias agrege un numero, ejemplo: **=skip 3**.
-+ **queue**" - Muestra la playlist y la cancion que se esta reproduciendo actualmente.
-+ **remove**" - Quita de la playlist la cancion que el usuario desee ejemplo: **=remove 5**.
-+ **clear**" - Limpia la playlist".
++ **play** - Para reproducir música, simplemente escribe **=play** seguido del nombre de la canción, el artista o la URL de la canción que desees escuchar.
++ **stop** - Para pausar la musica utilize **=stop** una vez para reanudar la musica utilize **=stop** nuevamente.
++ **skip** - Para saltear una cancion utilize **=skip**, para saltear varias agrege un numero, ejemplo: **=skip 3**.
++ **queue** - Muestra la playlist y la cancion que se esta reproduciendo actualmente.
++ **remove** - Quita de la playlist la cancion que el usuario desee ejemplo: **=remove 5**.
++ **clear** - Limpia la playlist".
 
 ### Parches
 1.0 - Fixeo de error de borrado de playlist y adicion de desconexion por ausencia de usuario
