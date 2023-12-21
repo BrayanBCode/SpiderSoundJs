@@ -1,5 +1,5 @@
 # Proyecto Final Kodland
-Este bot fue desarrollado para el poryecto final de Kodland del curso de Python Pro
+Este bot fue desarrollado para el poryecto final de Kodland del curso de Python Pro 2023
 
 ## Araña Sound
 <img src="https://github.com/BrayanBCode/ProyectoFinalKodland/assets/134159765/7f81ca3a-6e63-437d-baaf-6799bca6109c" alt="Araña Sound Logo" width="50%">
