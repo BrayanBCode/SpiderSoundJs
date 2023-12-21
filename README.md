@@ -1,7 +1,7 @@
 # Proyecto Final Kodland
 
 ## Araña Sound
-<img src="https://github.com/BrayanBCode/ProyectoFinalKodland/assets/134159765/7f81ca3a-6e63-437d-baaf-6799bca6109c" alt="Araña Sound Logo" width="25px">
+<img src="https://github.com/BrayanBCode/ProyectoFinalKodland/assets/134159765/7f81ca3a-6e63-437d-baaf-6799bca6109c" alt="Araña Sound Logo" width="25hv">
 
 El bot suele estar hosteado 24/7 a no ser que no pueda tenerlo hosteado.
 
