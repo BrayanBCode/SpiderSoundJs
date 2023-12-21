@@ -13,9 +13,6 @@ inactive_timers = {}
 CurrentlyPlaying = {}
 ActiveLoop = {}
 
-async def GetAllGuilds():
-    return bot.guilds
-
 def clearMusicFolder():
     archivos = os.listdir('./Musica')
     if archivos:
@@ -24,13 +21,7 @@ def clearMusicFolder():
                 os.remove(os.path.join('./Musica', archivo))
                 print(f"Archivo '{archivo}' eliminado correctamente.")
             except Exception as e:
-                continue  # Pasar al siguiente archivo si no se puede eliminar este
-        
-async def startup():
-    ids_servidores = await GetAllGuilds()
-    for servidor_id in ids_servidores:
-        Servidores_PlayList[servidor_id.id] = []
-        ActiveLoop[servidor_id.id] = False
+                continue  # Pasar al siguiente archivo si no se puede eliminar
 
 async def addListServer(guild):
     global Servidores_PlayList
@@ -70,14 +61,17 @@ async def help(ctx):
 
     await ctx.send(embed=embed)
 
-# ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 @bot.event
 async def on_ready():
     print(f"Ya estoy activo {bot.user} al servicio")
     
     await startup()
-    status = 1
+
+
+async def startup():
+
+    status = 12
+
     if status == 1:
         custom_status = Activity(name='Music Player "=help"', type=ActivityType.playing)
         await bot.change_presence(status=Status.online, activity=custom_status)
@@ -85,8 +79,11 @@ async def on_ready():
     else:
         custom_status = Activity(name="Fuera de Servicio", type=ActivityType.playing)
         await bot.change_presence(activity=custom_status, status=Status.do_not_disturb)
-        
-# ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    ids_servidores = bot.guilds
+    for servidor_id in ids_servidores:
+        Servidores_PlayList[servidor_id.id] = []
+        ActiveLoop[servidor_id.id] = False
 
 @bot.command()
 async def loop(ctx):
@@ -140,35 +137,33 @@ async def check_voice_activity(guild):
         voice_client = guild.voice_client
 
         if voice_client and voice_client.channel:
-            # Verificar si el bot está conectado a un canal de voz y no hay actividad de reproducción
-            if not voice_client.is_playing() and not voice_client.is_paused():
-                await asyncio.sleep(120)  # Esperar 2 minutos (120 segundos) para verificar la inactividad
-                if not voice_client.is_playing() and not voice_client.is_paused():
+            # Verificar si el bot está solo en el canal de voz
+            if len(voice_client.channel.members) == 1 and voice_client.channel.members[0] == guild.me:
+                await asyncio.sleep(120)  # Esperar 2 minutos para verificar la inactividad
+                if len(voice_client.channel.members) == 1 and voice_client.channel.members[0] == guild.me:
                     await voice_client.disconnect()
-                    
                     print(f"El bot ha sido desconectado del canal de voz en '{guild.name}' debido a la inactividad.")
-                    inactive_timers.pop(guild.id)  # Eliminar el temporizador de inactividad para este servidor
+                    if check_folder_contents():
+                        clearMusicFolder()
+                    # Verificar si la clave existe antes de intentar eliminarla
+                    if guild.id in inactive_timers:
+                        inactive_timers.pop(guild.id)  # Eliminar el temporizador de inactividad para este servidor
         await asyncio.sleep(10)  # Verificar la inactividad cada 10 segundos
 
 @bot.event # Ejecutar la función cuando el bot se una a un canal de voz en un servidor
-
-#!  toca arreglar No funciona, detecta mal que el bot se desconecto ---------------------------------
-
 async def on_voice_state_update(member, before, after):
     if member == bot.user and after.channel:
         afterguild = after.channel.guild
-        try:
-            beforeguild = before.channel.guild
-
-            if beforeguild.id in Servidores_PlayList:
-                #Servidores_PlayList[beforeguild.id].clear()  # Borrar la lista de reproducción del servidor
-                print(f"La lista de reproducción para el servidor {beforeguild.name} ha sido limpiada.")
-
-        except:
-            pass
 
         if afterguild.id not in inactive_timers:
             inactive_timers[afterguild.id] = bot.loop.create_task(check_voice_activity(afterguild))
+    try:
+        beforeguild = before.channel.guild
+        if before.channel and not after.channel and member == bot.user:  # Se desconectó de un canal de voz
+            Servidores_PlayList[beforeguild.id].clear()  # Borrar la lista de reproducción del servidor
+            print(f"La lista de reproducción para el servidor {beforeguild.name} ha sido limpiada.")
+    except:
+        print(f"Evento de Voz detectado - Usuario: {member}")
 
 @bot.command()
 async def skip(ctx, num=None):
@@ -209,45 +204,77 @@ async def queue(ctx):
     GuildActual = ctx.guild.id
     if GuildActual in Servidores_PlayList:
         songs = Servidores_PlayList[GuildActual]
-        embed = Embed(title="Lista de Reproducción", color=0x6a0dad)
-
-        if GuildActual in CurrentlyPlaying and CurrentlyPlaying[GuildActual]:
-            currentinfo = CurrentlyPlaying[GuildActual]
-            embed.add_field(
-                name=f"Canción en reproducción",
-                value=f"{currentinfo['title']} - {currentinfo['artist']}\nDuración: {currentinfo['duration']}",
-                inline=False
-            )
-            embed.set_thumbnail(url=currentinfo['thumbnail'])
 
         if len(songs) > 0:
-            total_duration = 0  # Duración total de la lista de reproducción en segundos
+            max_videos_to_display = 5  # Número máximo de videos para mostrar en una página
+            total_duration = sum(YouTube(song_url).length for song_url in songs)  # Duración total de la lista de reproducción en segundos
 
-            for idx, song_url in enumerate(songs, start=1):
-                video = YouTube(song_url)
-                duration = video.length
-                mins, secs = divmod(duration, 60)
-                hours, mins = divmod(mins, 60)
-                duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
-                total_duration += duration  # Sumar la duración de la canción a la duración total
-
-                embed.add_field(
-                    name=f"{idx}. [{video.title}] | [{video.author}]",
-                    value=f"Duración: {duration_formatted}\n[Ver en YouTube]({song_url})",
-                    inline=False
-                )
-
-            # Convertir la duración total a formato horas:minutos:segundos
             total_mins, total_secs = divmod(total_duration, 60)
             total_hours, total_mins = divmod(total_mins, 60)
             total_duration_formatted = '{:02d}:{:02d}:{:02d}'.format(total_hours, total_mins, total_secs)
 
+            embed = Embed(title="Lista de Reproducción", color=0x6a0dad)
             embed.set_footer(text=f"Duración total de la lista de reproducción: {total_duration_formatted}")
 
-        else:
-            embed.description = "La lista de reproducción está vacía."
+            message = None
+            page = 1
 
-        await ctx.send(embed=embed)
+            async def show_queue():
+                nonlocal message, page
+
+                start_idx = (page - 1) * max_videos_to_display
+                end_idx = page * max_videos_to_display
+                songs_to_display = songs[start_idx:end_idx]
+
+                embed.clear_fields()
+
+                for idx, song_url in enumerate(songs_to_display, start=start_idx + 1):
+                    video = YouTube(song_url)
+                    duration = video.length
+                    mins, secs = divmod(duration, 60)
+                    hours, mins = divmod(mins, 60)
+                    duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+
+                    embed.add_field(
+                        name=f"{idx}. [{video.title}] | [{video.author}]",
+                        value=f"Duración: {duration_formatted}\n[Ver en YouTube]({song_url})",
+                        inline=False
+                    )
+
+                embed.set_footer(text=f"Página {page} - Duración total de la lista de reproducción: {total_duration_formatted}")
+
+                if message:
+                    await message.edit(embed=embed)
+                else:
+                    message = await ctx.send(embed=embed)
+
+                if len(songs) > max_videos_to_display:
+                    await message.add_reaction('◀️')  # Flecha izquierda
+                    await message.add_reaction('▶️')  # Flecha derecha
+
+                    def check(reaction, user):
+                        return user == ctx.author and str(reaction.emoji) in ['◀️', '▶️']
+
+                    while True:
+                        try:
+                            reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+
+                            if str(reaction.emoji) == '▶️' and end_idx < len(songs):
+                                page += 1
+                            elif str(reaction.emoji) == '◀️' and start_idx > 0:
+                                page -= 1
+
+                            await reaction.remove(user)
+                            await show_queue()
+
+                        except asyncio.TimeoutError:
+                            break
+
+            await show_queue()
+
+        else:
+            embed = Embed(description="La lista de reproducción está vacía.", color=0x6a0dad)
+            await ctx.send(embed=embed)
     else:
         await ctx.send("No hay lista de reproducción para este servidor.")
 
