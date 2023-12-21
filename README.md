@@ -1,7 +1,7 @@
 # Proyecto Final Kodland
 
 ## Mi bot Araña Sound
-![Araña Sound Logo | 500](https://github.com/BrayanBCode/ProyectoFinalKodland/assets/134159765/7f81ca3a-6e63-437d-baaf-6799bca6109c)
+![Araña Sound Logo](https://github.com/BrayanBCode/ProyectoFinalKodland/assets/134159765/7f81ca3a-6e63-437d-baaf-6799bca6109c)
 El bot suele estar hosteado 24/7 a no ser que no pueda tenerlo hosteado.
 
 ## Bot de Musica de discord
@@ -17,6 +17,8 @@ EL prefijo del bot es " = " el prefijo es aquel caracter el cual el bot utiliza 
 + **remove**" - Quita de la playlist la cancion que el usuario desee ejemplo: **=remove 5**.
 + **clear**" - Limpia la playlist".
 
+#Parches 
+1.0 - Fixeo de error de borrado de playlist y adicion de desconexion por ausencia de usuario
 
 
 
