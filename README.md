@@ -39,9 +39,9 @@ Se debe añadir al path el archivo bin encontrado en la carpeta "utils\ffmpeg-ma
 ![BIN](https://github.com/BrayanBCode/ProyectoFinalKodland/assets/134159765/c5fbac21-2854-40ef-9c06-2dd9f4ce59cc)
 
 Para añadir bin al PATH utilize el buscador de windows y escriba Variables de entorno
-![Variable de entrono](https://github.com/BrayanBCode/ProyectoFinalKodland/assets/134159765/7fa8bdb3-e799-4bc0-89d5-e35258d4de34)
+![Variable de entrono busqueda](https://github.com/BrayanBCode/ProyectoFinalKodland/assets/134159765/7fa8bdb3-e799-4bc0-89d5-e35258d4de34)
 
-![PATH1](https://github.com/BrayanBCode/ProyectoFinalKodland/assets/134159765/a15ef044-cade-4972-8d05-5ab317184c17)
+![**](https://github.com/BrayanBCode/ProyectoFinalKodland/assets/134159765/aed77a4d-5d0c-4706-aa17-ba48bfceccea)
 
 
 
