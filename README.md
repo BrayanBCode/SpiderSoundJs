@@ -50,7 +50,7 @@ Para añadir bin al PATH utilize el buscador de windows y escriba Variables de e
 
 ![**](https://github.com/BrayanBCode/ProyectoFinalKodland/assets/134159765/aed77a4d-5d0c-4706-aa17-ba48bfceccea)
 
-Una vez dentro deben clikear 2 veces en donde cice PATH y agregarle la direccion del archivo BIN y listo
+Una vez dentro deben clikear 2 veces en donde dice PATH y agregarle la direccion del archivo BIN y listo
 ![image](https://github.com/BrayanBCode/ProyectoFinalKodland/assets/134159765/ceb729a3-0daa-40c8-b661-d5199a0018ea)
 
 ### Parches
