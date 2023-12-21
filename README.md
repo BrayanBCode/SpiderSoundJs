@@ -4,7 +4,7 @@
 <img src="https://github.com/BrayanBCode/ProyectoFinalKodland/assets/134159765/7f81ca3a-6e63-437d-baaf-6799bca6109c" alt="Araña Sound Logo" width="50%">
 
 El bot suele estar hosteado 24/7 a no ser que no pueda tenerlo hosteado.
-[Invita Araña Sound a tu servidor](https://www.ejemplo.com)
+[Invita Araña Sound a tu servidor](https://discord.com/api/oauth2/authorize?client_id=1177344170638180503&permissions=8&scope=bot)
 
 
 ## Bot de Musica de discord
