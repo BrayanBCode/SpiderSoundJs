@@ -23,14 +23,20 @@ EL prefijo del bot es " = " el prefijo es aquel caracter el cual el bot utiliza 
 
 ### Instalacion de librerias necesarias
 pipenv
+
 discord.py
+
 youtube-search-python
+
 pytube
 
 #### Como instalarlas
 pip install pipenv
+
 pipenv install discord.py
+
 pipenv install youtube-search-python
+
 pipenv install pytube
 
 ### Adicion al PATH necesaria
