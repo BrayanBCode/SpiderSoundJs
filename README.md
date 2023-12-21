@@ -21,6 +21,7 @@ EL prefijo del bot es " = " el prefijo es aquel caracter el cual el bot utiliza 
 + **remove** - Quita de la playlist la cancion que el usuario desee ejemplo: **=remove 5**.
 + **clear** - Limpia la playlist".
 
+## Instalacion
 ### Instalacion de librerias necesarias
 pipenv
 
