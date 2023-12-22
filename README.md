@@ -20,6 +20,7 @@ El prefijo del bot es " = " el prefijo es aquel caracter el cual el bot utiliza 
 + **queue** - Muestra la playlist y la cancion que se esta reproduciendo actualmente.
 + **remove** - Quita de la playlist la cancion que el usuario desee ejemplo: **=remove 5**.
 + **clear** - Limpia la playlist.
++ **loop** - Activa el modo loop de la playlist lo que hace que se repita indefinidamente la playlist.
 
 ## Instalacion
 ### Instalacion de librerias necesarias
@@ -55,6 +56,7 @@ Una vez dentro deben clikear 2 veces en donde dice PATH y agregarle la direccion
 
 ## Parches
 1.0 - Fixeo de error de borrado de playlist y adicion de desconexion por ausencia de usuario
+2.0 - Adicion de comando Loop
 
 ## Funciones adicionales del bot
 + funciona en multiplas servidores al mismo tiempo

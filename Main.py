@@ -6,7 +6,7 @@ from pytube import Playlist, YouTube
 
 intents = discord.Intents.default()
 intents.message_content = True
-bot = commands.Bot(command_prefix = "=", intents=intents, help_command=None)
+bot = commands.Bot(command_prefix = "@", intents=intents, help_command=None)
 
 Servidores_PlayList = {}
 inactive_timers = {}
@@ -56,15 +56,13 @@ async def help(ctx):
     embed.add_field(name=f"**{bot.command_prefix}queue**", value=f"Muestra la playlist y la cancion que se esta reproduciendo actualmente", inline=False)
     embed.add_field(name=f"**{bot.command_prefix}remove**", value=f"Quita de la playlist la cancion que el usuario desee ejemplo: **{bot.command_prefix}remove 5**", inline=False)
     embed.add_field(name=f"**{bot.command_prefix}clear**", value=f"Limpia la playlist", inline=False)
-    #embed.add_field(name=f"**{bot.command_prefix}loop**", value=" ", inline=False)
-    #embed.add_field(name=f"**{bot.command_prefix}clear**", value=" ", inline=False)
+    embed.add_field(name=f"**{bot.command_prefix}loop**", value=f"Activa el modo loop de la playlist lo que hace que se repita indefinidamente la playlist.", inline=False)
 
     await ctx.send(embed=embed)
 
 @bot.event
 async def on_ready():
-    print(f"Ya estoy activo {bot.user} al servicio")
-    
+    print(f"Ya estoy activo {bot.user} al servicio")    
     await startup()
 
 
@@ -163,7 +161,7 @@ async def on_voice_state_update(member, before, after):
             Servidores_PlayList[beforeguild.id].clear()  # Borrar la lista de reproducción del servidor
             print(f"La lista de reproducción para el servidor {beforeguild.name} ha sido limpiada.")
     except:
-        print(f"Evento de Voz detectado - Usuario: {member}")
+        print(f"Evento de Voz detectado - Usuario: {member} en {member.guild.name}")
 
 @bot.command()
 async def skip(ctx, num=None):
@@ -189,7 +187,13 @@ async def skip(ctx, num=None):
         return
 
     for _ in range(num-1):
-        if len(Servidores_PlayList[GuildActual]) > 0:
+        if len(Servidores_PlayList[GuildActual]) > 0 and ActiveLoop[GuildActual]:
+            url = Servidores_PlayList[GuildActual][0]
+            Servidores_PlayList[GuildActual].append(url)
+            voice_client.stop()
+            Servidores_PlayList[GuildActual].pop(0)
+
+        elif len(Servidores_PlayList[GuildActual]) > 0:
             voice_client.stop()
             Servidores_PlayList[GuildActual].pop(0)
         else:
@@ -313,7 +317,9 @@ async def AddSongs(ctx, command):
         voice_client = ctx.guild.voice_client
             
         if voice_client:  # Si el bot ya está en un canal, muévelo si es necesario
+            voice_client.pause()
             await voice_client.move_to(channel)
+            voice_client.resume()
         else:  # Si el bot no está en un canal, conéctalo al canal
             try:
                 voice_client = await channel.connect()
@@ -375,7 +381,7 @@ async def AddSongs(ctx, command):
             if len(results['result']) > 0:
                 video_url = results['result'][0]['link']
                 video = YouTube(video_url)
-                Servidores_PlayList[GuildActual.id].append((video_url))
+                Servidores_PlayList[GuildActual.id].append(video_url)
                 
                 duration = video.length
                 mins, secs = divmod(duration, 60)
@@ -427,7 +433,6 @@ async def AddSongs(ctx, command):
     
     ##print(f'Lista de reproducción actual en Guild {GuildActual}: {Servidores_PlayList[GuildActual]}')
 
-
 async def play_next(ctx):
     GuildActual = ctx.guild.id
     voice_client = ctx.voice_client
@@ -444,7 +449,9 @@ async def play_next(ctx):
                 audio_source = FFmpegPCMAudio(os.path.join('Musica', filename))
                 voice_client.play(audio_source, after=lambda e: (
                     bot.loop.create_task(play_next(ctx)),
-                    clearMusicFolder()
+                    clearMusicFolder(),
+                    Servidores_PlayList[GuildActual].append(video_url) if ActiveLoop[GuildActual] else None
+                        
                 ))
 
                 # Enviar mensaje con la canción que está siendo reproducida
@@ -470,7 +477,6 @@ async def play_next(ctx):
             except Exception as e:
                 await ctx.send(f'Error al descargar la canción: {str(e)}')
                 print(f'Error al descargar la canción: {str(e)}')
-                
 
 
-bot.run("")
+bot.run("MTE4MTcxNTgyOTAwODYzMzkxOQ.G-_Clb.Vl9jD9NLdNvs7CrvpWB6fUYJyeSUzUWbNE-eVQ")
