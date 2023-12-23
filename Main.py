@@ -6,7 +6,7 @@ from pytube import Playlist, YouTube
 
 intents = discord.Intents.default()
 intents.message_content = True
-bot = commands.Bot(command_prefix = "@", intents=intents, help_command=None)
+bot = commands.Bot(command_prefix = "=", intents=intents, help_command=None)
 
 Servidores_PlayList = {}
 inactive_timers = {}
@@ -65,10 +65,9 @@ async def on_ready():
     print(f"Ya estoy activo {bot.user} al servicio")    
     await startup()
 
-
 async def startup():
 
-    status = 12
+    status = 1
 
     if status == 1:
         custom_status = Activity(name='Music Player "=help"', type=ActivityType.playing)
@@ -164,44 +163,31 @@ async def on_voice_state_update(member, before, after):
         print(f"Evento de Voz detectado - Usuario: {member} en {member.guild.name}")
 
 @bot.command()
-async def skip(ctx, num=None):
+async def skip(ctx, num: int = 1):
     GuildActual = ctx.guild.id
     voice_client = ctx.guild.voice_client
 
-    if num is None:
-        num = 1
+    if num <= 0:
+        await ctx.send("Por favor, proporciona un número positivo de canciones para saltar.")
+        return
 
     if num == 1:
         voice_client.stop()
         await play_next(ctx)
         return
-    
-    try:
-        num = int(num)
-    except ValueError:
-        await ctx.send("Por favor, proporciona un número válido de canciones para saltar.")
+
+    playlist_length = len(Servidores_PlayList[GuildActual])
+
+    if playlist_length == 0:
+        await ctx.send("No hay más canciones en la lista de reproducción para saltar.")
         return
 
-    if num < 1:
-        await ctx.send("Por favor, proporciona un número positivo de canciones para saltar.")
-        return
+    num_to_skip = min(num - 1, playlist_length - 1)
+    Servidores_PlayList[GuildActual] = Servidores_PlayList[GuildActual][num_to_skip:]
 
-    for _ in range(num-1):
-        if len(Servidores_PlayList[GuildActual]) > 0 and ActiveLoop[GuildActual]:
-            url = Servidores_PlayList[GuildActual][0]
-            Servidores_PlayList[GuildActual].append(url)
-            voice_client.stop()
-            Servidores_PlayList[GuildActual].pop(0)
+    voice_client.stop()
+    await play_next(ctx)
 
-        elif len(Servidores_PlayList[GuildActual]) > 0:
-            voice_client.stop()
-            Servidores_PlayList[GuildActual].pop(0)
-        else:
-            await ctx.send("No hay más canciones en la lista de reproducción para saltar.")
-            break
-
-    if voice_client.is_playing() or voice_client.is_paused():
-        await play_next(ctx)
     
 @bot.command()
 async def queue(ctx):
@@ -209,78 +195,98 @@ async def queue(ctx):
     if GuildActual in Servidores_PlayList:
         songs = Servidores_PlayList[GuildActual]
 
-        if len(songs) > 0:
-            max_videos_to_display = 5  # Número máximo de videos para mostrar en una página
-            total_duration = sum(YouTube(song_url).length for song_url in songs)  # Duración total de la lista de reproducción en segundos
+        embed = Embed(title="Lista de Reproducción", color=0x6a0dad)
+        max_videos_to_display = 5  # Número máximo de videos para mostrar en una página
+        total_duration = sum(YouTube(song_url).length for song_url in songs)  # Duración total de la lista de reproducción en segundos
+        total_mins, total_secs = divmod(total_duration, 60)
+        total_hours, total_mins = divmod(total_mins, 60)
+        total_duration_formatted = '{:02d}:{:02d}:{:02d}'.format(total_hours, total_mins, total_secs)
+        embed.set_footer(text=f"Página 1 - Duración total de la lista de reproducción: {total_duration_formatted}")
 
-            total_mins, total_secs = divmod(total_duration, 60)
-            total_hours, total_mins = divmod(total_mins, 60)
-            total_duration_formatted = '{:02d}:{:02d}:{:02d}'.format(total_hours, total_mins, total_secs)
+        current_song = CurrentlyPlaying.get(GuildActual)
+        if current_song:
+            current_song_url = current_song['url']
+            embed.insert_field_at(
+                index=0,
+                name=f"**Reproduciendo Ahora**\n[{current_song['title']}] | [{current_song['author']}]",
+                value=f"Duración: {current_song['duration']}\n[Ver en YouTube]({current_song_url})",
+                inline=False
+            )
+            embed.set_thumbnail(url=current_song['thumbnail'])
 
-            embed = Embed(title="Lista de Reproducción", color=0x6a0dad)
-            embed.set_footer(text=f"Duración total de la lista de reproducción: {total_duration_formatted}")
+        start_idx = 0
+        end_idx = min(len(songs), max_videos_to_display)
+        songs_to_display = songs[start_idx:end_idx]
 
-            message = None
-            page = 1
+        # Mostrar lista de reproducción
+        for idx, song_url in enumerate(songs_to_display, start=start_idx + 1):
+            video = YouTube(song_url)
+            duration = video.length
+            mins, secs = divmod(duration, 60)
+            hours, mins = divmod(mins, 60)
+            duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
 
-            async def show_queue():
-                nonlocal message, page
+            embed.add_field(
+                name=f"{idx}. [{video.title}] | [{video.author}]",
+                value=f"Duración: {duration_formatted}\n[Ver en YouTube]({song_url})",
+                inline=False
+            )
 
-                start_idx = (page - 1) * max_videos_to_display
-                end_idx = page * max_videos_to_display
-                songs_to_display = songs[start_idx:end_idx]
+        message = await ctx.send(embed=embed)
 
-                embed.clear_fields()
+        if len(songs) > max_videos_to_display:
+            await message.add_reaction('◀️')  # Flecha izquierda
+            await message.add_reaction('▶️')  # Flecha derecha
 
-                for idx, song_url in enumerate(songs_to_display, start=start_idx + 1):
-                    video = YouTube(song_url)
-                    duration = video.length
-                    mins, secs = divmod(duration, 60)
-                    hours, mins = divmod(mins, 60)
-                    duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+            def check(reaction, user):
+                return user == ctx.author and str(reaction.emoji) in ['◀️', '▶️']
 
-                    embed.add_field(
-                        name=f"{idx}. [{video.title}] | [{video.author}]",
-                        value=f"Duración: {duration_formatted}\n[Ver en YouTube]({song_url})",
-                        inline=False
-                    )
+            while True:
+                try:
+                    reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
 
-                embed.set_footer(text=f"Página {page} - Duración total de la lista de reproducción: {total_duration_formatted}")
+                    if str(reaction.emoji) == '▶️' and end_idx < len(songs):
+                        start_idx = end_idx
+                        end_idx = min(start_idx + max_videos_to_display, len(songs))
+                    elif str(reaction.emoji) == '◀️' and start_idx > 0:
+                        end_idx = start_idx
+                        start_idx = max(0, end_idx - max_videos_to_display)
 
-                if message:
+                    songs_to_display = songs[start_idx:end_idx]
+
+                    embed.clear_fields()
+
+                    if current_song:
+                        embed.insert_field_at(
+                            index=0,
+                            name=f"**Reproduciendo Ahora**\n[{current_song['title']}] | [{current_song['author']}]",
+                            value=f"Duración: {current_song['duration']}\n[Ver en YouTube]({current_song_url})",
+                            inline=False
+                        )
+                        embed.set_thumbnail(url=current_song['thumbnail'])
+
+                    for idx, song_url in enumerate(songs_to_display, start=start_idx + 1):
+                        video = YouTube(song_url)
+                        duration = video.length
+                        mins, secs = divmod(duration, 60)
+                        hours, mins = divmod(mins, 60)
+                        duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+
+                        embed.add_field(
+                            name=f"{idx}. [{video.title}] | [{video.author}]",
+                            value=f"Duración: {duration_formatted}\n[Ver en YouTube]({song_url})",
+                            inline=False
+                        )
+
                     await message.edit(embed=embed)
-                else:
-                    message = await ctx.send(embed=embed)
+                    await reaction.remove(user)
 
-                if len(songs) > max_videos_to_display:
-                    await message.add_reaction('◀️')  # Flecha izquierda
-                    await message.add_reaction('▶️')  # Flecha derecha
+                except asyncio.TimeoutError:
+                    break
 
-                    def check(reaction, user):
-                        return user == ctx.author and str(reaction.emoji) in ['◀️', '▶️']
-
-                    while True:
-                        try:
-                            reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
-
-                            if str(reaction.emoji) == '▶️' and end_idx < len(songs):
-                                page += 1
-                            elif str(reaction.emoji) == '◀️' and start_idx > 0:
-                                page -= 1
-
-                            await reaction.remove(user)
-                            await show_queue()
-
-                        except asyncio.TimeoutError:
-                            break
-
-            await show_queue()
-
-        else:
-            embed = Embed(description="La lista de reproducción está vacía.", color=0x6a0dad)
-            await ctx.send(embed=embed)
     else:
-        await ctx.send("No hay lista de reproducción para este servidor.")
+        embed = Embed(description="No hay lista de reproducción para este servidor.", color=0x6a0dad)
+        await ctx.send(embed=embed)
 
 @bot.command()
 async def stop(ctx):
@@ -313,14 +319,12 @@ async def AddSongs(ctx, command):
     clearMusicFolder()
     songs_added = []
 
-    if channel:  # Verifica si el canal es válido
-        voice_client = ctx.guild.voice_client
-            
-        if voice_client:  # Si el bot ya está en un canal, muévelo si es necesario
+    if channel:
+        if voice_client:
             voice_client.pause()
             await voice_client.move_to(channel)
             voice_client.resume()
-        else:  # Si el bot no está en un canal, conéctalo al canal
+        else:
             try:
                 voice_client = await channel.connect()
             except Exception as e:
@@ -333,56 +337,37 @@ async def AddSongs(ctx, command):
         if GuildActual.id not in Servidores_PlayList:
             await addListServer(GuildActual)
 
-        if urls:           
-            for url in urls:
-                if 'list' in url.lower():
-                    playlist = Playlist(url)
-                    for video_url in playlist.video_urls:
-                        video = YouTube(video_url)
-                        Servidores_PlayList[GuildActual.id].append((video_url))
+        for url in urls:
+            playlist = Playlist(url) if 'list' in url.lower() else None
+            video_urls = playlist.video_urls if playlist else [url]
 
-                        # Obtener la duración del video
-                        duration = video.length
-                        mins, secs = divmod(duration, 60)
-                        hours, mins = divmod(mins, 60)
-                        duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+            for video_url in video_urls:
+                video = YouTube(video_url)
+                Servidores_PlayList[GuildActual.id].append(video_url)
 
-                        # Obtener la miniatura del video
-                        thumbnail = video.thumbnail_url
+                duration = video.length
+                mins, secs = divmod(duration, 60)
+                hours, mins = divmod(mins, 60)
+                duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
 
-                        songs_added.append({
-                            'title': video.title,
-                            'duration': duration_formatted,
-                            'thumbnail': thumbnail,
-                            'artist': video.author
-                        })
-                else:                    
-                    video = YouTube(url)
-                    Servidores_PlayList[GuildActual.id].append((url))
+                thumbnail = video.thumbnail_url
 
-                    duration = video.length
-                    mins, secs = divmod(duration, 60)
-                    hours, mins = divmod(mins, 60)
-                    duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+                songs_added.append({
+                    'title': video.title,
+                    'duration': duration_formatted,
+                    'thumbnail': thumbnail,
+                    'artist': video.author
+                })
 
-                    thumbnail = video.thumbnail_url
-
-                    songs_added.append({
-                        'title': video.title,
-                        'duration': duration_formatted,
-                        'thumbnail': thumbnail,
-                        'artist': video.author
-                    })
-
-        else:
-            videos = VideosSearch(command, limit = 1)
+        if not urls:
+            videos = VideosSearch(command, limit=1)
             results = videos.result()
 
             if len(results['result']) > 0:
                 video_url = results['result'][0]['link']
                 video = YouTube(video_url)
                 Servidores_PlayList[GuildActual.id].append(video_url)
-                
+
                 duration = video.length
                 mins, secs = divmod(duration, 60)
                 hours, mins = divmod(mins, 60)
@@ -397,41 +382,37 @@ async def AddSongs(ctx, command):
                     'artist': video.author
                 })
             else:
-                ctx.send('No se encontraron busquedas validas.')
+                await ctx.send('No se encontraron búsquedas válidas.')
                 return
-            
-        if check_folder_contents():
-            last_song = songs_added[-1]
-            embed = Embed(title="Canción agregada a la playlist", color=0x6a0dad)
-            embed.add_field(
-                name=f"{last_song['title']} - {last_song['artist']}",
-                value=f"Duración: {last_song['duration']}",
-                inline=False
-            )
-            embed.set_thumbnail(url=last_song['thumbnail'])
-            await ctx.send(embed=embed)
 
-        
-        # este if era un elif del de arriba
-        elif len(songs_added) > 1:
-            embed = Embed(title="Canciones agregadas a la playlist", color=0x6a0dad)
-            for song in songs_added:
+        embed_title = "Canción agregada a la playlist" if len(songs_added) == 1 else "Canciones agregadas a la playlist"
+        embed = Embed(title=embed_title, color=0x6a0dad)
+
+        i = 0
+        for song in songs_added:
+            i += 1
+            if i <= 5:
                 embed.add_field(
                     name=f"{song['title']} - {song['artist']}",
                     value=f"Duración: {song['duration']}",
                     inline=False
                 )
                 embed.set_thumbnail(url=song['thumbnail'])
+            else:
+                embed.add_field(
+                name=f"**Y {len(songs_added) - 5} canciones más...**",
+                value=f"Total de canciones agregadas: {len(songs_added)}", # Cambiar *texto a (Peticion de X usuario)
+                inline=False
+            )
+                break
 
-            await ctx.send(embed=embed)
+        await ctx.send(embed=embed)
 
         if not voice_client.is_playing():
             await play_next(ctx)
 
     else:
         await ctx.send("¡Debes estar en un canal de voz para reproducir música!")
-    
-    ##print(f'Lista de reproducción actual en Guild {GuildActual}: {Servidores_PlayList[GuildActual]}')
 
 async def play_next(ctx):
     GuildActual = ctx.guild.id
@@ -450,8 +431,7 @@ async def play_next(ctx):
                 voice_client.play(audio_source, after=lambda e: (
                     bot.loop.create_task(play_next(ctx)),
                     clearMusicFolder(),
-                    Servidores_PlayList[GuildActual].append(video_url) if ActiveLoop[GuildActual] else None
-                        
+                    Servidores_PlayList[GuildActual].append(video_url) if ActiveLoop[GuildActual] else None                        
                 ))
 
                 # Enviar mensaje con la canción que está siendo reproducida
@@ -470,7 +450,8 @@ async def play_next(ctx):
                     'artist': video.author,
                     'duration': duration_formatted,
                     'url': video_url,
-                    'thumbnail': video.thumbnail_url
+                    'thumbnail': video.thumbnail_url,
+                    'author': video.author
                 }
 
                 await asyncio.sleep(30)
@@ -479,4 +460,4 @@ async def play_next(ctx):
                 print(f'Error al descargar la canción: {str(e)}')
 
 
-bot.run("MTE4MTcxNTgyOTAwODYzMzkxOQ.G-_Clb.Vl9jD9NLdNvs7CrvpWB6fUYJyeSUzUWbNE-eVQ")
+bot.run("")
