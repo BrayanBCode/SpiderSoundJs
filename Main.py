@@ -3,163 +3,7 @@ from discord.ext import commands
 from discord import Embed, FFmpegPCMAudio, Activity, ActivityType, Status
 from youtubesearchpython import VideosSearch
 from pytube import Playlist, YouTube
-
-#* Seccion de la Base de Datos ------------------------------
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import MetaData, Table, Column, Integer, String
-
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ServerPlaylist.db'  # Cambia la URL por tu base de datos
-db = SQLAlchemy(app)
-
-with app.app_context():
-    db.create_all()
-
-# Modelo de tablas
-def dynamic_Model_table(table_name):
-    metadata = MetaData()
-    dynamic_table = Table(
-        table_name, metadata,
-        Column('id', Integer, primary_key=True, autoincrement=True),
-        Column('url', String(100)),
-    )
-    return dynamic_table
-
-def tabla_existe(table_name):
-    inspector = db.inspect(db.engine)
-    return table_name in inspector.get_table_names()
-
-def Crear_Tabla(Guild, dynamic_table):
-    with app.app_context():
-        if not tabla_existe(Guild):
-            dynamic_table.create(bind=db.engine, checkfirst=True)
-            
-            print(f"La tabla para el servidor {Guild.name} - ID: {Guild.id} fue creada")
-        else:
-            print("La tabla ya existe")
-            
-def get_table(table_name):
-    return Table(str(table_name), MetaData(), autoload_with=db.engine)
-
-def get_item_by_id(table_name, item_id):
-    with app.app_context():
-        if tabla_existe(table_name):
-            table = get_table(table_name)
-
-            result = db.session.query(table).filter_by(id=item_id).first()
-            return result
-        else:
-            return None
-
-def update_item(table_name, item_id, new_data):
-    with app.app_context():
-        if tabla_existe(table_name):
-            table = get_table(table_name)
-            entry = get_item_by_id(table, item_id)
-            
-            if entry:
-                # Actualizar los atributos del modelo con los nuevos datos
-                for key, value in new_data.items():
-                    setattr(entry, key, value)
-                db.session.commit()
-                print("Datos actualizados")
-            else:
-                print("El elemento no existe")
-
-def remove_item_by_id(table_name, item_id):
-    with app.app_context():
-        if tabla_existe(table_name):
-            table = get_table(table_name)
-            entry = get_item_by_id(table, item_id)
-
-            if entry:
-                db.session.execute(table.delete().where(table.c.id == item_id))  # Elimina la fila con la condición
-                db.session.commit()  # Confirma la eliminación
-                print("Elemento eliminado")
-
-            else:
-                print("El elemento no existe")
-
-def get_all_items(table_name):
-    with app.app_context():
-        if tabla_existe(table_name):
-            # Obtener la instancia de la tabla dinámica existente
-            tabla = get_table(table_name)
-
-            # Realizar una consulta para obtener todos los elementos de la tabla
-            query = db.session.query(tabla).all()
-            return query
-        else:
-            return None
-
-def listado(table_name):
-    with app.app_context():
-        table_name = str(table_name)  # Nombre de la tabla basado en el ID del servidor
-
-        if not tabla_existe(table_name):
-            print(f"No existe la tabla para el servidor: {table_name}")
-            return
-
-        items = get_all_items(table_name)
-        if items:
-            print("Se han mostrado todos los elementos de la tabla")
-            for item in items:
-                # Imprime los elementos de la tabla en la consola del bot
-                print(item)
-        else:
-            print(f"No se pudieron encontrar elementos en la tabla: {table_name}")
-
-def remove_all_items(table_name):
-    with app.app_context():
-        if tabla_existe(table_name):
-            table = get_table(table_name)
-            db.session.execute(table.delete())
-            db.session.commit()
-            print(f"Se eliminaron todas las entradas de la tabla: {table_name}")
-        else:
-            print(f"No se pudo eliminar las entradas, la tabla {table_name} no existe")
-
-def add_items(table_name, data_list):
-    with app.app_context():
-        if tabla_existe(table_name):
-            table = get_table(table_name)
-
-            # Crear una lista de instancias de la tabla con los datos proporcionados
-            entries = [table(**data) for data in data_list]
-
-            # Agregar las instancias a la sesión de la base de datos y realizar un commit
-            db.session.add_all(entries)
-            db.session.commit()
-            print("Datos ingresados")
-        else:
-            print(f"No se pudo ingresar los datos en la tabla: {table_name}")
-
-from sqlalchemy import update
-
-def reorganize_ids_after_delete(table_name, deleted_id):
-    with app.app_context():
-        if tabla_existe(table_name):
-            table = get_table(table_name)
-
-            # Obtener los registros con ID mayor que el ID eliminado
-            items_to_update = db.session.query(table).filter(table.c.id > deleted_id).all()
-
-            # Actualizar las IDs restantes en la tabla
-            for item in items_to_update:
-                db.session.execute(
-                    update(table)
-                    .where(table.c.id == item.id)
-                    .values(id=item.id - 1)
-                )
-
-            db.session.commit()
-            print("IDs reorganizadas después de la eliminación.")
-        else:
-            print(f"La tabla {table_name} no existe.")
-
-
-#* Seccion de la Base de Datos ------------------------------
+import utils.db as db
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -224,7 +68,7 @@ async def on_ready():
 
 async def startup():
 
-    status = 1
+    status = 12
 
     if status == 1:
         custom_status = Activity(name='Music Player "=help"', type=ActivityType.playing)
@@ -344,7 +188,6 @@ async def skip(ctx, num: int = 1):
 
     voice_client.stop()
     await play_next(ctx)
-
     
 @bot.command()
 async def queue(ctx):
@@ -475,7 +318,7 @@ async def AddSongs(ctx, command):
 
     clearMusicFolder()
     songs_added = []
-    with app.app_context():
+    with db.app.app_context():
         if channel:
             if voice_client or command == None:
                 voice_client.pause()
@@ -493,8 +336,8 @@ async def AddSongs(ctx, command):
             url_pattern = r'(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[^\s]+)'
             urls = re.findall(url_pattern, command)
 
-            if not tabla_existe(GuildActual.id):
-                Crear_Tabla(GuildActual, dynamic_Model_table(GuildActual.id))
+            if not db.tabla_existe(GuildActual.id):
+                db.Crear_Tabla(GuildActual, db.dynamic_Model_table(GuildActual.id))
 
             for url in urls:
                 playlist = Playlist(url) if 'list' in url.lower() else None
@@ -518,7 +361,7 @@ async def AddSongs(ctx, command):
                         'thumbnail': thumbnail,
                         'artist': video.author
                     })
-                add_items(GuildActual.id, items)
+                db.add_items(GuildActual.id, items)
 
             if not urls:
                 videos = VideosSearch(command, limit=1)
@@ -527,7 +370,7 @@ async def AddSongs(ctx, command):
                 if len(results['result']) > 0:
                     video_url = results['result'][0]['link']
                     video = YouTube(video_url)
-                    add_items(GuildActual.id, {url: video_url})
+                    db.add_items(GuildActual.id, {url: video_url})
 
                     duration = video.length
                     mins, secs = divmod(duration, 60)
@@ -579,11 +422,12 @@ async def play_next(ctx):
     GuildActual = ctx.guild.id
     voice_client = ctx.voice_client
 
-    if len(Servidores_PlayList[GuildActual]) > 0:
+    if len(db.get_all_items(GuildActual)) > 0:
         if not voice_client.is_playing():
             video_url = Servidores_PlayList[GuildActual].pop(0)
-            video_url = get_item_by_id
+            video_url = db.get_item_by_id(GuildActual, 1).filter_by('url') & db.remove_item_by_id(GuildActual, 1)
             try:
+                # [id: 1, url: url]
                 video = YouTube(video_url)
                 best_audio = video.streams.get_audio_only()
                 filename = best_audio.default_filename
