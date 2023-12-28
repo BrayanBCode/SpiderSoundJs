@@ -469,4 +469,4 @@ async def play_next(ctx):
                     print(f'Error al descargar la canción: {str(e)}')
 
 
-bot.run("MTE3NzM0NDE3MDYzODE4MDUwMw.GXGuYa.O-0ubQ3-DYRvrSJYvtwNE4qluB8uuFKHroJPQQ")
+bot.run("")
