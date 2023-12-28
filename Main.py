@@ -4,11 +4,168 @@ from discord import Embed, FFmpegPCMAudio, Activity, ActivityType, Status
 from youtubesearchpython import VideosSearch
 from pytube import Playlist, YouTube
 
+#* Seccion de la Base de Datos ------------------------------
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import MetaData, Table, Column, Integer, String
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ServerPlaylist.db'  # Cambia la URL por tu base de datos
+db = SQLAlchemy(app)
+
+with app.app_context():
+    db.create_all()
+
+# Modelo de tablas
+def dynamic_Model_table(table_name):
+    metadata = MetaData()
+    dynamic_table = Table(
+        table_name, metadata,
+        Column('id', Integer, primary_key=True, autoincrement=True),
+        Column('url', String(100)),
+    )
+    return dynamic_table
+
+def tabla_existe(table_name):
+    inspector = db.inspect(db.engine)
+    return table_name in inspector.get_table_names()
+
+def Crear_Tabla(Guild, dynamic_table):
+    with app.app_context():
+        if not tabla_existe(Guild):
+            dynamic_table.create(bind=db.engine, checkfirst=True)
+            
+            print(f"La tabla para el servidor {Guild.name} - ID: {Guild.id} fue creada")
+        else:
+            print("La tabla ya existe")
+            
+def get_table(table_name):
+    return Table(str(table_name), MetaData(), autoload_with=db.engine)
+
+def get_item_by_id(table_name, item_id):
+    with app.app_context():
+        if tabla_existe(table_name):
+            table = get_table(table_name)
+
+            result = db.session.query(table).filter_by(id=item_id).first()
+            return result
+        else:
+            return None
+
+def update_item(table_name, item_id, new_data):
+    with app.app_context():
+        if tabla_existe(table_name):
+            table = get_table(table_name)
+            entry = get_item_by_id(table, item_id)
+            
+            if entry:
+                # Actualizar los atributos del modelo con los nuevos datos
+                for key, value in new_data.items():
+                    setattr(entry, key, value)
+                db.session.commit()
+                print("Datos actualizados")
+            else:
+                print("El elemento no existe")
+
+def remove_item_by_id(table_name, item_id):
+    with app.app_context():
+        if tabla_existe(table_name):
+            table = get_table(table_name)
+            entry = get_item_by_id(table, item_id)
+
+            if entry:
+                db.session.execute(table.delete().where(table.c.id == item_id))  # Elimina la fila con la condición
+                db.session.commit()  # Confirma la eliminación
+                print("Elemento eliminado")
+
+            else:
+                print("El elemento no existe")
+
+def get_all_items(table_name):
+    with app.app_context():
+        if tabla_existe(table_name):
+            # Obtener la instancia de la tabla dinámica existente
+            tabla = get_table(table_name)
+
+            # Realizar una consulta para obtener todos los elementos de la tabla
+            query = db.session.query(tabla).all()
+            return query
+        else:
+            return None
+
+def listado(table_name):
+    with app.app_context():
+        table_name = str(table_name)  # Nombre de la tabla basado en el ID del servidor
+
+        if not tabla_existe(table_name):
+            print(f"No existe la tabla para el servidor: {table_name}")
+            return
+
+        items = get_all_items(table_name)
+        if items:
+            print("Se han mostrado todos los elementos de la tabla")
+            for item in items:
+                # Imprime los elementos de la tabla en la consola del bot
+                print(item)
+        else:
+            print(f"No se pudieron encontrar elementos en la tabla: {table_name}")
+
+def remove_all_items(table_name):
+    with app.app_context():
+        if tabla_existe(table_name):
+            table = get_table(table_name)
+            db.session.execute(table.delete())
+            db.session.commit()
+            print(f"Se eliminaron todas las entradas de la tabla: {table_name}")
+        else:
+            print(f"No se pudo eliminar las entradas, la tabla {table_name} no existe")
+
+def add_items(table_name, data_list):
+    with app.app_context():
+        if tabla_existe(table_name):
+            table = get_table(table_name)
+
+            # Crear una lista de instancias de la tabla con los datos proporcionados
+            entries = [table(**data) for data in data_list]
+
+            # Agregar las instancias a la sesión de la base de datos y realizar un commit
+            db.session.add_all(entries)
+            db.session.commit()
+            print("Datos ingresados")
+        else:
+            print(f"No se pudo ingresar los datos en la tabla: {table_name}")
+
+from sqlalchemy import update
+
+def reorganize_ids_after_delete(table_name, deleted_id):
+    with app.app_context():
+        if tabla_existe(table_name):
+            table = get_table(table_name)
+
+            # Obtener los registros con ID mayor que el ID eliminado
+            items_to_update = db.session.query(table).filter(table.c.id > deleted_id).all()
+
+            # Actualizar las IDs restantes en la tabla
+            for item in items_to_update:
+                db.session.execute(
+                    update(table)
+                    .where(table.c.id == item.id)
+                    .values(id=item.id - 1)
+                )
+
+            db.session.commit()
+            print("IDs reorganizadas después de la eliminación.")
+        else:
+            print(f"La tabla {table_name} no existe.")
+
+
+#* Seccion de la Base de Datos ------------------------------
+
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix = "=", intents=intents, help_command=None)
 
-Servidores_PlayList = {}
+#Servidores_PlayList = {}
 inactive_timers = {}
 CurrentlyPlaying = {}
 ActiveLoop = {}
@@ -100,7 +257,7 @@ async def remove(ctx, command):
             video = YouTube(Servidores_PlayList[GuildActual][command])
             Servidores_PlayList[GuildActual].pop(command - 1)
             return
-        
+
         video = YouTube(Servidores_PlayList[GuildActual][command - 1])
         Servidores_PlayList[GuildActual].pop(command - 1)
         duartion = video.length
@@ -282,8 +439,7 @@ async def queue(ctx):
                     await reaction.remove(user)
 
                 except asyncio.TimeoutError:
-                    break
-
+                    break               
     else:
         embed = Embed(description="No hay lista de reproducción para este servidor.", color=0x6a0dad)
         await ctx.send(embed=embed)
@@ -314,105 +470,110 @@ async def AddSongs(ctx, command):
     voice_client = ctx.guild.voice_client
     channel = ctx.author.voice.channel
     GuildActual = ctx.guild
+    items = []
     print(f'\nComando emitido por [{ctx.author.name}] en ({ctx.guild.name}) - command: {bot.command_prefix}play {command}\n')
 
     clearMusicFolder()
     songs_added = []
-
-    if channel:
-        if voice_client:
-            voice_client.pause()
-            await voice_client.move_to(channel)
-            voice_client.resume()
-        else:
-            try:
-                voice_client = await channel.connect()
-            except Exception as e:
-                print(f'Error al conectar al canal de voz: {e}')
-                return
-
-        url_pattern = r'(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[^\s]+)'
-        urls = re.findall(url_pattern, command)
-
-        if GuildActual.id not in Servidores_PlayList:
-            await addListServer(GuildActual)
-
-        for url in urls:
-            playlist = Playlist(url) if 'list' in url.lower() else None
-            video_urls = playlist.video_urls if playlist else [url]
-
-            for video_url in video_urls:
-                video = YouTube(video_url)
-                Servidores_PlayList[GuildActual.id].append(video_url)
-
-                duration = video.length
-                mins, secs = divmod(duration, 60)
-                hours, mins = divmod(mins, 60)
-                duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
-
-                thumbnail = video.thumbnail_url
-
-                songs_added.append({
-                    'title': video.title,
-                    'duration': duration_formatted,
-                    'thumbnail': thumbnail,
-                    'artist': video.author
-                })
-
-        if not urls:
-            videos = VideosSearch(command, limit=1)
-            results = videos.result()
-
-            if len(results['result']) > 0:
-                video_url = results['result'][0]['link']
-                video = YouTube(video_url)
-                Servidores_PlayList[GuildActual.id].append(video_url)
-
-                duration = video.length
-                mins, secs = divmod(duration, 60)
-                hours, mins = divmod(mins, 60)
-                duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
-
-                thumbnail = video.thumbnail_url
-
-                songs_added.append({
-                    'title': video.title,
-                    'duration': duration_formatted,
-                    'thumbnail': thumbnail,
-                    'artist': video.author
-                })
+    with app.app_context():
+        if channel:
+            if voice_client or command == None:
+                voice_client.pause()
+                await voice_client.move_to(channel)
+                voice_client.resume()
+                if command == None:
+                    return
             else:
-                await ctx.send('No se encontraron búsquedas válidas.')
-                return
+                try:
+                    voice_client = await channel.connect()
+                except Exception as e:
+                    print(f'Error al conectar al canal de voz: {e}')
+                    return
 
-        embed_title = "Canción agregada a la playlist" if len(songs_added) == 1 else "Canciones agregadas a la playlist"
-        embed = Embed(title=embed_title, color=0x6a0dad)
+            url_pattern = r'(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[^\s]+)'
+            urls = re.findall(url_pattern, command)
 
-        i = 0
-        for song in songs_added:
-            i += 1
-            if i <= 5:
-                embed.add_field(
-                    name=f"{song['title']} - {song['artist']}",
-                    value=f"Duración: {song['duration']}",
+            if not tabla_existe(GuildActual.id):
+                Crear_Tabla(GuildActual, dynamic_Model_table(GuildActual.id))
+
+            for url in urls:
+                playlist = Playlist(url) if 'list' in url.lower() else None
+                video_urls = playlist.video_urls if playlist else [url]
+
+                
+                for video_url in video_urls:
+                    video = YouTube(video_url)
+                    items.append({url: video_url})
+
+                    duration = video.length
+                    mins, secs = divmod(duration, 60)
+                    hours, mins = divmod(mins, 60)
+                    duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+
+                    thumbnail = video.thumbnail_url
+
+                    songs_added.append({
+                        'title': video.title,
+                        'duration': duration_formatted,
+                        'thumbnail': thumbnail,
+                        'artist': video.author
+                    })
+                add_items(GuildActual.id, items)
+
+            if not urls:
+                videos = VideosSearch(command, limit=1)
+                results = videos.result()
+
+                if len(results['result']) > 0:
+                    video_url = results['result'][0]['link']
+                    video = YouTube(video_url)
+                    add_items(GuildActual.id, {url: video_url})
+
+                    duration = video.length
+                    mins, secs = divmod(duration, 60)
+                    hours, mins = divmod(mins, 60)
+                    duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+
+                    thumbnail = video.thumbnail_url
+
+                    songs_added.append({
+                        'title': video.title,
+                        'duration': duration_formatted,
+                        'thumbnail': thumbnail,
+                        'artist': video.author
+                    })
+                else:
+                    await ctx.send('No se encontraron búsquedas válidas.')
+                    return
+
+            embed_title = "Canción agregada a la playlist" if len(songs_added) == 1 else "Canciones agregadas a la playlist"
+            embed = Embed(title=embed_title, color=0x6a0dad)
+
+            i = 0
+            for song in songs_added:
+                i += 1
+                if i <= 5:
+                    embed.add_field(
+                        name=f"{song['title']} - {song['artist']}",
+                        value=f"Duración: {song['duration']}",
+                        inline=False
+                    )
+                    embed.set_thumbnail(url=song['thumbnail'])
+                else:
+                    embed.add_field(
+                    name=f"**Y {len(songs_added) - 5} canciones más...**",
+                    value=f"Total de canciones agregadas: {len(songs_added)}", # Cambiar *texto a (Peticion de X usuario)
                     inline=False
                 )
-                embed.set_thumbnail(url=song['thumbnail'])
-            else:
-                embed.add_field(
-                name=f"**Y {len(songs_added) - 5} canciones más...**",
-                value=f"Total de canciones agregadas: {len(songs_added)}", # Cambiar *texto a (Peticion de X usuario)
-                inline=False
-            )
-                break
+                    break
 
-        await ctx.send(embed=embed)
+            await ctx.send(embed=embed)
 
-        if not voice_client.is_playing():
-            await play_next(ctx)
+            if not voice_client.is_playing():
+                await play_next(ctx)
 
-    else:
-        await ctx.send("¡Debes estar en un canal de voz para reproducir música!")
+        else:
+            await ctx.send("¡Debes estar en un canal de voz para reproducir música!")
 
 async def play_next(ctx):
     GuildActual = ctx.guild.id
@@ -421,6 +582,7 @@ async def play_next(ctx):
     if len(Servidores_PlayList[GuildActual]) > 0:
         if not voice_client.is_playing():
             video_url = Servidores_PlayList[GuildActual].pop(0)
+            video_url = get_item_by_id
             try:
                 video = YouTube(video_url)
                 best_audio = video.streams.get_audio_only()
@@ -431,7 +593,7 @@ async def play_next(ctx):
                 voice_client.play(audio_source, after=lambda e: (
                     bot.loop.create_task(play_next(ctx)),
                     clearMusicFolder(),
-                    Servidores_PlayList[GuildActual].append(video_url) if ActiveLoop[GuildActual] else None                        
+                    Servidores_PlayList[GuildActual].append(video_url) if ActiveLoop[GuildActual] else None                      
                 ))
 
                 # Enviar mensaje con la canción que está siendo reproducida
