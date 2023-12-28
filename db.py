@@ -45,8 +45,12 @@ def add_item(table_name, data):
             # Obtener la instancia de la tabla dinámica existente
             tabla = get_table(table_name)
 
+            
+
+            for items in data:
             # Insertar los datos proporcionados en la tabla
-            db.session.execute(tabla.insert().values(**data))
+                db.session.execute(tabla.insert().values(**items))
+
             db.session.commit()
 
             print("Datos ingresados")

@@ -3,7 +3,8 @@ from discord.ext import commands
 from discord import Embed, FFmpegPCMAudio, Activity, ActivityType, Status
 from youtubesearchpython import VideosSearch
 from pytube import Playlist, YouTube
-import utils.db as db
+import db
+from db import app, get_item_by_id, add_item, remove_item_by_id, get_all_items, tabla_existe, Crear_Tabla, dynamic_Model_table
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -314,11 +315,12 @@ async def AddSongs(ctx, command):
     channel = ctx.author.voice.channel
     GuildActual = ctx.guild
     items = []
+    data_list = []
     print(f'\nComando emitido por [{ctx.author.name}] en ({ctx.guild.name}) - command: {bot.command_prefix}play {command}\n')
 
     clearMusicFolder()
     songs_added = []
-    with db.app.app_context():
+    with app.app_context():
         if channel:
             if voice_client or command == None:
                 voice_client.pause()
@@ -336,8 +338,8 @@ async def AddSongs(ctx, command):
             url_pattern = r'(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[^\s]+)'
             urls = re.findall(url_pattern, command)
 
-            if not db.tabla_existe(GuildActual.id):
-                db.Crear_Tabla(GuildActual, db.dynamic_Model_table(GuildActual.id))
+            if not tabla_existe(GuildActual.id):
+                Crear_Tabla(GuildActual, dynamic_Model_table(GuildActual.id))
 
             for url in urls:
                 playlist = Playlist(url) if 'list' in url.lower() else None
@@ -346,7 +348,8 @@ async def AddSongs(ctx, command):
                 
                 for video_url in video_urls:
                     video = YouTube(video_url)
-                    items.append({url: video_url})
+                    items.append(video_url)
+
 
                     duration = video.length
                     mins, secs = divmod(duration, 60)
@@ -361,7 +364,7 @@ async def AddSongs(ctx, command):
                         'thumbnail': thumbnail,
                         'artist': video.author
                     })
-                db.add_items(GuildActual.id, items)
+                add_item(GuildActual.id, data_list)
 
             if not urls:
                 videos = VideosSearch(command, limit=1)
@@ -370,7 +373,7 @@ async def AddSongs(ctx, command):
                 if len(results['result']) > 0:
                     video_url = results['result'][0]['link']
                     video = YouTube(video_url)
-                    db.add_items(GuildActual.id, {url: video_url})
+                    add_item(GuildActual.id, {'url': video_url})
 
                     duration = video.length
                     mins, secs = divmod(duration, 60)
@@ -421,49 +424,49 @@ async def AddSongs(ctx, command):
 async def play_next(ctx):
     GuildActual = ctx.guild.id
     voice_client = ctx.voice_client
+    with app.app_context():
+        if len(get_all_items(GuildActual)) > 0:
+            if not voice_client.is_playing():
+                video_url = Servidores_PlayList[GuildActual].pop(0)
+                video_url = get_item_by_id(GuildActual, 1).filter_by('url') & remove_item_by_id(GuildActual, 1)
+                try:
+                    # [id: 1, url: url]
+                    video = YouTube(video_url)
+                    best_audio = video.streams.get_audio_only()
+                    filename = best_audio.default_filename
+                    best_audio.download(filename=filename, output_path='Musica')
 
-    if len(db.get_all_items(GuildActual)) > 0:
-        if not voice_client.is_playing():
-            video_url = Servidores_PlayList[GuildActual].pop(0)
-            video_url = db.get_item_by_id(GuildActual, 1).filter_by('url') & db.remove_item_by_id(GuildActual, 1)
-            try:
-                # [id: 1, url: url]
-                video = YouTube(video_url)
-                best_audio = video.streams.get_audio_only()
-                filename = best_audio.default_filename
-                best_audio.download(filename=filename, output_path='Musica')
+                    audio_source = FFmpegPCMAudio(os.path.join('Musica', filename))
+                    voice_client.play(audio_source, after=lambda e: (
+                        bot.loop.create_task(play_next(ctx)),
+                        clearMusicFolder(),
+                        Servidores_PlayList[GuildActual].append(video_url) if ActiveLoop[GuildActual] else None                      
+                    ))
 
-                audio_source = FFmpegPCMAudio(os.path.join('Musica', filename))
-                voice_client.play(audio_source, after=lambda e: (
-                    bot.loop.create_task(play_next(ctx)),
-                    clearMusicFolder(),
-                    Servidores_PlayList[GuildActual].append(video_url) if ActiveLoop[GuildActual] else None                      
-                ))
+                    # Enviar mensaje con la canción que está siendo reproducida
+                    duration = video.length
+                    mins, secs = divmod(duration, 60)
+                    hours, mins = divmod(mins, 60)
+                    duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
 
-                # Enviar mensaje con la canción que está siendo reproducida
-                duration = video.length
-                mins, secs = divmod(duration, 60)
-                hours, mins = divmod(mins, 60)
-                duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+                    embed = Embed(title="Reproduciendo", description=f"{video.title} - {video.author}\n[Ver en Youtube]({video_url})\nDuración: {duration_formatted}", color=0x6a0dad)
 
-                embed = Embed(title="Reproduciendo", description=f"{video.title} - {video.author}\n[Ver en Youtube]({video_url})\nDuración: {duration_formatted}", color=0x6a0dad)
+                    embed.set_thumbnail(url=video.thumbnail_url)
+                    await ctx.send(embed=embed)
 
-                embed.set_thumbnail(url=video.thumbnail_url)
-                await ctx.send(embed=embed)
+                    CurrentlyPlaying[GuildActual] = {
+                        'title': video.title,
+                        'artist': video.author,
+                        'duration': duration_formatted,
+                        'url': video_url,
+                        'thumbnail': video.thumbnail_url,
+                        'author': video.author
+                    }
 
-                CurrentlyPlaying[GuildActual] = {
-                    'title': video.title,
-                    'artist': video.author,
-                    'duration': duration_formatted,
-                    'url': video_url,
-                    'thumbnail': video.thumbnail_url,
-                    'author': video.author
-                }
-
-                await asyncio.sleep(30)
-            except Exception as e:
-                await ctx.send(f'Error al descargar la canción: {str(e)}')
-                print(f'Error al descargar la canción: {str(e)}')
+                    await asyncio.sleep(30)
+                except Exception as e:
+                    await ctx.send(f'Error al descargar la canción: {str(e)}')
+                    print(f'Error al descargar la canción: {str(e)}')
 
 
-bot.run("")
+bot.run("MTE3NzM0NDE3MDYzODE4MDUwMw.GXGuYa.O-0ubQ3-DYRvrSJYvtwNE4qluB8uuFKHroJPQQ")
