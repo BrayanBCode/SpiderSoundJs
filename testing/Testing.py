@@ -1,3 +1,28 @@
+results = [
+    (1, 'https://www.youtube.com/watch?v=abc123'),
+    (2, 'https://www.youtube.com/watch?v=def456'),
+    (3, 'https://www.youtube.com/watch?v=ghi789')
+]
+
+print(results[0][1])
+op =  results[0][1]
+print(type(op))
+
+op = str(results[0][1])
+print(type(op))
+
+
+
+
+
+
+
+
+
+
+
+
+"""
 import os, sys, re, asyncio, discord
 from discord.ext import commands
 from discord import Embed, FFmpegPCMAudio, Activity, ActivityType, Status
@@ -216,7 +241,6 @@ async def listar(ctx):
 
 bot.run("")
 
-"""
 def remove_item(table_name, item):
     with app.app_context():
         if tabla_existe(table_name):
@@ -253,3 +277,4 @@ def get_item(table_name, id_position):
             else:
                 return None
 """
+

@@ -45,8 +45,6 @@ def add_item(table_name, data):
             # Obtener la instancia de la tabla dinámica existente
             tabla = get_table(table_name)
 
-            
-
             for items in data:
             # Insertar los datos proporcionados en la tabla
                 db.session.execute(tabla.insert().values(**items))
@@ -88,7 +86,6 @@ def update_item(table_name, item_id, new_data):
 def remove_item_by_id(table_name, item_id):
     with app.app_context():
         if tabla_existe(table_name):
-            print(tabla_existe(table_name))
             table = get_table(table_name)
             entry = get_item_by_id(table, item_id)
 
@@ -96,9 +93,7 @@ def remove_item_by_id(table_name, item_id):
                 db.session.execute(table.delete().where(table.c.id == item_id))  # Elimina la fila con la condición
                 db.session.commit()  # Confirma la eliminación
                 print("Elemento eliminado")
-                remove_item_by_id(table_name, item_id)
-
-
+                reorganize_ids_after_delete(table_name)
             else:
                 print("El elemento no existe")
 
@@ -141,40 +136,89 @@ def remove_all_items(table_name):
         else:
             print(f"No se pudo eliminar las entradas, la tabla {table_name} no existe")
 
-def add_multiple_items(table_name, data_list):
+def reorganize_ids_after_delete(table_name):
     with app.app_context():
         if tabla_existe(table_name):
             table = get_table(table_name)
 
-            # Crear una lista de instancias de la tabla con los datos proporcionados
-            entries = [table(**data) for data in data_list]
+            # Obtener todos los registros de la tabla ordenados por ID
+            items = db.session.query(table).order_by(table.c.id).all()
 
-            # Agregar las instancias a la sesión de la base de datos y realizar un commit
-            db.session.add_all(entries)
-            db.session.commit()
-            print("Datos ingresados")
-        else:
-            print(f"No se pudo ingresar los datos en la tabla: {table_name}")
-
-def reorganize_ids_after_delete(table_name, deleted_id):
-    with app.app_context():
-        if tabla_existe(table_name):
-            table = get_table(table_name)
-
-            # Obtener los registros con ID mayor que el ID eliminado
-            items_to_update = db.session.query(table).filter(table.c.id > deleted_id).all()
-
-            # Actualizar las IDs restantes en la tabla
-            for item in items_to_update:
+            # Actualizar las IDs de los registros en la tabla
+            for index, item in enumerate(items, start=1):
                 db.session.execute(
                     update(table)
                     .where(table.c.id == item.id)
-                    .values(id=item.id - 1)
+                    .values(id=index)
                 )
 
             db.session.commit()
             print("IDs reorganizadas después de la eliminación.")
         else:
             print(f"La tabla {table_name} no existe.")
+
+
+def update_playlist_in_db(guild_id, songs_to_keep):
+    # Suponiendo que la tabla de la lista de reproducción se llama 'playlist_table'
+    
+    # Eliminar todas las canciones actuales de la lista de reproducción para el servidor en la base de datos
+    remove_all_items(guild_id)
+
+    # Preparar los datos de las canciones a mantener en la lista de reproducción
+    songs_data = []
+    for song in songs_to_keep:
+        songs_data.append([{'url': song}])
+
+    # Agregar las canciones que se desean mantener en la lista de reproducción para el servidor en la base de datos
+    add_item(guild_id, songs_data)
+
+    print(f"Lista de reproducción actualizada en la base de datos para el servidor {guild_id}")
+
+def delete_items_up_to_id(table_name, end_id):
+    with app.app_context():
+        if tabla_existe(table_name):
+            table = get_table(table_name)
+
+            # Ejecutar la sentencia DELETE directamente en la base de datos
+            db.session.execute(table.delete().where(table.c.id <= end_id))
+            db.session.commit()
+
+            # Reorganizar las IDs después de la eliminación
+            reorganize_ids_after_delete(table_name)
+
+            print(f"Elementos eliminados hasta la ID {end_id}")
+        else:
+            print(f"No existe la tabla: {table_name}")
+
+def loopedPlaylist(GuildActual, command):
+        with app.app_context():
+            if tabla_existe(GuildActual):
+                table = get_table(GuildActual)
+                data_list = []
+
+                Skiped_songs = db.session.query(table).filter(table.c.id <= command).all()
+                delete_items_up_to_id(GuildActual, command)
+        
+
+                for song in Skiped_songs:
+                    data_list.append({'url': str(song[1])})
+
+                add_item(GuildActual, data_list)
+                print("Playlist con loop activa, re acomodando canciones al final de la playlist")
+            else:
+                print(f"No existe la tabla: {GuildActual}")
+
+def eliminar_entradas_de_todas_las_tablas():
+    with app.app_context():
+        inspector = db.inspect(db.engine)
+        tablas = inspector.get_table_names()
+
+        for tabla in tablas:
+            remove_all_items(tabla)
+            print(f"Todas las entradas de la tabla {tabla} han sido eliminadas.")
+
+# Llama a la función para eliminar las entradas de todas las tablas
+eliminar_entradas_de_todas_las_tablas()
+
 
 #* Seccion de la Base de Datos ------------------------------
