@@ -15,7 +15,7 @@ El prefijo del bot es " = " el prefijo es aquel caracter el cual el bot utiliza 
 
 + **help** - Muestra la guia de comandos.
 + **play** - Para reproducir música, simplemente escribe **=play** seguido del nombre de la canción, el artista o la URL de la canción que desees escuchar.
-+ **stop** - Para pausar la musica utilize **=stop** una vez para reanudar la musica utilize **=stop** nuevamente.
++ **stop** - Para pausar la musica utilize **=stop**, para reanudar la musica utilize **=stop** nuevamente.
 + **skip** - Para saltear una cancion utilize **=skip**, para saltear varias agrege un numero, ejemplo: **=skip 3**.
 + **queue** - Muestra la playlist y la cancion que se esta reproduciendo actualmente.
 + **remove** - Quita de la playlist la cancion que el usuario desee ejemplo: **=remove 5**.
@@ -32,6 +32,9 @@ youtube-search-python
 
 pytube
 
+Flask
+
+Flask-SQLAlchemy
 #### Como instalarlas
 pip install pipenv
 
@@ -40,6 +43,10 @@ pipenv install discord.py
 pipenv install youtube-search-python
 
 pipenv install pytube
+
+pipenv install Flask
+
+pipenv install Flask-SQLAlchemy
 
 ### Adicion al PATH necesaria
 Se debe añadir al path el archivo bin encontrado en la carpeta "utils\ffmpeg-master-latest-win64-gpl-shared"
@@ -57,6 +64,7 @@ Una vez dentro deben clikear 2 veces en donde dice PATH y agregarle la direccion
 ## Parches
 + 1.0 - Fixeo de error de borrado de playlist y adicion de desconexion por ausencia de usuario
 + 2.0 - Adicion de comando Loop
++ 3.0 - Implementacion de base de datos
 
 ## Funciones adicionales del bot
 + funciona en multiplas servidores al mismo tiempo
