@@ -47,7 +47,7 @@ def add_item(table_name, data):
 
             for items in data:
             # Insertar los datos proporcionados en la tabla
-                db.session.execute(tabla.insert().values(**items))
+                db.session.execute(tabla.insert().values(**str(items)))
 
             db.session.commit()
 
@@ -55,7 +55,6 @@ def add_item(table_name, data):
         else:
             print(f"No se pudo ingresar el dato en la tabla: {table_name}")
 
-# Read
 def get_item_by_id(table_name, item_id):
     with app.app_context():
         if tabla_existe(table_name):
@@ -66,7 +65,6 @@ def get_item_by_id(table_name, item_id):
         else:
             return None
 
-# Update
 def update_item(table_name, item_id, new_data):
     with app.app_context():
         if tabla_existe(table_name):
@@ -82,7 +80,6 @@ def update_item(table_name, item_id, new_data):
             else:
                 print("El elemento no existe")
 
-# Delete
 def remove_item_by_id(table_name, item_id):
     with app.app_context():
         if tabla_existe(table_name):

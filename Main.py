@@ -14,8 +14,6 @@ CurrentlyPlaying = {}
 inactive_timers = {}
 ActiveLoop = {}
 
-
-
 #! eventos --------------------------------------------------------------------
 
 @bot.event # Ejecutar la función cuando el bot se una a un canal de voz en un servidor
@@ -312,6 +310,8 @@ async def skip(ctx, command: int = 1):
 async def clear(ctx):
     GuildActual = ctx.guild.id
     remove_all_items(GuildActual)
+    embed = Embed(description="Lista de reproducción borrada.", color=0x6a0dad)
+    await ctx.send(embed=embed)
 
 @bot.command()
 async def remove(ctx, command):
@@ -391,9 +391,7 @@ async def play_next(ctx):
 
                     audio_source = FFmpegPCMAudio(os.path.join('Musica', filename))
                     voice_client.play(audio_source, after=lambda e: (
-                        bot.loop.create_task(play_next(ctx)),
-                        clearMusicFolder(),
-                        add_item(GuildActual, [{'url': video_url}]) if ActiveLoop[GuildActual] else None                      
+                        clearMusicFolder()
 
                     ))
 
@@ -417,20 +415,44 @@ async def play_next(ctx):
                         'author': video.author
                     }
 
+                    await play_next_controler(ctx)
                     await asyncio.sleep(30)
                 except Exception as e:
                     await ctx.send(f'Error al descargar la canción: {str(e)}')
                     print(f'Error al descargar la canción: {str(e)}')
 
+async def play_next_controler(ctx):
+    while True:
+        voice_client = ctx.guild.voice_client
+        GuildActual = ctx.guild.id
+
+        if voice_client.is_playing():
+            while voice_client.is_playing():
+                await asyncio.sleep(1)
+            continue
+
+        if len(get_all_items(GuildActual)) > 0:
+            await play_next(ctx)
+        elif ActiveLoop[GuildActual]:
+            video_url = CurrentlyPlaying[GuildActual]['url']
+            add_item(GuildActual, [{'url': str(video_url)}])
+        else:
+            break
+
+        await asyncio.sleep(2)
+        print("play_next_controler: En reproduccion")
+
+
+
+
 async def check_voice_activity(guild): # Esta función verificará si el bot está inactivo en un canal de voz durante 2 minutos y lo desconectará
     while True:
         voice_client = guild.voice_client
-
         if voice_client and voice_client.channel:
             # Verificar si el bot está solo en el canal de voz
-            if len(voice_client.channel.members) == 1 and voice_client.channel.members[0] == guild.me:
+            if len(voice_client.channel.members) == 1 and voice_client.channel.members[0] == guild.me or not voice_client.is_playing():
                 await asyncio.sleep(120)  # Esperar 2 minutos para verificar la inactividad
-                if len(voice_client.channel.members) == 1 and voice_client.channel.members[0] == guild.me:
+                if len(voice_client.channel.members) == 1 and voice_client.channel.members[0] == guild.me or not voice_client.is_playing():
                     await voice_client.disconnect()
                     print(f"El bot ha sido desconectado del canal de voz en '{guild.name}' debido a la inactividad.")
                     if check_folder_contents():
@@ -498,7 +520,4 @@ def crear_carpeta_si_no_existe(nombre_carpeta):
     else:
         print(f"La carpeta '{nombre_carpeta}' ya existe.")
 
-
-
-
-bot.run("")
+bot.run("MTE3NzM0NDE3MDYzODE4MDUwMw.GM7hEq.xr6Iv7VlzYTNNr0JXrzBypr1rC1mXWxGWkpW7M")
