@@ -1,6 +1,3 @@
-# Proyecto Final Kodland
-Este bot fue desarrollado para el proyecto final de Kodland del curso de Python Pro 2023
-
 ## Araña Sound - EN DESARROLLO
 <img src="https://github.com/BrayanBCode/ProyectoFinalKodland/assets/134159765/7f81ca3a-6e63-437d-baaf-6799bca6109c" alt="Araña Sound Logo" width="50%">
 
@@ -8,7 +5,7 @@ El bot suele estar hosteado 24/7 a no ser que no pueda tenerlo hosteado.
 [Invita Araña Sound a tu servidor](https://discord.com/api/oauth2/authorize?client_id=1177344170638180503&permissions=8&scope=bot)
 
 ## Bot de Musica de discord
-Mi proyecto consta de un bot de discord el cual es capaz de reproducir musica utilizando busquedas de youtube, el bot cuenta con una interfaz amigable e intuitiba para el usuario, el bot soporta multiple servidores al mismo tiempo lo que significa que se puede utilizar en multiples servidores al mismo tiempo, el bot se conecta a **un canal de voz** por servidor, cuando el usuario que quiera utilizarlo debe esciribir el comando =play o =p para utilizar este comando se debe escibir en un canal de texto el cual el bot tenga acceso para utilizar el comando, se debe escribir =play SkyFall o el url de la cancion o video que quieras que el bot reproduzca el audio.
+El bot es capaz de reproducir musica utilizando busquedas de youtube, el bot cuenta con una interfaz amigable e intuitiba para el usuario, el bot soporta multiple servidores al mismo tiempo lo que significa que se puede utilizar en multiples servidores al mismo tiempo, el bot se conecta a **un canal de voz** por servidor, cuando el usuario que quiera utilizarlo debe esciribir el comando =play o =p para utilizar este comando se debe escibir en un canal de texto el cual el bot tenga acceso para utilizar el comando, se debe escribir =play SkyFall o el url de la cancion o video que quieras que el bot reproduzca el audio.
 
 ### Guia de comandos
 El prefijo del bot es " = " el prefijo es aquel caracter el cual el bot utiliza para darse cuenta de si lo que escribio el usuario es un comando o simplemente texto
