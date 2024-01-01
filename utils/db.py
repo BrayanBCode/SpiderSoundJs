@@ -47,7 +47,7 @@ def add_item(table_name, data):
 
             for items in data:
             # Insertar los datos proporcionados en la tabla
-                db.session.execute(tabla.insert().values(**str(items)))
+                db.session.execute(tabla.insert().values(**items))
 
             db.session.commit()
 
@@ -212,7 +212,8 @@ def eliminar_entradas_de_todas_las_tablas():
 
         for tabla in tablas:
             remove_all_items(tabla)
-            print(f"Todas las entradas de la tabla {tabla} han sido eliminadas.")
+            
+        print(f"Todas las entradas de la tablas han sido eliminadas.")
 
 # Llama a la función para eliminar las entradas de todas las tablas
 eliminar_entradas_de_todas_las_tablas()

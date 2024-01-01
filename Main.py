@@ -442,9 +442,6 @@ async def play_next_controler(ctx):
         await asyncio.sleep(2)
         print("play_next_controler: En reproduccion")
 
-
-
-
 async def check_voice_activity(guild): # Esta función verificará si el bot está inactivo en un canal de voz durante 2 minutos y lo desconectará
     while True:
         voice_client = guild.voice_client
@@ -463,26 +460,30 @@ async def check_voice_activity(guild): # Esta función verificará si el bot est
         await asyncio.sleep(10)  # Verificar la inactividad cada 10 segundos
 
 async def startup():
+    StartupLoop()
 
+    crear_carpeta_si_no_existe()
+
+    await Status()
+
+    with app.app_context():
+        eliminar_entradas_de_todas_las_tablas()
+
+async def Status():
     status = 1
     print(f"Ya estoy activo {bot.user} al servicio")
 
     if status == 1:
         custom_status = Activity(name='Music Player "=help"', type=ActivityType.playing)
-        await bot.change_presence(status=Status.online, activity=custom_status)
-
+        await bot.change_presence(status=discord.Status.online, activity=custom_status)
     else:
         custom_status = Activity(name="Fuera de Servicio", type=ActivityType.playing)
-        await bot.change_presence(activity=custom_status, status=Status.do_not_disturb)
+        await bot.change_presence(activity=custom_status, status=discord.Status.do_not_disturb)
 
+def StartupLoop():
     ids_servidores = bot.guilds
     for servidor_id in ids_servidores:
         ActiveLoop[servidor_id.id] = False
-
-    crear_carpeta_si_no_existe('Musica')
-
-    with app.app_context():
-        eliminar_entradas_de_todas_las_tablas()
 
 def check_folder_contents():
     folder_path = './Musica'  # Ruta a la carpeta
@@ -508,7 +509,9 @@ def clearMusicFolder():
             except Exception as e:
                 continue  # Pasar al siguiente archivo si no se puede eliminar
 
-def crear_carpeta_si_no_existe(nombre_carpeta):
+def crear_carpeta_si_no_existe():
+    nombre_carpeta = 'Musica'
+    
     ruta_carpeta = os.path.join(os.getcwd(), nombre_carpeta)
     
     if not os.path.exists(ruta_carpeta):
@@ -520,4 +523,4 @@ def crear_carpeta_si_no_existe(nombre_carpeta):
     else:
         print(f"La carpeta '{nombre_carpeta}' ya existe.")
 
-bot.run("MTE3NzM0NDE3MDYzODE4MDUwMw.GM7hEq.xr6Iv7VlzYTNNr0JXrzBypr1rC1mXWxGWkpW7M")
+bot.run("MTE3NzM0NDE3MDYzODE4MDUwMw.GKJJMr.rOReEw36V6bfliokrIV53gP28FUlBovvZhaDo0")
