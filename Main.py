@@ -42,7 +42,6 @@ async def help(ctx):
 
     await ctx.send(embed=embed)
 
-
 #* Comandos comandos.Musica ---------------------------
 if('comandos.Musica' in sys.modules):
     @bot.command()
@@ -82,5 +81,5 @@ if('comandos.Musica' in sys.modules):
 
 
 
-    
+
 bot.run(os.environ.get("token"))
