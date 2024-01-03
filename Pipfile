@@ -9,6 +9,10 @@ youtube-dl = "*"
 youtube-search-python = "*"
 pytube = "*"
 pynacl = "*"
+python-dotenv = "*"
+"discord.py" = "*"
+flask = "*"
+flask-sqlalchemy = "*"
 
 [dev-packages]
 
