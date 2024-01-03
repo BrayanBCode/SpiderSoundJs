@@ -1,37 +1,26 @@
-import os, sys, re, asyncio, discord
+import os, sys, discord
 from discord.ext import commands
-from discord import Embed, FFmpegPCMAudio, Activity, ActivityType, Status
-from youtubesearchpython import VideosSearch
-from pytube import Playlist, YouTube
-from utils.db import *
+from discord import Embed
 from comandos import Musica
 
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix = "=", intents=intents, help_command=None)
 
-
-
 #! eventos --------------------------------------------------------------------
 
 @bot.event # Ejecutar la función cuando el bot se una a un canal de voz en un servidor
 async def on_voice_state_update(member, before, after):
-    if member == bot.user and after.channel:
-        afterguild = after.channel.guild
-
-        if afterguild.id not in inactive_timers:
-            inactive_timers[afterguild.id] = bot.loop.create_task(check_voice_activity(afterguild))
-    try:
-        beforeguild = before.channel.guild
-        if before.channel and not after.channel and member == bot.user:  # Se desconectó de un canal de voz
-            remove_all_items(beforeguild.id) # Borrar la lista de reproducción del servidor
-            print(f"La lista de reproducción para el servidor {beforeguild.name} ha sido limpiada.")
-    except:
-        print(f"Evento de Voz detectado - Usuario: {member} en {member.guild.name}")
+    await Musica.Event(member, before, after, bot)
 
 @bot.event
 async def on_ready():
-    await Musica.startup()
+    await Musica.startup(bot)
+    
+@bot.command() #Reinicia el bot con un comando
+async def restart(ctx):
+    await ctx.send('Reiniciando...')
+    os.execv(sys.executable, ['python'] + ['"{}"'.format(arg) for arg in sys.argv])
 
 #* Comandos -------------------------------------------------------------------
 
@@ -49,13 +38,15 @@ async def help(ctx):
 
     await ctx.send(embed=embed)
 
+#* Comandos Musica ---------------------------
+
 @bot.command()
 async def play(ctx, *, command):
-    await Musica.AddSongs(ctx, command)
+    await Musica.AddSongs(ctx, command, bot)
 
 @bot.command()
 async def p(ctx, *, command):
-    await Musica.AddSongs(ctx, command)
+    await Musica.AddSongs(ctx, command, bot)
 
 @bot.command()
 async def stop(ctx):
@@ -63,7 +54,7 @@ async def stop(ctx):
 
 @bot.command()
 async def queue(ctx):
-    await Musica.queue()
+    await Musica.queue(ctx, bot)
 
 @bot.command()
 async def skip(ctx, command: int = 1):
@@ -81,10 +72,10 @@ async def remove(ctx, command):
 async def loop(ctx):
     await Musica.loop(ctx)
 
-@bot.command() #Reinicia el bot con un comando
-async def restart(ctx):
-    await ctx.send('Reiniciando...')
-    os.execv(sys.executable, ['python'] + ['"{}"'.format(arg) for arg in sys.argv])
+#* Comandos Gestion --------------------------
+    
+
+
 
     
 bot.run("MTE3NzM0NDE3MDYzODE4MDUwMw.GKJJMr.rOReEw36V6bfliokrIV53gP28FUlBovvZhaDo0")

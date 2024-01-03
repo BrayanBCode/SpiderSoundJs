@@ -1,15 +1,15 @@
-import os, sys, re, asyncio, discord
+import os, re, asyncio, discord
 from discord.ext import commands
 from discord import Embed, FFmpegPCMAudio, Activity, ActivityType, Status
 from youtubesearchpython import VideosSearch
 from pytube import Playlist, YouTube
 from utils.db import *
-from Main import *
+from utils.variables import CurrentlyPlaying, ActiveLoop, inactive_timers
 
-#* Variables globales
 CurrentlyPlaying = {}
 inactive_timers = {}
 ActiveLoop = {}
+
 
 async def play_next(ctx):
     GuildActual = ctx.guild.id
@@ -71,10 +71,16 @@ async def play_next_controler(ctx):
             await play_next(ctx)
         elif ActiveLoop[GuildActual]:
             video_url = CurrentlyPlaying[GuildActual]['url']
-            add_item(GuildActual, [{'url': str(video_url)}])
-        else:
+            add_item(GuildActual,[{'url': str(video_url)}])
+            await play_next(ctx)
+        else: 
             break
 
+        if len(get_all_items(GuildActual)) == 0:
+            await asyncio.sleep(5)
+            if len(get_all_items(GuildActual)) == 0:
+                break
+        
         await asyncio.sleep(2)
         print("play_next_controler: En reproduccion")
 
@@ -95,17 +101,17 @@ async def check_voice_activity(guild): # Esta función verificará si el bot est
                         inactive_timers.pop(guild.id)  # Eliminar el temporizador de inactividad para este servidor
         await asyncio.sleep(10)  # Verificar la inactividad cada 10 segundos
 
-async def startup():
-    StartupLoop()
+async def startup(bot):
+    StartupLoop(bot)
 
     crear_carpeta_si_no_existe()
 
-    await Status()
+    await Status(bot)
 
     with app.app_context():
         eliminar_entradas_de_todas_las_tablas()
 
-async def Status():
+async def Status(bot):
     status = 1
     print(f"Ya estoy activo {bot.user} al servicio")
 
@@ -116,7 +122,7 @@ async def Status():
         custom_status = Activity(name="Fuera de Servicio", type=ActivityType.playing)
         await bot.change_presence(activity=custom_status, status=discord.Status.do_not_disturb)
 
-def StartupLoop():
+def StartupLoop(bot):
     ids_servidores = bot.guilds
     for servidor_id in ids_servidores:
         ActiveLoop[servidor_id.id] = False
@@ -159,10 +165,16 @@ def crear_carpeta_si_no_existe():
     else:
         print(f"La carpeta '{nombre_carpeta}' ya existe.")
 
-async def AddSongs(ctx, command):
-    voice_client = ctx.guild.voice_client
-    channel = ctx.author.voice.channel
+async def AddSongs(ctx, command, bot):
     GuildActual = ctx.guild
+    voice_client = ctx.guild.voice_client
+
+    try:
+        channel = ctx.author.voice.channel
+    except:
+        await ctx.send("Debe estar conectado a un canal de voz")
+        return
+
     url_list = []
     print(f'\nComando emitido por [{ctx.author.name}] en ({ctx.guild.name}) - command: {bot.command_prefix}play {command}\n')
 
@@ -274,6 +286,20 @@ async def AddSongs(ctx, command):
         else:
             await ctx.send("¡Debes estar en un canal de voz para reproducir música!")
 
+async def Event(member, before, after, bot):
+    if member == bot.user and after.channel:
+        afterguild = after.channel.guild
+
+        if afterguild.id not in inactive_timers:
+            inactive_timers[afterguild.id] = bot.loop.create_task(check_voice_activity(afterguild))
+    try:
+        beforeguild = before.channel.guild
+        if before.channel and not after.channel and member == bot.user:  # Se desconectó de un canal de voz
+            remove_all_items(beforeguild.id) # Borrar la lista de reproducción del servidor
+            print(f"La lista de reproducción para el servidor {beforeguild.name} ha sido limpiada.")
+    except:
+        print(f"Evento de Voz detectado - Usuario: {member} en {member.guild.name}")
+
 # ------------
         
 async def stop(ctx):
@@ -288,7 +314,7 @@ async def stop(ctx):
     else:
         await ctx.send("No hay ninguna canción en reproducción para pausar o reanudar.")
 
-async def queue(ctx):
+async def queue(ctx, bot):
     GuildActual = ctx.guild.id
     songs_info = get_all_items(GuildActual)  # Obtener canciones de la base de datos
 

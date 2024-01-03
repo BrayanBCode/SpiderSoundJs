@@ -5,3 +5,4 @@ instance/ServerPlaylist.db
 __pycache__/db.cpython-311.pyc
 testing/Testing.py
 utils/__pycache__/db.cpython-311.pyc
+*.pyc
