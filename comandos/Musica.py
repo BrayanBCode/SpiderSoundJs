@@ -4,7 +4,6 @@ from discord import Embed, FFmpegPCMAudio, Activity, ActivityType, Status
 from youtubesearchpython import VideosSearch
 from pytube import Playlist, YouTube
 from utils.db import *
-from utils.variables import CurrentlyPlaying, ActiveLoop, inactive_timers
 
 CurrentlyPlaying = {}
 inactive_timers = {}

@@ -1,7 +1,7 @@
 import os, sys, discord
 from discord.ext import commands
-import comandos.Musica 
 from dotenv import load_dotenv
+import comandos.Musica
 import pkgutil
 
 load_dotenv()
@@ -14,12 +14,12 @@ bot = commands.Bot(command_prefix = "=", intents=intents, help_command=None)
 @bot.event # Ejecutar la función cuando el bot se una a un canal de voz en un servidor
 async def on_voice_state_update(member, before, after):
     if('comandos.Musica' in sys.modules):
-        await comandos.comandos.Musica.Event(member, before, after, bot)
+        await comandos.Musica.Event(member, before, after, bot)
 
 @bot.event
 async def on_ready():
     if('comandos.Musica' in sys.modules):
-        await comandos.comandos.Musica.startup(bot)
+        await comandos.Musica.startup(bot)
     
 @bot.command() #Reinicia el bot con un comando
 async def restart(ctx):
