@@ -5,6 +5,9 @@ from youtubesearchpython import VideosSearch
 from pytube import Playlist, YouTube
 from utils.db import *
 
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
+
 CurrentlyPlaying = {}
 inactive_timers = {}
 ActiveLoop = {}
@@ -394,9 +397,13 @@ async def AddSongs(ctx, command, bot):
             if re.match(YouTube_pattern, command):
                 songs_added = addToPlaylistYT(YouTube_pattern, songs_added, GuildActual, command)
             
-            elif re.match(spotify_pattern, command):
-                #TODO: addToPlaylistSpotify()
-                print('Link de spotify')
+            elif re.match(spotify_pattern, command):     
+
+                result = await addToPlaylistSpotify(ctx, GuildActual, command, songs_added)
+                if result:
+                    songs_added = result
+                else:                
+                    await ctx.send('No se encontraron búsquedas válidas.')   
             else:
                 result = SearchInYT(GuildActual, songs_added, command)
                 if result:
@@ -494,6 +501,65 @@ def SearchInYT(GuildActual, songs_added, command):
     else:
         return False
 
-#TODO: def addToPlaylistSpotify():
+async def addToPlaylistSpotify(ctx, GuildActual, command, songs_added):
 
+    client_credentials_manager = SpotifyClientCredentials(client_id=os.environ.get("clientID"), client_secret=os.environ.get("clientSecret"))
+    sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+
+
+    if "open.spotify.com/track/" in command:
+        # Extraer el ID de la canción desde la URL
+        track_id = command.split('/')[-1].split('?')[0]
+
+        # Obtener información de la canción
+        track_info = sp.track(track_id)
+
+        # Obtener el nombre de la canción y el nombre del artista
+        song_name = track_info['name']
+        artist_name = track_info['artists'][0]['name']  # Tomando solo el primer artista de la lista
+        Search = f"{song_name} de {artist_name}"
+
+        result = SearchInYT(GuildActual, songs_added, Search)
+        if result:
+            return result
+        else:
+            return False         
+        
+    elif "open.spotify.com/playlist/" in command:
+        # Extraer el ID de la lista de reproducción desde la URL
+        playlist_id = command.split('/')[-1].split('?')[0]
+
+        # Obtener información de la lista de reproducción
+        playlist_info = sp.playlist(playlist_id)
+
+        # Crear una lista para almacenar los diccionarios de canciones
+        spotify_list = []
+        
+    
+        # Iterar sobre las pistas de la lista de reproducción y guardar información en la lista spotify_list
+        for track in playlist_info['tracks']['items']:
+            song_name = track['track']['name']
+            artist_name = track['track']['artists'][0]['name']
+            track_dict = {'name': song_name, 'author': artist_name}
+            spotify_list.append(track_dict)
+
+        loop = False
+        count = 0
+        for song_name in spotify_list:
+            search = f"{song_name['name']} de {song_name['author']}"
+            result = SearchInYT(GuildActual, songs_added, search)
+            if result:
+                songs_added = result
+                if not loop:
+                    asyncio.create_task(play_next(ctx))
+                    loop = True
+            else:                
+                print('No se encontraron búsquedas válidas.')
+            
+            count += 1
+            if count == 6:
+                embed = Embed(description="Esto puede tardar un poco...")
+                await ctx.send(embed=embed)
+
+            await asyncio.sleep(0.5)
 

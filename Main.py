@@ -21,13 +21,14 @@ async def on_voice_state_update(member, before, after):
 async def on_ready():
     if('comandos.Musica' in sys.modules):
         await comandos.Musica.startup(bot)
+        await Status()
     
 @bot.command() #Reinicia el bot con un comando
 async def restart(ctx):
     await ctx.send('Reiniciando...')
     os.execv(sys.executable, ['python'] + ['"{}"'.format(arg) for arg in sys.argv])
 
-async def Status(bot):
+async def Status():
     status = 1
     print(f"Ya estoy activo {bot.user} al servicio")
 
@@ -51,6 +52,8 @@ async def help(ctx):
         embed.add_field(name=f"**{bot.command_prefix}remove**", value=f"Quita de la playlist la cancion que el usuario desee ejemplo: **{bot.command_prefix}remove 5**", inline=False)
         embed.add_field(name=f"**{bot.command_prefix}clear**", value=f"Limpia la playlist", inline=False)
         embed.add_field(name=f"**{bot.command_prefix}loop**", value=f"Activa el modo loop de la playlist lo que hace que se repita indefinidamente la playlist.", inline=False)
+        embed.add_field(name=f"\n**Novedades**", value=f"+ Ahora admitimos canciones y playlist de Spotify", inline=False)
+
 
     await ctx.send(embed=embed)
 

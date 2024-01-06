@@ -13,6 +13,8 @@ python-dotenv = "*"
 "discord.py" = "*"
 flask = "*"
 flask-sqlalchemy = "*"
+pydantic = "*"
+spotipy = "*"
 
 [dev-packages]
 
