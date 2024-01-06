@@ -1,6 +1,7 @@
 import os, sys, discord
 from discord.ext import commands
 from dotenv import load_dotenv
+from discord import Activity, ActivityType
 import comandos.Musica
 import pkgutil
 
@@ -25,6 +26,17 @@ async def on_ready():
 async def restart(ctx):
     await ctx.send('Reiniciando...')
     os.execv(sys.executable, ['python'] + ['"{}"'.format(arg) for arg in sys.argv])
+
+async def Status(bot):
+    status = 1
+    print(f"Ya estoy activo {bot.user} al servicio")
+
+    if status == 1:
+        custom_status = Activity(name='Music Player "=help"', type=ActivityType.playing)
+        await bot.change_presence(status=discord.Status.online, activity=custom_status)
+    else:
+        custom_status = Activity(name="Fuera de Servicio", type=ActivityType.playing)
+        await bot.change_presence(activity=custom_status, status=discord.Status.do_not_disturb)
 
 #* Comandos -------------------------------------------------------------------
 
@@ -77,7 +89,7 @@ if('comandos.Musica' in sys.modules):
         await comandos.Musica.loop(ctx)
 
 #* Comandos Gestion --------------------------
-    
+
 
 
 
