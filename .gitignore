@@ -1,4 +1,5 @@
-
+AppJava/.gradle
+AppJava/build
 *.mp4
 Parche 3.0
 instance/ServerPlaylist.db
