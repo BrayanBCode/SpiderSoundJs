@@ -25,14 +25,10 @@ dependencies {
     // This dependency is used by the application.
     implementation("com.google.guava:guava:31.1-jre")
     implementation("net.dv8tion:JDA:5.0.0-beta.19")
+    implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 }
 
 application {
     // Define the main class for the application.
-    mainClass.set("googleassistbot.App")
-}
-
-tasks.named<Test>("test") {
-    // Use JUnit Platform for unit tests.
-    useJUnitPlatform()
+    mainClass.set("javaSpiderBot.App")
 }
