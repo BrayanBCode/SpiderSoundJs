@@ -59,7 +59,6 @@ async def play_next(ctx):
                     await play_next_controler(ctx)
                     await asyncio.sleep(30)
                 except Exception as e:
-                    await ctx.send(f'Error al descargar la canción: {str(e)}')
                     print(f'Error al descargar la canción: {str(e)}')
 
 async def play_next_controler(ctx):
@@ -404,10 +403,10 @@ async def AddSongs(ctx, command, bot):
             
             elif re.match(spotify_pattern, command):     
                 result = await addToPlaylistSpotify(ctx, table_name, command, songs_added)
-                if result:
-                    songs_added = result
+                if result[0]:
+                    songs_added = result[1]
                 else:                
-                    await ctx.send(f'No se encontraron búsquedas válidas.')   
+                    await ctx.send(f'No se encontraron búsquedas válidas para {result[1]}.')   
             else:                
                 result = SearchInYT(table_name, songs_added, command)
                 if result[0]:
@@ -525,9 +524,9 @@ async def addToPlaylistSpotify(ctx, GuildActual, command, songs_added):
 
         result = SearchInYT(GuildActual, songs_added, Search)
         if result:
-            return result
+            return (True, songs_added)
         else:
-            return False         
+            return (False, f"No se encontro busqueda valida para {command}")         
         
     elif "open.spotify.com/playlist/" in command:
         # Extraer el ID de la lista de reproducción desde la URL
