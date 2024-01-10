@@ -5,6 +5,7 @@ from discord import Activity, ActivityType
 import comandos.Musica
 import pkgutil
 
+
 load_dotenv()
 intents = discord.Intents.default()
 intents.message_content = True
@@ -31,7 +32,6 @@ async def restart(ctx):
 async def Status():
     status = 1
     print(f"Ya estoy activo {bot.user} al servicio")
-
     if status == 1:
         custom_status = Activity(name='Music Player "=help"', type=ActivityType.playing)
         await bot.change_presence(status=discord.Status.online, activity=custom_status)

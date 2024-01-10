@@ -1,5 +1,5 @@
 #* Seccion de la Base de Datos ------------------------------
-
+import re
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData, Table, Column, Integer, String, update
@@ -12,7 +12,10 @@ with app.app_context():
     db.create_all()
 
 # Modelo de tablas
-def dynamic_Model_table(table_name):
+def dynamic_Model_table_Playlist(table_name):
+
+    table_name = f"Playlist_{str(table_name)}"
+
     metadata = MetaData()
     dynamic_table = Table(
         table_name, metadata,
@@ -22,21 +25,20 @@ def dynamic_Model_table(table_name):
     return dynamic_table
 
 def tabla_existe(table_name):
-    table_name = str(table_name)
     inspector = db.inspect(db.engine)
-    return table_name in inspector.get_table_names()
+    print(f"{table_name} in {table_name in inspector.get_table_names()}")
+    return str(table_name) in inspector.get_table_names()
 
 def Crear_Tabla(Guild, dynamic_table):
     with app.app_context():
         if not tabla_existe(Guild):
             dynamic_table.create(bind=db.engine, checkfirst=True)
-            
             print(f"La tabla para el servidor {Guild.name} - ID: {Guild.id} fue creada")
         else:
             print("La tabla ya existe")
-            
+
 def get_table(table_name):
-    return Table(str(table_name), MetaData(), autoload_with=db.engine)
+    return Table(table_name, MetaData(), autoload_with=db.engine)
 
 # Create
 def add_item(table_name, data):
@@ -59,10 +61,11 @@ def get_item_by_id(table_name, item_id):
     with app.app_context():
         if tabla_existe(table_name):
             table = get_table(table_name)
-
             result = db.session.query(table).filter_by(id=item_id).first()
+            print(f"get_item_by_id: {result}")
             return result
         else:
+            print(f"get_item_by_id: {tabla_existe(table_name)}")
             return None
 
 def update_item(table_name, item_id, new_data):
@@ -78,26 +81,27 @@ def update_item(table_name, item_id, new_data):
                 db.session.commit()
                 print("Datos actualizados")
             else:
-                print("El elemento no existe")
+                print("El elemento a reorganizar no existe")
 
 def remove_item_by_id(table_name, item_id):
     with app.app_context():
         if tabla_existe(table_name):
             table = get_table(table_name)
             entry = get_item_by_id(table, item_id)
-
+            
             if entry:
                 db.session.execute(table.delete().where(table.c.id == item_id))  # Elimina la fila con la condición
-                db.session.commit()  # Confirma la eliminación
+                db.session.commit()
                 print("Elemento eliminado")
                 reorganize_ids_after_delete(table_name)
             else:
-                print("El elemento no existe")
+                print("El elemento a eliminar no existe")
+                print(f"El elemento a eliminar es: {item_id} - {entry} de la tabla {table_name}")
 
 def get_all_items(table_name):
     with app.app_context():
         if tabla_existe(table_name):
-            # Obtener la instancia de la tabla dinámica existente
+            
             tabla = get_table(table_name)
 
             # Realizar una consulta para obtener todos los elementos de la tabla
@@ -154,10 +158,7 @@ def reorganize_ids_after_delete(table_name):
         else:
             print(f"La tabla {table_name} no existe.")
 
-
-def update_playlist_in_db(guild_id, songs_to_keep):
-    # Suponiendo que la tabla de la lista de reproducción se llama 'playlist_table'
-    
+def update_playlist_in_db(guild_id, songs_to_keep):    
     # Eliminar todas las canciones actuales de la lista de reproducción para el servidor en la base de datos
     remove_all_items(guild_id)
 
@@ -211,12 +212,10 @@ def eliminar_entradas_de_todas_las_tablas():
         tablas = inspector.get_table_names()
 
         for tabla in tablas:
-            remove_all_items(tabla)
+            remove_all_items(str(tabla))
             
         print(f"Todas las entradas de la tablas han sido eliminadas.")
 
-# Llama a la función para eliminar las entradas de todas las tablas
-eliminar_entradas_de_todas_las_tablas()
 
 
 #* Seccion de la Base de Datos ------------------------------
