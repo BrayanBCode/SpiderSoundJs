@@ -15,6 +15,7 @@ flask = "*"
 flask-sqlalchemy = "*"
 pydantic = "*"
 spotipy = "*"
+ffmpeg = "*"
 
 [dev-packages]
 

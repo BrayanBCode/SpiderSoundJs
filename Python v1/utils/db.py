@@ -26,7 +26,6 @@ def dynamic_Model_table_Playlist(table_name):
 
 def tabla_existe(table_name):
     inspector = db.inspect(db.engine)
-    print(f"{table_name} in {table_name in inspector.get_table_names()}")
     return str(table_name) in inspector.get_table_names()
 
 def Crear_Tabla(Guild, dynamic_table):
@@ -133,7 +132,6 @@ def remove_all_items(table_name):
             table = get_table(table_name)
             db.session.execute(table.delete())
             db.session.commit()
-            print(f"Se eliminaron todas las entradas de la tabla: {table_name}")
         else:
             print(f"No se pudo eliminar las entradas, la tabla {table_name} no existe")
 

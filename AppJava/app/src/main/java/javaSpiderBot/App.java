@@ -9,15 +9,18 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import io.github.cdimascio.dotenv.Dotenv;
 
 public class App {
-    
-
     public static void main(String[] args) {
         Dotenv dotenv = Dotenv.load();
         String token = dotenv.get("token");
         JDA api = JDABuilder.createDefault(token)
             .enableIntents(GatewayIntent.MESSAGE_CONTENT)
             .build();
+
         api.addEventListener(new PingPong());
+        api.addEventListener(new Musica());
+
+
+
     }
 }
 

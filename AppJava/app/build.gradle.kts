@@ -26,6 +26,8 @@ dependencies {
     implementation("com.google.guava:guava:31.1-jre")
     implementation("net.dv8tion:JDA:5.0.0-beta.19")
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
+    implementation('com.sedmelluq:lavaplayer:1.3.78')
+    
 }
 
 application {

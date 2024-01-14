@@ -2,27 +2,22 @@ import os, sys, discord
 from discord.ext import commands
 from dotenv import load_dotenv
 from discord import Activity, ActivityType
-import comandos.Musica
-import pkgutil
-
+from comandos.Music_Extend import Music_Ext
 
 load_dotenv()
+
 intents = discord.Intents.default()
 intents.message_content = True
-bot = commands.Bot(command_prefix = "=", intents=intents, help_command=None)
+bot = commands.Bot(command_prefix = "=", intents=intents)
+bot.remove_command('help')
 
 #! eventos --------------------------------------------------------------------
 
-@bot.event # Ejecutar la función cuando el bot se una a un canal de voz en un servidor
-async def on_voice_state_update(member, before, after):
-    if('comandos.Musica' in sys.modules):
-        await comandos.Musica.Event(member, before, after, bot)
-
 @bot.event
 async def on_ready():
-    if('comandos.Musica' in sys.modules):
-        await comandos.Musica.startup(bot)
-        await Status()
+    await Status()
+    await bot.add_cog(Music_Ext(bot))
+
     
 @bot.command() #Reinicia el bot con un comando
 async def restart(ctx):
@@ -54,47 +49,8 @@ async def help(ctx):
         embed.add_field(name=f"**{bot.command_prefix}loop**", value=f"Activa el modo loop de la playlist lo que hace que se repita indefinidamente la playlist.", inline=False)
         embed.add_field(name=f"\n**Novedades**", value=f"+ Ahora admitimos canciones y playlist de Spotify", inline=False)
 
-
     await ctx.send(embed=embed)
 
 #* Comandos comandos.Musica ---------------------------
-if('comandos.Musica' in sys.modules):
-    @bot.command()
-    async def play(ctx, *, command):
-        await comandos.Musica.AddSongs(ctx, command, bot)
-
-    @bot.command()
-    async def p(ctx, *, command):
-        await comandos.Musica.AddSongs(ctx, command, bot)
-
-    @bot.command()
-    async def stop(ctx):
-        await comandos.Musica.stop(ctx)
-
-    @bot.command()
-    async def queue(ctx):
-        await comandos.Musica.queue(ctx, bot)
-
-    @bot.command()
-    async def skip(ctx, command: int = 1):
-        await comandos.Musica.skip(ctx, command)
-
-    @bot.command()
-    async def clear(ctx):
-        await comandos.Musica.clear(ctx)
-
-    @bot.command()
-    async def remove(ctx, command):
-        await comandos.Musica.remove(ctx, command)
-        
-    @bot.command()
-    async def loop(ctx):
-        await comandos.Musica.loop(ctx)
-
-#* Comandos Gestion --------------------------
-
-
-
-
 
 bot.run(os.environ.get("token"))
