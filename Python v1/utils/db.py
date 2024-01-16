@@ -1,11 +1,19 @@
 #* Seccion de la Base de Datos ------------------------------
-import re
+import re, os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData, Table, Column, Integer, String, update
 
+
+current_dir = os.path.abspath(os.path.dirname('Main.py'))
+data_folder = os.path.join(current_dir, 'Database')
+# Si la carpeta "Data" no existe, créala
+if not os.path.exists(data_folder):
+    os.makedirs(data_folder)
+db_path = os.path.join(data_folder, 'ServerPlaylist.db')
+
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ServerPlaylist.db'  # Cambia la URL por tu base de datos
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 db = SQLAlchemy(app)
 
 with app.app_context():
@@ -13,8 +21,6 @@ with app.app_context():
 
 # Modelo de tablas
 def dynamic_Model_table_Playlist(table_name):
-
-    table_name = f"Playlist_{str(table_name)}"
 
     metadata = MetaData()
     dynamic_table = Table(

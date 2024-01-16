@@ -282,7 +282,7 @@ class Music_Ext(commands.Cog):
                 table_name = f"Playlist_{str(GuildActual.id)}"
                 if not tabla_existe(table_name):
                     Crear_Tabla(
-                        GuildActual, dynamic_Model_table_Playlist(GuildActual.id))
+                        GuildActual, dynamic_Model_table_Playlist(f"Playlist_{str(GuildActual.id)}"))
 
                 if re.match(YouTube_pattern, command):
                     songs_added = self.addToPlaylistYT(
@@ -428,10 +428,10 @@ class Music_Ext(commands.Cog):
                         best_audio = video.streams.get_audio_only()
                         filename = best_audio.default_filename
                         best_audio.download(
-                            filename=filename, output_path='Musica')
+                            filename=filename, output_path='temp')
 
                         audio_source = FFmpegPCMAudio(
-                            os.path.join('Musica', filename))
+                            os.path.join('temp', filename))
                         voice_client.play(audio_source, after=lambda e: (
                             self.clearMusicFolder()
                         ))
@@ -513,7 +513,7 @@ class Music_Ext(commands.Cog):
             await asyncio.sleep(10)
 
     def check_folder_contents(self):
-        folder_path = './Musica'  # Ruta a la carpeta
+        folder_path = './temp'  # Ruta a la carpeta
 
         # Lista los archivos en la carpeta
         files_in_folder = os.listdir(folder_path)
@@ -527,17 +527,17 @@ class Music_Ext(commands.Cog):
             return False
 
     def clearMusicFolder(self):
-        archivos = os.listdir('./Musica')
+        archivos = os.listdir('./temp')
         if archivos:
             for archivo in archivos:
                 try:
-                    os.remove(os.path.join('./Musica', archivo))
+                    os.remove(os.path.join('./temp', archivo))
                     print(f"Archivo '{archivo}' eliminado correctamente.")
                 except Exception as e:
                     continue  # Pasar al siguiente archivo si no se puede eliminar
 
     def crear_carpeta_si_no_existe(self):
-        nombre_carpeta = 'Musica'
+        nombre_carpeta = 'temp'
 
         ruta_carpeta = os.path.join(os.getcwd(), nombre_carpeta)
 

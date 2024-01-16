@@ -5,8 +5,12 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from discord import Activity, ActivityType
 
-from comandos.Music_Extend import Music_Ext
-from comandos.Gestion_Extend import Gestion_ext
+try:
+    from utils.extensions.Music_Extend import Music_Ext
+    from utils.extensions.Gestion_Extend import Gestion_ext
+except Exception as e:
+    print(str(e))
+
 load_dotenv()
 
 intents = discord.Intents.default()
@@ -14,22 +18,18 @@ intents.message_content = True
 bot = commands.Bot(command_prefix="=", intents=intents)
 bot.remove_command('help')
 
+
 #! eventos --------------------------------------------------------------------
 
 
 @bot.event
 async def on_ready():
     await Status()
-    await bot.add_cog(Music_Ext(bot))
-    await bot.add_cog(Gestion_ext(bot))
-
-
-@bot.command()  # Reinicia el bot con un comando
-async def restart(ctx):
-    await ctx.send('Reiniciando...')
-    os.execv(sys.executable, ['python'] +
-             ['"{}"'.format(arg) for arg in sys.argv])
-
+    try:
+        await bot.add_cog(Music_Ext(bot))
+        await bot.add_cog(Gestion_ext(bot))
+    except Exception as e:
+        print(str(e))
 
 async def Status():
     status = 1

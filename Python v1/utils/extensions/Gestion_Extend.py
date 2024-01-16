@@ -34,9 +34,9 @@ class Gestion_ext(commands.Cog):
     async def set_channel(self, ctx, channel_id: int):
         """Configura el canal donde se enviarán los mensajes con reacciones."""
         server_id = ctx.guild.id
-        SERVER_CH['ServerID'] = server_id
+        SERVER_CH['ServerID'].add(server_id)
 
-        SERVER_CH[server_id]['channel'] = channel_id
+        SERVER_CH[server_id]['channel'].add(channel_id)
         embed = discord.Embed(
             title="Configuración Exitosa",
             description=f"Canal configurado correctamente. Todos los mensajes se enviarán a <#{channel_id}>.",
@@ -49,6 +49,13 @@ class Gestion_ext(commands.Cog):
         """Configura el mensaje al que se aplicarán las reacciones y roles."""
         server_id = ctx.guild.id
         channel_id = SERVER_MSG[server_id]
+
+        if server_id in SERVER_CH['ServerID']:
+            
+            
+
+
+
 
         if server_id in SERVERS_MESSAGES and channel_id:
             SERVERS_MESSAGES[server_id]['messages'].add(message_id)
