@@ -18,6 +18,8 @@ intents.message_content = True
 bot = commands.Bot(command_prefix="=", intents=intents)
 bot.remove_command('help')
 
+async def on_disconnect(shard_id):
+    print(f"Bot desconectado del servidor con shard ID {shard_id}")
 
 #! eventos --------------------------------------------------------------------
 
@@ -71,5 +73,6 @@ async def help(ctx):
     await ctx.send(embed=embed)
 
 # * Comandos comandos.Musica ---------------------------
+bot.add_listener(on_disconnect)
 
 bot.run(os.environ.get("token"))
