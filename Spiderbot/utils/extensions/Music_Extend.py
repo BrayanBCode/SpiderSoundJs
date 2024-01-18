@@ -246,7 +246,7 @@ class Music_Ext(commands.Cog):
         await ctx.send(f"Loop: {Status}")
 
     @commands.command(name='play', aliases=['p'])
-    async def AddSongs(self, ctx, command):
+    async def AddSongs(self, ctx, *, command):
         GuildActual = ctx.guild
         voice_client = ctx.guild.voice_client
 
@@ -425,13 +425,27 @@ class Music_Ext(commands.Cog):
                     remove_item_by_id(f"Playlist_{str(GuildActual)}", 1)
                     try:
                         video = YouTube(video_url)
-                        best_audio = video.streams.get_audio_only()
-                        filename = best_audio.default_filename
-                        best_audio.download(
-                            filename=filename, output_path='temp')
 
-                        audio_source = FFmpegPCMAudio(
-                            os.path.join('temp', filename))
+                        try:
+                            # Intentar obtener la corriente de video en la calidad estándar
+                            video_stream = video.streams.filter(file_extension="mp3", resolution="360p").first()
+
+                            if video_stream is None:
+                                raise ValueError("No se encontró la calidad específica, utilizando la mejor disponible.")
+                        except ValueError as e:
+                            print(e)
+                            # Obtener la mejor calidad disponible si no se encuentra la calidad específica
+                            video_stream = video.streams.get_highest_resolution()
+
+                        # Definir la ruta de descarga
+                        output_path = 'temp'
+                        video_path = os.path.join(output_path, video_stream.default_filename)
+
+                        # Descargar el video
+                        video_stream.download(output_path=output_path)
+
+                        # Reproducir el video
+                        audio_source = FFmpegPCMAudio(video_path)
                         voice_client.play(audio_source, after=lambda e: (
                             self.clearMusicFolder()
                         ))

@@ -2,24 +2,12 @@ import discord
 import re
 from discord.ext import commands
 
-SERVER_MSG = {
-    'ServerID': None, 
-    'Message': None
-    }
-
-SERVER_CH = {
-    'ServerID': None, 
-    'Channel': None
-    }
-
 SERVERS_MESSAGES = {
-    'Server': {
-        'channels': {
-            'messages': {
-                'emoji': {
-                    'rol': {
-                    
-                    }
+    'channels': {
+        'messages': {
+            'emoji': {
+                'rol': {
+                
                 }
             }
         }
