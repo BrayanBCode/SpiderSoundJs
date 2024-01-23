@@ -1,13 +1,16 @@
 import os
 import sys
 import discord
+from discord import app_commands
+
 from discord.ext import commands
 from dotenv import load_dotenv
 from discord import Activity, ActivityType
 
 try:
     from utils.extensions.Music_Extend import Music_Ext
-    from utils.extensions.Gestion_Extend import Gestion_ext
+    #from utils.extensions.Gestion_Extend import Gestion_ext
+    from utils.extensions.Buttons_Extend import Buttons_Ext
 except Exception as e:
     print(str(e))
 
@@ -15,19 +18,20 @@ load_dotenv()
 
 intents = discord.Intents.default()
 intents.message_content = True
-bot = commands.Bot(command_prefix="@", intents=intents)
+bot = commands.Bot(command_prefix="-", intents=intents)
+tree = app_commands.CommandTree(bot)
+
 bot.remove_command('help')
 
-
 #! eventos --------------------------------------------------------------------
-
 
 @bot.event
 async def on_ready():
     await Status()
     try:
-        await bot.add_cog(Music_Ext(bot))
+        await bot.add_cog(Music_Ext(bot, tree))
         #await bot.add_cog(Gestion_ext(bot))
+        #await bot.add_cog(Buttons_Ext(bot))
     except Exception as e:
         print(str(e))
 
@@ -45,12 +49,10 @@ async def Status():
 
 # * Comandos -------------------------------------------------------------------
 
-
 @bot.command()
 async def help(ctx):
     embed = discord.Embed(title="Guia de de comandos",
                           description="En esta guia se nombraran los comandos implementados en el Bot.", color=0x7289DA)
-
     embed.add_field(name=f"**{bot.command_prefix}play**",
                     value=f"Para reproducir música, simplemente escribe **{bot.command_prefix}play** seguido del nombre de la canción, el artista o la URL de la canción que desees escuchar.", inline=False)
     embed.add_field(name=f"**{bot.command_prefix}stop**",
@@ -72,5 +74,4 @@ async def help(ctx):
 
 # * Comandos comandos.Musica ---------------------------
 
-
-bot.run(os.environ.get("token"))
+bot.run(os.environ.get("TEST"))

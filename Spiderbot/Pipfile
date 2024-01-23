@@ -5,18 +5,19 @@ name = "pypi"
 
 [packages]
 discord = "*"
-youtube-dl = "*"
-youtube-search-python = "*"
 pytube = "*"
-pynacl = "*"
-python-dotenv = "*"
-"discord.py" = "*"
-flask = "*"
 flask-sqlalchemy = "*"
+sqlalchemy = "*"
 pydantic = "*"
+pip = "*"
+install = "*"
+python-dotenv = "*"
+youtube-search-python = "*"
 spotipy = "*"
-ffmpeg = "*"
-yt-dlp = "*"
+pynacl = "*"
+discord-py-interactions = "*"
+"discord.py" = "*"
+discord-py-slash-command = "*"
 
 [dev-packages]
 

@@ -2,10 +2,15 @@ import os
 import re
 import asyncio
 import discord
+
 from discord.ext import commands
 from discord import Embed, FFmpegPCMAudio
+from discord.ui import Button, View
 from youtubesearchpython import VideosSearch
 from pytube import Playlist, YouTube
+from discord import ActionRow, Button
+from utils.extensions.Buttons_Extend import Pagination
+
 from utils.db import *
 
 import spotipy
@@ -15,16 +20,16 @@ CURRENTLY_PLAYING = {}
 INACTIVE_TIMERS = {}
 ACTIVE_LOOP = {}
 
-
 class Music_Ext(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot, tree):
         self.bot = bot
+        self.tree = tree
 
         ids_servidores = self.bot.guilds
         for servidor_id in ids_servidores:
             ACTIVE_LOOP[servidor_id.id] = False
 
-        self.crear_carpeta_si_no_existe()
+        self.CrearTempSiNoExiste()
 
         with app.app_context():
             eliminar_entradas_de_todas_las_tablas()
@@ -36,7 +41,7 @@ class Music_Ext(commands.Cog):
 
             if afterguild.id not in INACTIVE_TIMERS:
                 INACTIVE_TIMERS[afterguild.id] = self.bot.loop.create_task(
-                    self.check_voice_activity(afterguild))
+                    self.checkVoiceActivity(afterguild))
         try:
             beforeguild = before.channel.guild
             if before.channel and not after.channel and member == self.user:  # Se desconectó de un canal de voz
@@ -48,117 +53,70 @@ class Music_Ext(commands.Cog):
             print(
                 f"Evento de Voz detectado - Usuario: {member} en {member.guild.name}")
 
+
     @commands.command(name='queue', aliases=['q'])
-    async def queue(self, ctx):
-        GuildActual = ctx.guild.id
+    async def Queue(self, ctx):
+        ServerID = ctx.guild.id
         # Obtener canciones de la base de datos
-        songs_info = get_all_items(f"Playlist_{str(GuildActual)}")
+        CancionesInfo = get_all_items(f'Playlist_{str(ServerID)}')
 
-        if songs_info:
-            # Obtener las URL de las canciones
-            songs = [info[1] for info in songs_info]
+        if CancionesInfo:
+            
+            CancionesURL = [info[1] for info in CancionesInfo]
+            print(f'{type(CancionesURL)} - {CancionesURL}')
+            # Creacion del Embed personalizado
+            embed = discord.Embed(title='Lista de Reproduccion', color=0x6a0dad)
+            # Cantidad de canciones por pagina
+            maxVideosToShow = 5
+            #Duracion total de la playlist
+            DuracionPlaylist = sum(YouTube(str(URL)).length for URL in CancionesURL)
+            total_min, total_seg = divmod(DuracionPlaylist, 60)
+            total_horas, total_min = divmod(total_min, 60)
+            totalDuracionFormateada = '{:02d}{:02d}{:02d}'.format(total_horas, total_min, total_seg)
 
-            embed = Embed(title="Lista de Reproducción", color=0x6a0dad)
-            max_videos_to_display = 5  # Número máximo de videos para mostrar en una página
-            # Duración total de la lista de reproducción en segundos
-            total_duration = sum(
-                YouTube(song_url).length for song_url in songs)
-            total_mins, total_secs = divmod(total_duration, 60)
-            total_hours, total_mins = divmod(total_mins, 60)
-            total_duration_formatted = '{:02d}:{:02d}:{:02d}'.format(
-                total_hours, total_mins, total_secs)
-            embed.set_footer(
-                text=f"Página 1 - Duración total de la lista de reproducción: {total_duration_formatted}")
+            embed.set_footer(text=f"Página 1 - Duración total de la lista de reproducción: {totalDuracionFormateada}")
 
-            current_song = CURRENTLY_PLAYING.get(GuildActual)
-            if current_song:
-                current_song_url = current_song['url']
+            CancionActual = CURRENTLY_PLAYING.get(ServerID)
+            if CancionActual:
+
                 embed.insert_field_at(
                     index=0,
-                    name=f"**Reproduciendo Ahora**\n[{current_song['title']}] | [{current_song['author']}]",
-                    value=f"Duración: {current_song['duration']}\n[Ver en YouTube]({current_song_url})",
+                    name=f"**Reproduciendo Ahora**\n[{CancionActual['title']}] | [{CancionActual['author']}]",
+                    value=f"Duración: {CancionActual['duration']}\n[Ver en YouTube]({CancionActual['url']})",
                     inline=False
                 )
-                embed.set_thumbnail(url=current_song['thumbnail'])
+                embed.set_thumbnail(url=CancionActual['thumbnail'])
+            
+            startIndex = 0
+            endIndex = min(len(CancionesInfo), maxVideosToShow)
 
-            start_idx = 0
-            end_idx = min(len(songs), max_videos_to_display)
-            songs_to_display = songs[start_idx:end_idx]
+            CancionesToShow = CancionesInfo[startIndex:endIndex]
 
-            # Mostrar lista de reproducción
-            for idx, song_url in enumerate(songs_to_display, start=start_idx + 1):
-                video = YouTube(song_url)
-                duration = video.length
-                mins, secs = divmod(duration, 60)
-                hours, mins = divmod(mins, 60)
-                duration_formatted = '{:02d}:{:02d}:{:02d}'.format(
-                    hours, mins, secs)
+            # Mostar lista de reproduccion
+
+            for index, URL in enumerate(CancionesToShow, start=startIndex + 1):
+
+                video = YouTube(URL[1])
+
+                duracion = video.length
+
+                mins, seg = divmod(DuracionPlaylist, 60)
+                horas, mins = divmod(mins, 60)
+                DuracionFormateada = '{:02d}{:02d}{:02d}'.format(horas, mins, seg)
 
                 embed.add_field(
-                    name=f"{idx}. [{video.title}] | [{video.author}]",
-                    value=f"Duración: {duration_formatted}\n[Ver en YouTube]({song_url})",
-                    inline=False
+                    name=f'{index}. {video.title} de {video.author}',
+                    value=f'Duración: {DuracionFormateada}\n[Ver en YouTube]({URL})',
+                    inline=True
                 )
 
-            message = await ctx.send(embed=embed)
+                message = await ctx.send(embed=embed, view=Pagination)
 
-            if len(songs) > max_videos_to_display:
-                await message.add_reaction('◀️')  # Flecha izquierda
-                await message.add_reaction('▶️')  # Flecha derecha
 
-                def check(reaction, user):
-                    return user == ctx.author and str(reaction.emoji) in ['◀️', '▶️']
 
-                while True:
-                    try:
-                        reaction, user = await self.wait_for('reaction_add', timeout=60.0, check=check)
-
-                        if str(reaction.emoji) == '▶️' and end_idx < len(songs):
-                            start_idx = end_idx
-                            end_idx = min(
-                                start_idx + max_videos_to_display, len(songs))
-                        elif str(reaction.emoji) == '◀️' and start_idx > 0:
-                            end_idx = start_idx
-                            start_idx = max(0, end_idx - max_videos_to_display)
-
-                        songs_to_display = songs[start_idx:end_idx]
-
-                        embed.clear_fields()
-
-                        if current_song:
-                            embed.insert_field_at(
-                                index=0,
-                                name=f"**Reproduciendo Ahora**\n[{current_song['title']}] | [{current_song['author']}]",
-                                value=f"Duración: {current_song['duration']}\n[Ver en YouTube]({current_song_url})",
-                                inline=False
-                            )
-                            embed.set_thumbnail(url=current_song['thumbnail'])
-
-                        for idx, song_url in enumerate(songs_to_display, start=start_idx + 1):
-                            video = YouTube(song_url)
-                            duration = video.length
-                            mins, secs = divmod(duration, 60)
-                            hours, mins = divmod(mins, 60)
-                            duration_formatted = '{:02d}:{:02d}:{:02d}'.format(
-                                hours, mins, secs)
-
-                            embed.add_field(
-                                name=f"{idx}. [{video.title}] | [{video.author}]",
-                                value=f"Duración: {duration_formatted}\n[Ver en YouTube]({song_url})",
-                                inline=False
-                            )
-
-                        await message.edit(embed=embed)
-                        await reaction.remove(user)
-
-                    except asyncio.TimeoutError:
-                        break
-        else:
-            embed = Embed(
-                description="No hay lista de reproducción para este servidor.", color=0x6a0dad)
-            await ctx.send(embed=embed)
-
-    @commands.command(name='skip')
+  
+  
+    @commands.command(name='skip', aliases=['s'])
     async def skip(self, ctx, command: int = 1):
         GuildActual = ctx.guild.id
         voice_client = ctx.guild.voice_client
@@ -182,7 +140,7 @@ class Music_Ext(commands.Cog):
 
         if not ACTIVE_LOOP[GuildActual]:
             delete_items_up_to_id(f"Playlist_{str(GuildActual)}", command - 1)
-            print("Saltando canciones")
+            print("Saltando canciones")            
         else:
             loopedPlaylist(f"Playlist_{str(GuildActual)}", command - 1)
 
@@ -332,7 +290,7 @@ class Music_Ext(commands.Cog):
             else:
                 await ctx.send("¡Debes estar en un canal de voz para reproducir música!")
 
-    @commands.command(name='stop', aliases=['pause', 'resume', 's'])
+    @commands.command(name='stop', aliases=['pause', 'resume'])
     async def stop(self, ctx):
         voice_client = ctx.guild.voice_client
 
@@ -420,29 +378,26 @@ class Music_Ext(commands.Cog):
 
             if len(get_all_items(f"Playlist_{str(GuildActual)}")) > 0:
                 if not voice_client.is_playing():
-                    video_url = str(get_all_items(
-                        f"Playlist_{str(GuildActual)}")[0][1])
+                    videoUrl = str(get_all_items(f"Playlist_{str(GuildActual)}")[0][1])
+
                     remove_item_by_id(f"Playlist_{str(GuildActual)}", 1)
                     try:
-                        video = YouTube(video_url)
+                        video = YouTube(videoUrl)
 
                         try:
                             # Intentar obtener la corriente de video en la calidad estándar
-                            video_stream = video.streams.filter(file_extension="mp3", resolution="360p").first()
+                            video_stream = video.streams.get_audio_only()
 
-                            if video_stream is None:
-                                raise ValueError("No se encontró la calidad específica, utilizando la mejor disponible.")
                         except ValueError as e:
                             print(e)
-                            # Obtener la mejor calidad disponible si no se encuentra la calidad específica
-                            video_stream = video.streams.get_highest_resolution()
-
                         # Definir la ruta de descarga
                         output_path = 'temp'
                         video_path = os.path.join(output_path, video_stream.default_filename)
 
+
                         # Descargar el video
                         video_stream.download(output_path=output_path)
+
 
                         # Reproducir el video
                         audio_source = FFmpegPCMAudio(video_path)
@@ -458,7 +413,7 @@ class Music_Ext(commands.Cog):
                             hours, mins, secs)
 
                         embed = Embed(
-                            title="Reproduciendo", description=f"{video.title} - {video.author}\n[Ver en Youtube]({video_url})\nDuración: {duration_formatted}", color=0x6a0dad)
+                            title="Reproduciendo", description=f"{video.title} - {video.author}\n[Ver en Youtube]({videoUrl})\nDuración: {duration_formatted}", color=0x6a0dad)
 
                         embed.set_thumbnail(url=video.thumbnail_url)
                         await ctx.send(embed=embed)
@@ -467,7 +422,7 @@ class Music_Ext(commands.Cog):
                             'title': video.title,
                             'artist': video.author,
                             'duration': duration_formatted,
-                            'url': video_url,
+                            'url': videoUrl,
                             'thumbnail': video.thumbnail_url,
                             'author': video.author
                         }
@@ -496,6 +451,31 @@ class Music_Ext(commands.Cog):
             else:
                 break
 
+            if len(get_all_items(f"Playlist_{str(GuildActual)}")) > 1:
+                
+                videoUrl = str(get_all_items(f"Playlist_{str(GuildActual)}")[1][1])
+                print(videoUrl)
+
+                try:
+                    video = YouTube(videoUrl)
+
+                    try:
+                        # Intentar obtener la corriente de video en la calidad estándar
+                        video_stream = video.streams.get_audio_only()
+
+                    except ValueError as e:
+                        print(e)
+                    # Definir la ruta de descarga
+                    output_path = 'temp'
+                    video_path = os.path.join(output_path, video_stream.default_filename)
+
+
+                    # Descargar el video
+                    video_stream.download(output_path=output_path)
+                except Exception as e:
+                    print(f'play_next_controler: {e}')
+
+
             table_name = f"Playlist_{str(GuildActual)}"
             if len(get_all_items(table_name)) == 0:
                 await asyncio.sleep(5)
@@ -505,7 +485,7 @@ class Music_Ext(commands.Cog):
             await asyncio.sleep(2)
 
     # Esta función verificará si el bot está inactivo en un canal de voz durante 2 minutos y lo desconectará
-    async def check_voice_activity(self, guild):
+    async def checkVoiceActivity(self, guild):
         while True:
             voice_client = guild.voice_client
             if voice_client and voice_client.channel:
@@ -517,7 +497,7 @@ class Music_Ext(commands.Cog):
                         await voice_client.disconnect()
                         print(
                             f"El bot ha sido desconectado del canal de voz en '{guild.name}' debido a la inactividad.")
-                        if self.check_folder_contents():
+                        if self.checkFolderContent():
                             self.clearMusicFolder()
                         # Verificar si la clave existe antes de intentar eliminarla
                         if guild.id in INACTIVE_TIMERS:
@@ -526,7 +506,7 @@ class Music_Ext(commands.Cog):
             # Verificar la inactividad cada 10 segundos
             await asyncio.sleep(10)
 
-    def check_folder_contents(self):
+    def checkFolderContent(self):
         folder_path = './temp'  # Ruta a la carpeta
 
         # Lista los archivos en la carpeta
@@ -550,7 +530,7 @@ class Music_Ext(commands.Cog):
                 except Exception as e:
                     continue  # Pasar al siguiente archivo si no se puede eliminar
 
-    def crear_carpeta_si_no_existe(self):
+    def CrearTempSiNoExiste(self):
         nombre_carpeta = 'temp'
 
         ruta_carpeta = os.path.join(os.getcwd(), nombre_carpeta)
@@ -610,8 +590,7 @@ class Music_Ext(commands.Cog):
             duration = video.length
             mins, secs = divmod(duration, 60)
             hours, mins = divmod(mins, 60)
-            duration_formatted = '{:02d}:{:02d}:{:02d}'.format(
-                hours, mins, secs)
+            duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
 
             thumbnail = video.thumbnail_url
 
@@ -624,3 +603,14 @@ class Music_Ext(commands.Cog):
             return (True, songs_added)
         else:
             return (False, f"No se encontro busqueda valida para {command}")
+
+    def SearchForFile(self, Dir, file):
+        # Crear la ruta combinando el directorio y el nombre de archivo
+        file_path = os.path.join(Dir, file)
+
+        # Verificar si el archivo existe
+        Search = os.path.isfile(file_path)
+
+        return Search
+    
+
