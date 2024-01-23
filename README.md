@@ -1,4 +1,5 @@
-``` Main
+## Main
+``` python
 import os
 import sys
 import discord
@@ -79,7 +80,8 @@ bot.run(os.environ.get("TEST"))
 
 ```
 
-``` Music_estend
+### Music_Extend
+``` python
 import os
 import re
 import asyncio
