@@ -1,25 +1,25 @@
 import os
 import sys
 import discord
-from discord import app_commands
 
 from discord.ext import commands
 from dotenv import load_dotenv
 from discord import Activity, ActivityType
 
+import traceback
+
 try:
     from utils.extensions.Music_Extend import Music_Ext
-    #from utils.extensions.Gestion_Extend import Gestion_ext
-    from utils.extensions.Buttons_Extend import Buttons_Ext
 except Exception as e:
-    print(str(e))
-
+    # Aquí capturas el error y lo muestras
+    print("Ha ocurrido un error:", e)
+    print("El traceback es:")
+    traceback.print_exc()
 load_dotenv()
 
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="-", intents=intents)
-tree = app_commands.CommandTree(bot)
 
 bot.remove_command('help')
 
@@ -29,9 +29,8 @@ bot.remove_command('help')
 async def on_ready():
     await Status()
     try:
-        await bot.add_cog(Music_Ext(bot, tree))
-        #await bot.add_cog(Gestion_ext(bot))
-        #await bot.add_cog(Buttons_Ext(bot))
+        await bot.add_cog(Music_Ext(bot))
+
     except Exception as e:
         print(str(e))
 
@@ -74,4 +73,4 @@ async def help(ctx):
 
 # * Comandos comandos.Musica ---------------------------
 
-bot.run(os.environ.get("TEST"))
+bot.run(os.environ.get("TOKEN"))
