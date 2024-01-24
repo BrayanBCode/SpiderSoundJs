@@ -8,9 +8,10 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Push to server
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.IP }}
           username: ${{ secrets.USUARIO }}
           password: ${{ secrets.PASSWORD }}
+          port: 22
           script: cd ./SpiderBot && git pull
