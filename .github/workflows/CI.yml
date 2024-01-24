@@ -14,4 +14,42 @@ jobs:
           username: ${{ secrets.USUARIO }}
           password: ${{ secrets.PASSWORD }}
           port: 22
+          key: "-----BEGIN OPENSSH PRIVATE KEY-----
+                b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcn
+                NhAAAAAwEAAQAAAYEAtI0r9IGD04PeBGKbKkSTFNFYqOAoSKkOuUCBdjN1xSBVUGMJ9SuX
+                RFy2icS/hv+61PcPaDmbduft4XDx7usnjxvrJpqJo3UFa8IUNV+wnMUZuaaLnHh+5XN7ub
+                7oJf9oTmXq4OQE/JNwkT+5ug6IkmJfaY+K7dJ4vSOR5Vw3EOJIrwURF+CYWaHaoJhMvQYF
+                0bEkSL5IyFqlAbxdZ1zZiVeQ6insRMzw5f2tXtWl5Y6IJ+RjXpO1fGFY6N0r4f5Dvvat5O
+                20YReCY7C5PEMD7/I6/lK8M6C3YXbBJ4ZdIC3qplQlb8n6NHCSetC2wN0JQFN8MXDGuaH8
+                jFS56jAZtOiuWL3Cmy/QiESad7dY28M9dG6iQwaqomiMTN8XG7wTLpNSUr0UE9+DaTSzhB
+                V7Pf/HVGlqlsy4dXRrG6jEG9G9Kl+FyBssD7BAtN/nM+rCg4KYywZBKXX5/aMRTTEA/gUM
+                zz/gSAsBc87bK1qBF1D/Lh324my2ZRohMly+ZHWDAAAFiEsmBexLJgXsAAAAB3NzaC1yc2
+                EAAAGBALSNK/SBg9OD3gRimypEkxTRWKjgKEipDrlAgXYzdcUgVVBjCfUrl0RctonEv4b/
+                utT3D2g5m3bn7eFw8e7rJ48b6yaaiaN1BWvCFDVfsJzFGbmmi5x4fuVze7m+6CX/aE5l6u
+                DkBPyTcJE/uboOiJJiX2mPiu3SeL0jkeVcNxDiSK8FERfgmFmh2qCYTL0GBdGxJEi+SMha
+                pQG8XWdc2YlXkOop7ETM8OX9rV7VpeWOiCfkY16TtXxhWOjdK+H+Q772reTttGEXgmOwuT
+                xDA+/yOv5SvDOgt2F2wSeGXSAt6qZUJW/J+jRwknrQtsDdCUBTfDFwxrmh/IxUueowGbTo
+                rli9wpsv0IhEmne3WNvDPXRuokMGqqJojEzfFxu8Ey6TUlK9FBPfg2k0s4QVez3/x1Rpap
+                bMuHV0axuoxBvRvSpfhcgbLA+wQLTf5zPqwoOCmMsGQSl1+f2jEU0xAP4FDM8/4EgLAXPO
+                2ytagRdQ/y4d9uJstmUaITJcvmR1gwAAAAMBAAEAAAGAA7oQQk5WN0xywOlJFLYsQMYvut
+                Ad9MCqdJIgywvG0JUVCom1m5wIKzM9hKtZ5WSSR4cDdzwePikvegAtMf3PFt0q1MsxfNsG
+                vw1wzuEZRP9oZW4xiTaG2VuPYmcbshZtP3P11lybWVf9oWjVbn34o8Y5UVu5Y8b8xeSM1X
+                /tnuuhnoN+sZjHpvEvxHXa/tlRV+YFMfKIGEUGc6T0OL9nywtBgorNUndv00M8h6l/xegH
+                GacqkpfDEhZI/JGGBanyqiLFRpjcYuimqjHoAxy5hmmGyVuZVshXcsHXr9D9F5V20D3PDv
+                R8SjY+3lGuBvmsaj1HzTj1Y8V941no4Ma3Y/xmBkds1D5EdUau3dswGibS9PUlRXiQqbNp
+                9toD5Ee4lLzn//iY0rVA5c8zp113rXEAfS0Q9G6SKseKxjlt2ZlFnnzWSfGlgXkvGy0je8
+                lcy/h3F8sCgMLoskWAHZsNtgYpe3apW0HfzCOVeGqwFndTiwNnuwGzeZ6XLSOexswZAAAA
+                wA1WzqqMZo2JEOhIG8kXQmRvAkPlcEN63Fi3HkCZALW0kDRkOVRVBgOgQg5yaz1vC3NNZr
+                UE8Zk+5Hyhak5Yxf/uQb9iKIBqqTjw4+CWD2Gil9/PYb4EX9EIsGumGt+yt8hTQ3libxye
+                BWT/4n3mJa3ednrrp5U1mwRGmF4ESCs/rNo5WOVYHne1cNbzPM1/2ONjXtk5IRiLETBNp3
+                ig5VWbwvaneacJFQnqSMGc/BGlQcn8aiqpSbXG+fViz3eQUQAAAMEAxuC4ZH+oCbol7UIv
+                CNAfk8caeakN225ULZ/z8ht8oWS8TdT5XV74Vt1M1Cv2e7ak93jGbvOwgqf276OKj+xFCI
+                KkEwPcl4wTEVmikYFGfJGXfhLePEb2zs9o4Y7lC/o3mUirA0JeOQcNc3HfLwWLMJUCE5Cl
+                DJ/kZWb2ohwqQn00EQT88PZEWEfIdsJ7GiHBBUijPl5wMV8CvKQPc//JH21PtRQCu7RFBL
+                B3RnvHnJtb7Zc8CXnsUXUUIaCRs0IbAAAAwQDoaO7aUBNPpJJRhcIrPCs6/BAVFq25N+0s
+                MGsOhTSGGVAWIbsblOP/UrAEkVhSYLlllQRgYwt3aSIpGOv6l3gj2zxP6RzgBmQ/aWfD6Q
+                hytmGBIqQI+ZkEdv49XOkkKVLWqHwvwbcKMsJzxvsVKFeCXBrWxCuEJWKSN7cRrHr/TPMr
+                n7AcltaWF0HeTLVyMlDUYGA4Z5HHyWDd/EQBlRC7cwZKMU/SShWYkpBg20XuQgWX8MkJ0T
+                io0WQkfHqoELkAAAATdWJ1bnR1QHZwcy00N2ZhNjZjYw==
+                -----END OPENSSH PRIVATE KEY-----"
           script: cd ./SpiderBot && git pull
