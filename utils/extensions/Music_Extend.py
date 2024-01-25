@@ -1,4 +1,3 @@
-
 import os
 import re
 import asyncio
@@ -6,16 +5,11 @@ import discord
 
 from discord.ext import commands
 from discord import Embed, FFmpegPCMAudio
-from discord.ui import Button, View
 from youtubesearchpython import VideosSearch
 from pytube import Playlist, YouTube
-from discord import ActionRow, Button
 from utils.extensions.Buttons import Queue_buttons
 
 from utils.db import *
-
-from discord import Button, ButtonStyle, InteractionType
-import math
 
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
@@ -24,6 +18,8 @@ from spotipy.oauth2 import SpotifyClientCredentials
 CURRENTLY_PLAYING = {}
 INACTIVE_TIMERS = {}
 ACTIVE_LOOP = {}
+
+
 
 class Music_Ext(commands.Cog):
     def __init__(self, bot):
@@ -59,51 +55,54 @@ class Music_Ext(commands.Cog):
             
     @commands.command(name='queue', aliases=['q'])
     async def queue(self, ctx):
-        # Aquí va tu código para obtener la lista de canciones en la cola
-        ServerID = ctx.guild.id
-        queue = get_all_items(f'Playlist_{str(ServerID)}')
-        queue = [url[1] for url in queue]
-        
-        displayMax = 6
-
-        async def get_page(page: int):
+        try:
+            # Aquí va tu código para obtener la lista de canciones en la cola
+            ServerID = ctx.guild.id
+            queue = get_all_items(f'Playlist_{str(ServerID)}')
+            queue = [url[1] for url in queue]
             
-            emb = discord.Embed(title="Araña Sound - Playlist", description="", color=0x120062)
-            if ServerID in CURRENTLY_PLAYING:
-                videoCurrent = YouTube(CURRENTLY_PLAYING[ServerID]['url'])
+            displayMax = 6
 
-                duration = videoCurrent.length
-                mins, secs = divmod(duration, 60)
-                hours, mins = divmod(mins, 60)
-                duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+            async def get_page(page: int):
+                try:
+                    emb = discord.Embed(title="Araña Sound - Playlist", description="", color=0x120062)
+                    if ServerID in CURRENTLY_PLAYING:
+                        videoCurrent = YouTube(CURRENTLY_PLAYING[ServerID]['url'])
 
+                        duration = videoCurrent.length
+                        mins, secs = divmod(duration, 60)
+                        hours, mins = divmod(mins, 60)
+                        duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
 
-                emb.add_field(name="Reproduciendo actual", 
-                            value=f"{videoCurrent.title} de {videoCurrent.author}\n Duracion: {duration_formatted}\n", 
-                            inline=False)
-                emb.set_thumbnail(url=videoCurrent.thumbnail_url)
+                        emb.add_field(name="Reproduciendo actual", 
+                                    value=f"{videoCurrent.title} de {videoCurrent.author}\n Duracion: {duration_formatted}\n", 
+                                    inline=False)
+                        emb.set_thumbnail(url=videoCurrent.thumbnail_url)
 
-            offset = (page-1) * displayMax
-            for url in queue[offset:offset+displayMax]:
-                video = YouTube(url)
-                duration1 = video.length
-                mins, secs = divmod(duration1, 60)
-                hours, mins = divmod(mins, 60)
-                duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+                    offset = (page-1) * displayMax
+                    for index, url in enumerate(queue[offset:offset+displayMax], start=1):
+                        video = YouTube(url)
+                        duration1 = video.length
+                        mins, secs = divmod(duration1, 60)
+                        hours, mins = divmod(mins, 60)
+                        duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
 
-                emb.add_field(name=f'{video.title} de {video.author}', value=f'Duracion: {duration_formatted}\npedida por {ctx.author}', inline=False)
-            n = Queue_buttons.compute_total_pages(len(queue), displayMax)
-            emb.set_footer(text=f"Pedido por {ctx.author} - Pagina {page} de {n}", icon_url=ctx.author.avatar.url)
-            return emb, n
+                        emb.add_field(name=f'{index}. {video.title} de {video.author}', value=f'Duracion: {duration_formatted}\npedida por {ctx.author}', inline=False)
+                    n = Queue_buttons.compute_total_pages(len(queue), displayMax)
+                    emb.set_footer(text=f"Pedido por {ctx.author} - Pagina {page} de {n}", icon_url=ctx.author.avatar.url)
+                    return emb, n
+                except Exception as e:
+                    print(f"Error al obtener la página: {e}")
 
-        await Queue_buttons(ctx, get_page).navegate()
+            await Queue_buttons(ctx, get_page).navegate()
+        except Exception as e:
+            print(f"Error en el comando queue: {e}")
 
     @commands.command(name='skip', aliases=['s'])
     async def skip(self, ctx, command: int = 1):
         GuildActual = ctx.guild.id
         voice_client = ctx.guild.voice_client
         
-
         if command <= 0:
             await ctx.send("Por favor, proporciona un número positivo de canciones para saltar.")
             return
@@ -134,7 +133,7 @@ class Music_Ext(commands.Cog):
         GuildActual = ctx.guild.id
         remove_all_items(f"Playlist_{str(GuildActual)}")
         embed = Embed(
-            description="Lista de reproducción borrada.", color=0x6a0dad)
+            description="Lista de reproducción borrada.", color=0x120062)
         await ctx.send(embed=embed)
 
     @commands.command(name='remove', aliases=['r', 'rem'])
@@ -162,7 +161,7 @@ class Music_Ext(commands.Cog):
                     hours, mins = divmod(mins, 60)
                     duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
 
-                    embed = Embed(title="Canción removida", color=0x7289DA)
+                    embed = Embed(title="Canción removida", color=0x120062)
                     thumbnail = video.thumbnail_url
                     embed.set_thumbnail(url=thumbnail)
                     embed.add_field(name="Canción eliminada",
@@ -243,7 +242,7 @@ class Music_Ext(commands.Cog):
 
                 embed_title = "Canción agregada a la playlist" if len(
                     songs_added) == 1 else "Canciones agregadas a la playlist"
-                embed = Embed(title=embed_title, color=0x6a0dad)
+                embed = Embed(title=embed_title, color=0x120062)
 
                 i = 0
                 for song in songs_added:
@@ -395,7 +394,7 @@ class Music_Ext(commands.Cog):
                             hours, mins, secs)
 
                         embed = Embed(
-                            title="Reproduciendo", description=f"{video.title} - {video.author}\n[Ver en Youtube]({videoUrl})\nDuración: {duration_formatted}", color=0x6a0dad)
+                            title="Reproduciendo", description=f"{video.title} - {video.author}\n[Ver en Youtube]({videoUrl})\nDuración: {duration_formatted}", color=0x120062)
 
                         embed.set_thumbnail(url=video.thumbnail_url)
                         await ctx.send(embed=embed)
