@@ -64,6 +64,7 @@ class Music_Ext(commands.Cog):
             displayMax = 6
 
             emb = discord.Embed(title="Araña Sound - Playlist", description="", color=0x120062)
+
             if ServerID in CURRENTLY_PLAYING:
                 videoCurrent = YouTube(CURRENTLY_PLAYING[ServerID]['url'])
 
@@ -98,7 +99,7 @@ class Music_Ext(commands.Cog):
                 await Queue_buttons(ctx, get_page).navegate()
             else:
                 emb.description = 'No hay canciones en la playlist'
-                ctx.send(Embed=emb)
+                await ctx.send(embed=emb)
 
         except Exception as e:
             print(f"Error en el comando queue: {e}")
@@ -235,15 +236,15 @@ class Music_Ext(commands.Cog):
                         YouTube_pattern, songs_added, table_name, command)
 
                 elif re.match(spotify_pattern, command):
-                    result = await self.addToPlaylistSpotify(ctx, table_name, command, songs_added)
-                    if result[0]:
-                        songs_added = result[1]
+                    result, songs = await self.addToPlaylistSpotify(ctx, table_name, command, songs_added)
+                    if result:
+                        songs_added = songs
                     else:
                         await ctx.send(f'No se encontraron búsquedas válidas para {result[1]}.')
                 else:
-                    result = self.SearchInYT(table_name, songs_added, command)
-                    if result[0]:
-                        songs_added = result[1]
+                    result, songs = self.SearchInYT(table_name, songs_added, command)
+                    if result:
+                        songs_added = songs
                     else:
                         await ctx.send(f'No se encontraron búsquedas válidas para {result[1]}.')
 
@@ -338,9 +339,9 @@ class Music_Ext(commands.Cog):
             count = 0
             for song_name in spotify_list:
                 search = f"{song_name['name']} de {song_name['author']}"
-                result = self.SearchInYT(GuildActual, songs_added, search)
+                result, songs = self.SearchInYT(GuildActual, songs_added, search)
                 if result:
-                    songs_added = result
+                    songs_added = songs
                     if not loop:
                         asyncio.create_task(self.play_next(ctx))
                         loop = True
@@ -354,7 +355,9 @@ class Music_Ext(commands.Cog):
                     await ctx.send(embed=embed)
 
                 await asyncio.sleep(0.5)
-
+            
+            return (True, songs_added)
+            
     async def play_next(self, ctx):
         GuildActual = ctx.guild.id
         voice_client = ctx.voice_client
@@ -547,8 +550,7 @@ class Music_Ext(commands.Cog):
             duration = video.length
             mins, secs = divmod(duration, 60)
             hours, mins = divmod(mins, 60)
-            duration_formatted = '{:02d}:{:02d}:{:02d}'.format(
-                hours, mins, secs)
+            duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
 
             thumbnail = video.thumbnail_url
 
@@ -564,7 +566,7 @@ class Music_Ext(commands.Cog):
             dict_list.append({'url': item})
 
         add_item(GuildActual, dict_list)
-        return list(songs_added)
+        return songs_added
 
     def SearchInYT(self, GuildActual, songs_added, command):
         videos = VideosSearch(command, limit=1)
@@ -588,7 +590,7 @@ class Music_Ext(commands.Cog):
                 'thumbnail': thumbnail,
                 'artist': video.author
             })
-            return (True, list(songs_added))
+            return (True, songs_added)
         else:
             return (False, f"No se encontro busqueda valida para {command}")
 

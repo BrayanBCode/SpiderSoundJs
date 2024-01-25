@@ -21,10 +21,10 @@ class Queue_buttons(discord.ui.View):
             self.update_buttons()
             await self.ctx.send(embed=emb, view=self)
 
-    async def edit_page(self, interaction: discord.Interaction):
+    async def edit_page(self, ctx: commands.Context):
         emb, self.total_pages = await self.get_page(self.index)
         self.update_buttons()
-        await interaction.message.edit(embed=emb, view=self)
+        await ctx.message.edit(embed=emb, view=self)
 
     def update_buttons(self):
         if self.index > self.total_pages // 2:

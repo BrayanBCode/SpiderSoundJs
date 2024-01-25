@@ -19,7 +19,7 @@ load_dotenv()
 
 intents = discord.Intents.default()
 intents.message_content = True
-bot = commands.Bot(command_prefix="=", intents=intents)
+bot = commands.Bot(command_prefix="-", intents=intents)
 
 bot.remove_command('help')
 
@@ -73,4 +73,4 @@ async def help(ctx):
 
 # * Comandos comandos.Musica ---------------------------
 
-bot.run(os.environ.get("TOKEN"))
+bot.run(os.environ.get("TEST"))
