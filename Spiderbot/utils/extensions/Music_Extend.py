@@ -1,3 +1,4 @@
+
 import os
 import re
 import asyncio
@@ -8,22 +9,25 @@ from discord import Embed, FFmpegPCMAudio
 from discord.ui import Button, View
 from youtubesearchpython import VideosSearch
 from pytube import Playlist, YouTube
+from discord import ActionRow, Button
 from utils.extensions.Buttons import Queue_buttons
 
 from utils.db import *
 
+from discord import Button, ButtonStyle, InteractionType
+import math
+
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+
 
 CURRENTLY_PLAYING = {}
 INACTIVE_TIMERS = {}
 ACTIVE_LOOP = {}
-now_playing_message = {}
 
 class Music_Ext(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
 
         ids_servidores = self.bot.guilds
         for servidor_id in ids_servidores:
@@ -52,14 +56,14 @@ class Music_Ext(commands.Cog):
         except:
             print(
                 f"Evento de Voz detectado - Usuario: {member} en {member.guild.name}")
-   
+            
     @commands.command(name='queue', aliases=['q'])
     async def queue(self, ctx):
         # Aquí va tu código para obtener la lista de canciones en la cola
         ServerID = ctx.guild.id
         queue = get_all_items(f'Playlist_{str(ServerID)}')
         queue = [url[1] for url in queue]
-
+        
         displayMax = 6
 
         async def get_page(page: int):
@@ -77,24 +81,20 @@ class Music_Ext(commands.Cog):
                 emb.add_field(name="Reproduciendo actual", 
                             value=f"{videoCurrent.title} de {videoCurrent.author}\n Duracion: {duration_formatted}\n", 
                             inline=False)
-                
-            emb.set_thumbnail(url=videoCurrent.thumbnail_url)
-            if len(queue) > 0:
-                offset = (page-1) * displayMax
-                for index, url in enumerate(queue[offset:offset+displayMax], start=1):
-                    video = YouTube(url)
-                    duration1 = video.length
-                    mins, secs = divmod(duration1, 60)
-                    hours, mins = divmod(mins, 60)
-                    duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+                emb.set_thumbnail(url=videoCurrent.thumbnail_url)
 
-                    emb.add_field(name=f'{index}. {video.title} de {video.author}', value=f'Duracion: {duration_formatted}\npedida por {ctx.author}', inline=False)
-                n = Queue_buttons.compute_total_pages(len(queue), displayMax)
-                emb.set_footer(text=f"Pedido por {ctx.author} - Pagina {page} de {n}", icon_url=ctx.author.avatar.url)
-                return emb, n
-            else:
-                emb.description = 'No hay canciones en la cola'
-                ctx.send(Embed=emb)
+            offset = (page-1) * displayMax
+            for url in queue[offset:offset+displayMax]:
+                video = YouTube(url)
+                duration1 = video.length
+                mins, secs = divmod(duration1, 60)
+                hours, mins = divmod(mins, 60)
+                duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+
+                emb.add_field(name=f'{video.title} de {video.author}', value=f'Duracion: {duration_formatted}\npedida por {ctx.author}', inline=False)
+            n = Queue_buttons.compute_total_pages(len(queue), displayMax)
+            emb.set_footer(text=f"Pedido por {ctx.author} - Pagina {page} de {n}", icon_url=ctx.author.avatar.url)
+            return emb, n
 
         await Queue_buttons(ctx, get_page).navegate()
 
@@ -134,7 +134,7 @@ class Music_Ext(commands.Cog):
         GuildActual = ctx.guild.id
         remove_all_items(f"Playlist_{str(GuildActual)}")
         embed = Embed(
-            description="Lista de reproducción borrada.", color=0x120062)
+            description="Lista de reproducción borrada.", color=0x6a0dad)
         await ctx.send(embed=embed)
 
     @commands.command(name='remove', aliases=['r', 'rem'])
@@ -162,7 +162,7 @@ class Music_Ext(commands.Cog):
                     hours, mins = divmod(mins, 60)
                     duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
 
-                    embed = Embed(title="Canción removida", color=0x120062)
+                    embed = Embed(title="Canción removida", color=0x7289DA)
                     thumbnail = video.thumbnail_url
                     embed.set_thumbnail(url=thumbnail)
                     embed.add_field(name="Canción eliminada",
@@ -243,7 +243,7 @@ class Music_Ext(commands.Cog):
 
                 embed_title = "Canción agregada a la playlist" if len(
                     songs_added) == 1 else "Canciones agregadas a la playlist"
-                embed = Embed(title=embed_title, color=0x120062)
+                embed = Embed(title=embed_title, color=0x6a0dad)
 
                 i = 0
                 for song in songs_added:
@@ -376,8 +376,10 @@ class Music_Ext(commands.Cog):
                         output_path = 'temp'
                         video_path = os.path.join(output_path, video_stream.default_filename)
 
+
                         # Descargar el video
                         video_stream.download(output_path=output_path)
+
 
                         # Reproducir el video
                         audio_source = FFmpegPCMAudio(video_path)
@@ -392,25 +394,11 @@ class Music_Ext(commands.Cog):
                         duration_formatted = '{:02d}:{:02d}:{:02d}'.format(
                             hours, mins, secs)
 
-                        embed = Embed(title="Reproduciendo", description=f"{video.title} - {video.author}\n[Ver en Youtube]({videoUrl})\nDuración: {duration_formatted}", color=0x120062)
-                        
+                        embed = Embed(
+                            title="Reproduciendo", description=f"{video.title} - {video.author}\n[Ver en Youtube]({videoUrl})\nDuración: {duration_formatted}", color=0x6a0dad)
+
                         embed.set_thumbnail(url=video.thumbnail_url)
-
-                        
-
-                        
-                        if GuildActual in self.now_playing_message:
-                            # Obtén los mensajes recientes en el canal
-                            recent_messages = await ctx.channel.history(limit=2).flatten()
-                            # Verifica si el último mensaje fue enviado por el bot
-                            if recent_messages[0].author == self.bot.user:
-                                try:
-                                    await self.now_playing_message[GuildActual].edit(embed=embed)
-                                except discord.NotFound:
-                                    self.now_playing_message[GuildActual] = await ctx.send(embed=embed)
-                        else:
-                            self.now_playing_message[GuildActual] = await ctx.send(embed=embed)
-                        
+                        await ctx.send(embed=embed)
 
                         CURRENTLY_PLAYING[GuildActual] = {
                             'title': video.title,
@@ -436,7 +424,7 @@ class Music_Ext(commands.Cog):
                     await asyncio.sleep(1)
                 continue
 
-            if len((f"Playlist_{str(GuildActual)}")) > 0 and not ACTIVE_LOOP[GuildActual]:
+            if len(get_all_items(f"Playlist_{str(GuildActual)}")) > 0 and not ACTIVE_LOOP[GuildActual]:
                 await self.play_next(ctx)
             elif ACTIVE_LOOP[GuildActual]:
                 video_url = str(CURRENTLY_PLAYING[GuildActual]['url'])
@@ -445,6 +433,39 @@ class Music_Ext(commands.Cog):
             else:
                 CURRENTLY_PLAYING.pop(GuildActual)
                 break
+
+            if len(get_all_items(f"Playlist_{str(GuildActual)}")) > 1:
+                
+                videoUrl = str(get_all_items(f"Playlist_{str(GuildActual)}")[1][1])
+                print(videoUrl)
+
+                try:
+                    video = YouTube(videoUrl)
+
+                    try:
+                        # Intentar obtener la corriente de video en la calidad estándar
+                        video_stream = video.streams.get_audio_only()
+
+                    except ValueError as e:
+                        print(e)
+                    # Definir la ruta de descarga
+                    output_path = 'temp'
+                    video_path = os.path.join(output_path, video_stream.default_filename)
+
+
+                    # Descargar el video
+                    video_stream.download(output_path=output_path)
+                except Exception as e:
+                    print(f'play_next_controler: {e}')
+
+
+            table_name = f"Playlist_{str(GuildActual)}"
+            if len(get_all_items(table_name)) == 0:
+                await asyncio.sleep(5)
+                if len(get_all_items(table_name)) == 0:
+                    break
+
+            await asyncio.sleep(2)
 
     # Esta función verificará si el bot está inactivo en un canal de voz durante 2 minutos y lo desconectará
     async def checkVoiceActivity(self, guild):
@@ -494,7 +515,7 @@ class Music_Ext(commands.Cog):
 
     def CrearTempSiNoExiste(self):
         nombre_carpeta = 'temp'
-        
+
         ruta_carpeta = os.path.join(os.getcwd(), nombre_carpeta)
 
         if not os.path.exists(ruta_carpeta):

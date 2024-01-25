@@ -19,7 +19,7 @@ load_dotenv()
 
 intents = discord.Intents.default()
 intents.message_content = True
-bot = commands.Bot(command_prefix="=", intents=intents)
+bot = commands.Bot(command_prefix="-", intents=intents)
 
 bot.remove_command('help')
 
@@ -27,7 +27,6 @@ bot.remove_command('help')
 
 @bot.event
 async def on_ready():
-    
     await Status()
     try:
         await bot.add_cog(Music_Ext(bot))
@@ -49,7 +48,7 @@ async def Status():
 
 # * Comandos -------------------------------------------------------------------
 
-@commands.command(name='help', aliases=['h'])
+@bot.command()
 async def help(ctx):
     embed = discord.Embed(title="Guia de de comandos",
                           description="En esta guia se nombraran los comandos implementados en el Bot.", color=0x7289DA)

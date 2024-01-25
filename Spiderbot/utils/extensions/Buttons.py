@@ -1,5 +1,6 @@
 import discord
 from discord import Embed
+from discord.ext import commands 
 from typing import Callable, Optional
 from pytube import YouTube
 
@@ -9,7 +10,7 @@ class Queue_buttons(discord.ui.View):
         self.get_page = get_page
         self.total_pages: Optional[int] = None
         self.index = 1
-        super().__init__(timeout=300)
+        super().__init__(timeout=None)
 
     async def navegate(self):
         emb, self.total_pages = await self.get_page(self.index)
@@ -29,24 +30,24 @@ class Queue_buttons(discord.ui.View):
         self.children[1].disabled = self.index == self.total_pages
 
     @discord.ui.button(emoji="⏮️", style=discord.ButtonStyle.blurple)
-    async def first(self, ctx):
+    async def first(self, ctx, button: discord.Button):
         self.index = 1
         await self.edit_page(ctx)
 
     @discord.ui.button(emoji="◀️", style=discord.ButtonStyle.blurple)
-    async def previous(self, ctx):
+    async def previous(self, ctx, button: discord.Button):
         if self.index > 1:  # Asegúrate de que el índice no sea menor que 1
             self.index -= 1
             await self.edit_page(ctx)
 
     @discord.ui.button(emoji="▶️", style=discord.ButtonStyle.blurple)
-    async def next(self, ctx):
+    async def next(self, ctx, button: discord.Button):
         if self.index < self.total_pages:  # Asegúrate de que el índice no exceda el total de páginas
             self.index += 1
             await self.edit_page(ctx)
 
     @discord.ui.button(emoji="⏭️", style=discord.ButtonStyle.blurple)
-    async def end(self, ctx):
+    async def end(self, ctx, button: discord.Button):
         self.index = self.total_pages
         await self.edit_page(ctx)
 
