@@ -8,27 +8,26 @@ from discord import Embed, FFmpegPCMAudio
 from discord.ui import Button, View
 from youtubesearchpython import VideosSearch
 from pytube import Playlist, YouTube
-from discord import ActionRow, Button
 from utils.extensions.Buttons import Queue_buttons
 
 from utils.db import *
 
-from discord import Button, ButtonStyle, InteractionType
-
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+
+CURRENTLY_PLAYING = {}
+INACTIVE_TIMERS = {}
+ACTIVE_LOOP = {}
+now_playing_message = {}
 
 class Music_Ext(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.CURRENTLY_PLAYING = {}
-        self.INACTIVE_TIMERS = {}
-        self.ACTIVE_LOOP = {}
-        self.now_playing_message = {}
+
 
         ids_servidores = self.bot.guilds
         for servidor_id in ids_servidores:
-            self.ACTIVE_LOOP[servidor_id.id] = False
+            ACTIVE_LOOP[servidor_id.id] = False
 
         self.CrearTempSiNoExiste()
 
@@ -40,8 +39,8 @@ class Music_Ext(commands.Cog):
         if member == self.bot.user and after.channel:
             afterguild = after.channel.guild
 
-            if afterguild.id not in self.INACTIVE_TIMERS:
-                self.INACTIVE_TIMERS[afterguild.id] = self.bot.loop.create_task(
+            if afterguild.id not in INACTIVE_TIMERS:
+                INACTIVE_TIMERS[afterguild.id] = self.bot.loop.create_task(
                     self.checkVoiceActivity(afterguild))
         try:
             beforeguild = before.channel.guild
@@ -66,8 +65,8 @@ class Music_Ext(commands.Cog):
         async def get_page(page: int):
             
             emb = discord.Embed(title="Araña Sound - Playlist", description="", color=0x120062)
-            if ServerID in self.CURRENTLY_PLAYING:
-                videoCurrent = YouTube(self.CURRENTLY_PLAYING[ServerID]['url'])
+            if ServerID in CURRENTLY_PLAYING:
+                videoCurrent = YouTube(CURRENTLY_PLAYING[ServerID]['url'])
 
                 duration = videoCurrent.length
                 mins, secs = divmod(duration, 60)
@@ -122,7 +121,7 @@ class Music_Ext(commands.Cog):
             await ctx.send("No hay más canciones en la lista de reproducción para saltar.")
             return
 
-        if not self.ACTIVE_LOOP[GuildActual]:
+        if not ACTIVE_LOOP[GuildActual]:
             delete_items_up_to_id(f"Playlist_{str(GuildActual)}", command - 1)
             print("Saltando canciones")            
         else:
@@ -182,8 +181,8 @@ class Music_Ext(commands.Cog):
     @commands.command(name='loop')
     async def loop(self, ctx):
         GuildActual = ctx.guild.id
-        self.ACTIVE_LOOP[GuildActual] = not self.ACTIVE_LOOP[GuildActual]
-        Status = 'Activado' if self.ACTIVE_LOOP[GuildActual] else 'Desactivado'
+        ACTIVE_LOOP[GuildActual] = not ACTIVE_LOOP[GuildActual]
+        Status = 'Activado' if ACTIVE_LOOP[GuildActual] else 'Desactivado'
         await ctx.send(f"Loop: {Status}")
 
     @commands.command(name='play', aliases=['p'])
@@ -397,6 +396,9 @@ class Music_Ext(commands.Cog):
                         
                         embed.set_thumbnail(url=video.thumbnail_url)
 
+                        
+
+                        
                         if GuildActual in self.now_playing_message:
                             # Obtén los mensajes recientes en el canal
                             recent_messages = await ctx.channel.history(limit=2).flatten()
@@ -408,8 +410,9 @@ class Music_Ext(commands.Cog):
                                     self.now_playing_message[GuildActual] = await ctx.send(embed=embed)
                         else:
                             self.now_playing_message[GuildActual] = await ctx.send(embed=embed)
+                        
 
-                        self.CURRENTLY_PLAYING[GuildActual] = {
+                        CURRENTLY_PLAYING[GuildActual] = {
                             'title': video.title,
                             'artist': video.author,
                             'duration': duration_formatted,
@@ -433,14 +436,14 @@ class Music_Ext(commands.Cog):
                     await asyncio.sleep(1)
                 continue
 
-            if len((f"Playlist_{str(GuildActual)}")) > 0 and not self.ACTIVE_LOOP[GuildActual]:
+            if len((f"Playlist_{str(GuildActual)}")) > 0 and not ACTIVE_LOOP[GuildActual]:
                 await self.play_next(ctx)
-            elif self.ACTIVE_LOOP[GuildActual]:
-                video_url = str(self.CURRENTLY_PLAYING[GuildActual]['url'])
+            elif ACTIVE_LOOP[GuildActual]:
+                video_url = str(CURRENTLY_PLAYING[GuildActual]['url'])
                 add_item(f"Playlist_{str(GuildActual)}", [{'url': video_url}])
                 await self.play_next(ctx)
             else:
-                self.CURRENTLY_PLAYING.pop(GuildActual)
+                CURRENTLY_PLAYING.pop(GuildActual)
                 break
 
     # Esta función verificará si el bot está inactivo en un canal de voz durante 2 minutos y lo desconectará
@@ -459,9 +462,9 @@ class Music_Ext(commands.Cog):
                         if self.checkFolderContent():
                             self.clearMusicFolder()
                         # Verificar si la clave existe antes de intentar eliminarla
-                        if guild.id in self.INACTIVE_TIMERS:
+                        if guild.id in INACTIVE_TIMERS:
                             # Eliminar el temporizador de inactividad para este servidor
-                            self.INACTIVE_TIMERS.pop(guild.id)
+                            INACTIVE_TIMERS.pop(guild.id)
             # Verificar la inactividad cada 10 segundos
             await asyncio.sleep(10)
 

@@ -49,7 +49,7 @@ async def Status():
 
 # * Comandos -------------------------------------------------------------------
 
-@bot.command()
+@commands.command(name='help', aliases=['h'])
 async def help(ctx):
     embed = discord.Embed(title="Guia de de comandos",
                           description="En esta guia se nombraran los comandos implementados en el Bot.", color=0x7289DA)
