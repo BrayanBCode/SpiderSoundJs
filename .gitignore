@@ -1,5 +1,3 @@
-AppJava/.gradle
-AppJava/build
 *.mp4
 Parche 3.0
 instance/ServerPlaylist.db
@@ -9,3 +7,5 @@ utils/__pycache__/db.cpython-311.pyc
 *.pyc
 .env
 .cache
+temp
+Database
