@@ -345,8 +345,7 @@ class Music_Ext(commands.Cog):
                         asyncio.create_task(self.play_next(ctx))
                         loop = True
                 else:
-                    print(
-                        f'No se encontraron búsquedas válidas para [ {search} ].')
+                    print(f'No se encontraron búsquedas válidas para [ {search} ].')
 
                 count += 1
                 if count == 4:
