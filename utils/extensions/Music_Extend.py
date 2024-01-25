@@ -349,7 +349,7 @@ class Music_Ext(commands.Cog):
                         f'No se encontraron búsquedas válidas para [ {search} ].')
 
                 count += 1
-                if count == 6:
+                if count == 4:
                     embed = Embed(title="Estamos agregando muchas canciones",
                                   description="Esto puede tardar un poco...")
                     await ctx.send(embed=embed)
