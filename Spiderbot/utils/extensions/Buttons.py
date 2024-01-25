@@ -10,7 +10,7 @@ class Queue_buttons(discord.ui.View):
         self.get_page = get_page
         self.total_pages: Optional[int] = None
         self.index = 1
-        super().__init__(timeout=None)
+        super().__init__(timeout=300)
 
     async def navegate(self):
         emb, self.total_pages = await self.get_page(self.index)
@@ -30,24 +30,24 @@ class Queue_buttons(discord.ui.View):
         self.children[1].disabled = self.index == self.total_pages
 
     @discord.ui.button(emoji="⏮️", style=discord.ButtonStyle.blurple)
-    async def first(self, ctx, button: discord.Button):
+    async def first(self, ctx):
         self.index = 1
         await self.edit_page(ctx)
 
     @discord.ui.button(emoji="◀️", style=discord.ButtonStyle.blurple)
-    async def previous(self, ctx, button: discord.Button):
+    async def previous(self, ctx):
         if self.index > 1:  # Asegúrate de que el índice no sea menor que 1
             self.index -= 1
             await self.edit_page(ctx)
 
     @discord.ui.button(emoji="▶️", style=discord.ButtonStyle.blurple)
-    async def next(self, ctx, button: discord.Button):
+    async def next(self, ctx):
         if self.index < self.total_pages:  # Asegúrate de que el índice no exceda el total de páginas
             self.index += 1
             await self.edit_page(ctx)
 
     @discord.ui.button(emoji="⏭️", style=discord.ButtonStyle.blurple)
-    async def end(self, ctx, button: discord.Button):
+    async def end(self, ctx):
         self.index = self.total_pages
         await self.edit_page(ctx)
 

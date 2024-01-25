@@ -201,7 +201,6 @@ def loopedPlaylist(GuildActual, command):
                 Skiped_songs = db.session.query(table).filter(table.c.id <= command).all()
                 delete_items_up_to_id(GuildActual, command)
         
-
                 for song in Skiped_songs:
                     data_list.append({'url': str(song[1])})
 
