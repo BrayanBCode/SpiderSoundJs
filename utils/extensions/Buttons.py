@@ -16,7 +16,7 @@ class Queue_buttons(discord.ui.View):
     async def navegate(self):
         emb, self.total_pages = await self.get_page(self.index)
         if self.total_pages == 1:
-            await self.ctx.send(embed=emb, view=self)
+            await self.ctx.send(embed=emb)
         elif self.total_pages > 1:
             self.update_buttons()
             await self.ctx.send(embed=emb, view=self)
@@ -57,8 +57,9 @@ class Queue_buttons(discord.ui.View):
 
     async def on_timeout(self):
         # remove buttons on timeout
-        message = self.ctx.message
-        await message.edit(view=None)
+        if message.author == self.bot.user:
+            message = self.ctx.message
+            await message.edit(view=None)
 
     @staticmethod
     def compute_total_pages(total_results: int, results_per_page: int) -> int:

@@ -564,7 +564,7 @@ class Music_Ext(commands.Cog):
             dict_list.append({'url': item})
 
         add_item(GuildActual, dict_list)
-        return songs_added
+        return list(songs_added)
 
     def SearchInYT(self, GuildActual, songs_added, command):
         videos = VideosSearch(command, limit=1)
@@ -588,7 +588,7 @@ class Music_Ext(commands.Cog):
                 'thumbnail': thumbnail,
                 'artist': video.author
             })
-            return (True, songs_added)
+            return (True, list(songs_added))
         else:
             return (False, f"No se encontro busqueda valida para {command}")
 
