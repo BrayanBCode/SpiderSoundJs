@@ -27,7 +27,7 @@ bot.remove_command('help')
 
 @bot.event
 async def on_ready():
-    #HOlaaa
+    
     await Status()
     try:
         await bot.add_cog(Music_Ext(bot))
