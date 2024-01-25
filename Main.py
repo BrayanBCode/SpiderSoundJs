@@ -34,7 +34,7 @@ async def on_ready():
     except Exception as e:
         print(str(e))
 
-async def Status():
+async def Status(): # caca
     status = 1
     print(f"Ya estoy activo {bot.user} al servicio")
     if status == 1:
