@@ -63,38 +63,43 @@ class Music_Ext(commands.Cog):
             
             displayMax = 6
 
-            async def get_page(page: int):
-                try:
-                    emb = discord.Embed(title="Araña Sound - Playlist", description="", color=0x120062)
-                    if ServerID in CURRENTLY_PLAYING:
-                        videoCurrent = YouTube(CURRENTLY_PLAYING[ServerID]['url'])
+            emb = discord.Embed(title="Araña Sound - Playlist", description="", color=0x120062)
+            if ServerID in CURRENTLY_PLAYING:
+                videoCurrent = YouTube(CURRENTLY_PLAYING[ServerID]['url'])
 
-                        duration = videoCurrent.length
-                        mins, secs = divmod(duration, 60)
-                        hours, mins = divmod(mins, 60)
-                        duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+                duration = videoCurrent.length
+                mins, secs = divmod(duration, 60)
+                hours, mins = divmod(mins, 60)
+                duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
 
-                        emb.add_field(name="Reproduciendo actual", 
-                                    value=f"{videoCurrent.title} de {videoCurrent.author}\n Duracion: {duration_formatted}\n", 
-                                    inline=False)
-                        emb.set_thumbnail(url=videoCurrent.thumbnail_url)
+                emb.add_field(name="Reproduciendo actual", 
+                            value=f"{videoCurrent.title} de {videoCurrent.author}\n Duracion: {duration_formatted}\n", 
+                            inline=False)
+                emb.set_thumbnail(url=videoCurrent.thumbnail_url)
 
-                    offset = (page-1) * displayMax
-                    for index, url in enumerate(queue[offset:offset+displayMax], start=1):
-                        video = YouTube(url)
-                        duration1 = video.length
-                        mins, secs = divmod(duration1, 60)
-                        hours, mins = divmod(mins, 60)
-                        duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+            if len(queue) > 0:
+                async def get_page(page: int):
+                    try:
+                        offset = (page-1) * displayMax
+                        for index, url in enumerate(queue[offset:offset+displayMax], start=1):
+                            video = YouTube(url)
+                            duration1 = video.length
+                            mins, secs = divmod(duration1, 60)
+                            hours, mins = divmod(mins, 60)
+                            duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
 
-                        emb.add_field(name=f'{index}. {video.title} de {video.author}', value=f'Duracion: {duration_formatted}\npedida por {ctx.author}', inline=False)
-                    n = Queue_buttons.compute_total_pages(len(queue), displayMax)
-                    emb.set_footer(text=f"Pedido por {ctx.author} - Pagina {page} de {n}", icon_url=ctx.author.avatar.url)
-                    return emb, n
-                except Exception as e:
-                    print(f"Error al obtener la página: {e}")
+                            emb.add_field(name=f'{index}. {video.title} de {video.author}', value=f'Duracion: {duration_formatted}\npedida por {ctx.author}', inline=False)
+                        n = Queue_buttons.compute_total_pages(len(queue), displayMax)
+                        emb.set_footer(text=f"Pedido por {ctx.author} - Pagina {page} de {n}", icon_url=ctx.author.avatar.url)
+                        return emb, n
+                    except Exception as e:
+                        print(f"Error al obtener la página: {e}")
 
-            await Queue_buttons(ctx, get_page).navegate()
+                await Queue_buttons(ctx, get_page).navegate()
+            else:
+                emb.description = 'No hay canciones en la playlist'
+                ctx.send(Embed=emb)
+
         except Exception as e:
             print(f"Error en el comando queue: {e}")
 
@@ -217,13 +222,15 @@ class Music_Ext(commands.Cog):
 
                 spotify_pattern = r'(https?://(?:open\.spotify\.com/(?:track|playlist)/|spotify:(?:track|playlist):)[a-zA-Z0-9]+)'
                 YouTube_pattern = r'(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[^\s]+)'
+                YouTube_playlist_pattern = r'(https?://(?:www\.)?(?:youtube\.com/playlist\?list=)[^\s]+)'
+
 
                 table_name = f"Playlist_{str(GuildActual.id)}"
                 if not tabla_existe(table_name):
                     Crear_Tabla(
                         GuildActual, dynamic_Model_table_Playlist(f"Playlist_{str(GuildActual.id)}"))
 
-                if re.match(YouTube_pattern, command):
+                if re.match(YouTube_pattern, command) or re.match(YouTube_playlist_pattern, command):
                     songs_added = self.addToPlaylistYT(
                         YouTube_pattern, songs_added, table_name, command)
 
