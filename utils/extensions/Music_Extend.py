@@ -82,7 +82,9 @@ class Music_Ext(commands.Cog):
                 async def get_page(page: int):
                     try:
                         offset = (page-1) * displayMax
-                        for index, url in enumerate(queue[offset:offset+displayMax], start=1):
+                        emb = discord.Embed(title="Araña Sound - Playlist", description="", color=0x120062)  # Crea un nuevo embed aquí
+                        
+                        for index, url in enumerate(queue[offset:offset+displayMax], start=offset + 1):
                             video = YouTube(url)
                             duration1 = video.length
                             mins, secs = divmod(duration1, 60)
@@ -90,11 +92,15 @@ class Music_Ext(commands.Cog):
                             duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
 
                             emb.add_field(name=f'{index}. {video.title} de {video.author}', value=f'Duracion: {duration_formatted}\npedida por {ctx.author}', inline=False)
+
                         n = Queue_buttons.compute_total_pages(len(queue), displayMax)
                         emb.set_footer(text=f"Pedido por {ctx.author} - Pagina {page} de {n}", icon_url=ctx.author.avatar.url)
                         return emb, n
+
                     except Exception as e:
                         print(f"Error al obtener la página: {e}")
+
+
 
                 await Queue_buttons(ctx, get_page).navegate()
             else:

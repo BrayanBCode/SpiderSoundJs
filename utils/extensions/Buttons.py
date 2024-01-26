@@ -36,24 +36,24 @@ class Queue_buttons(discord.ui.View):
 
     @discord.ui.button(emoji="◀️", style=discord.ButtonStyle.blurple)
     async def previous(self, interaction: discord.Interaction, button: discord.Button):
-        await interaction.response.defer()
         self.index -= 1
         await self.edit_page(interaction)
+        await interaction.response.defer()
 
     @discord.ui.button(emoji="▶️", style=discord.ButtonStyle.blurple)
     async def next(self, interaction: discord.Interaction, button: discord.Button):
-        await interaction.response.defer()
         self.index += 1
         await self.edit_page(interaction)
+        await interaction.response.defer()
 
     @discord.ui.button(emoji="⏭️", style=discord.ButtonStyle.blurple)
     async def end(self, interaction: discord.Interaction, button: discord.Button):
-        await interaction.response.defer()
         if self.index <= self.total_pages//2:
             self.index = self.total_pages
         else:
             self.index = 1
         await self.edit_page(interaction)
+        await interaction.response.defer()
 
     async def on_timeout(self):
         # remove buttons on timeout
