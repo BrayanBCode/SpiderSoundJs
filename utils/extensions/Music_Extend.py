@@ -301,72 +301,6 @@ class Music_Ext(commands.Cog):
             await ctx.send("Canción reanudada")
         else:
             await ctx.send("No hay ninguna canción en reproducción para pausar o reanudar.")
-
-    async def addToPlaylistSpotify(self, ctx, GuildActual, command, songs_added):
-
-        client_credentials_manager = SpotifyClientCredentials(client_id=os.environ.get(
-            "clientID"), client_secret=os.environ.get("clientSecret"))
-        sp = spotipy.Spotify(
-            client_credentials_manager=client_credentials_manager)
-
-        if "open.spotify.com/track/" in command:
-            # Extraer el ID de la canción desde la URL
-            track_id = command.split('/')[-1].split('?')[0]
-
-            # Obtener información de la canción
-            track_info = sp.track(track_id)
-
-            # Obtener el nombre de la canción y el nombre del artista
-            song_name = track_info['name']
-            # Tomando solo el primer artista de la lista
-            artist_name = track_info['artists'][0]['name']
-            Search = f"{song_name} de {artist_name}"
-
-            result = self.SearchInYT(GuildActual, songs_added, Search)
-            if result:
-                return (True, songs_added)
-            else:
-                return (False, f"No se encontro busqueda valida para {command}")
-
-        elif "open.spotify.com/playlist/" in command:
-            # Extraer el ID de la lista de reproducción desde la URL
-            playlist_id = command.split('/')[-1].split('?')[0]
-
-            # Obtener información de la lista de reproducción
-            playlist_info = sp.playlist(playlist_id)
-
-            # Crear una lista para almacenar los diccionarios de canciones
-            spotify_list = []
-
-            # Iterar sobre las pistas de la lista de reproducción y guardar información en la lista spotify_list
-            for track in playlist_info['tracks']['items']:
-                song_name = track['track']['name']
-                artist_name = track['track']['artists'][0]['name']
-                track_dict = {'name': song_name, 'author': artist_name}
-                spotify_list.append(track_dict)
-
-            loop = False
-            count = 0
-            for song_name in spotify_list:
-                search = f"{song_name['name']} de {song_name['author']}"
-                result, songs = self.SearchInYT(GuildActual, songs_added, search)
-                if result:
-                    songs_added = songs
-                    if not loop:
-                        asyncio.create_task(self.play_next(ctx))
-                        loop = True
-                else:
-                    print(f'No se encontraron búsquedas válidas para [ {search} ].')
-
-                count += 1
-                if count == 4:
-                    embed = Embed(title="Estamos agregando muchas canciones",
-                                  description="Esto puede tardar un poco...")
-                    await ctx.send(embed=embed)
-
-                await asyncio.sleep(0.5)
-            
-            return (True, songs_added)
             
     async def play_next(self, ctx):
         GuildActual = ctx.guild.id
@@ -412,8 +346,9 @@ class Music_Ext(commands.Cog):
                         duration_formatted = '{:02d}:{:02d}:{:02d}'.format(
                             hours, mins, secs)
 
-                        embed = Embed(
-                            title="Reproduciendo", description=f"{video.title} - {video.author}\n[Ver en Youtube]({videoUrl})\nDuración: {duration_formatted}", color=0x120062)
+                        embed = Embed(title="Reproduciendo", color=0x120062)
+                        embed.add_field(name=video.title, value=video.author, inline=True)
+                        embed.add_field(name=f'Duracion: {duration_formatted}', value=f'[Ver en Youtube]({videoUrl})')
 
                         embed.set_thumbnail(url=video.thumbnail_url)
                         await ctx.send(embed=embed)
@@ -616,7 +551,7 @@ class Music_Ext(commands.Cog):
 
             # Agregar las demás canciones después de la primera
 
-            for video_url in video_urls:
+            for video_url in video_urls[1:]:
                 video = YouTube(video_url)
 
                 duration = video.length
@@ -639,6 +574,72 @@ class Music_Ext(commands.Cog):
                 await asyncio.sleep(0.3)  # Agrega un retraso de 0.3 segundos de forma asíncrona
 
         return songs_added
+
+    async def addToPlaylistSpotify(self, ctx, GuildActual, command, songs_added):
+
+        client_credentials_manager = SpotifyClientCredentials(client_id=os.environ.get(
+            "clientID"), client_secret=os.environ.get("clientSecret"))
+        sp = spotipy.Spotify(
+            client_credentials_manager=client_credentials_manager)
+
+        if "open.spotify.com/track/" in command:
+            # Extraer el ID de la canción desde la URL
+            track_id = command.split('/')[-1].split('?')[0]
+
+            # Obtener información de la canción
+            track_info = sp.track(track_id)
+
+            # Obtener el nombre de la canción y el nombre del artista
+            song_name = track_info['name']
+            # Tomando solo el primer artista de la lista
+            artist_name = track_info['artists'][0]['name']
+            Search = f"{song_name} de {artist_name}"
+
+            result = self.SearchInYT(GuildActual, songs_added, Search)
+            if result:
+                return (True, songs_added)
+            else:
+                return (False, f"No se encontro busqueda valida para {command}")
+
+        elif "open.spotify.com/playlist/" in command:
+            # Extraer el ID de la lista de reproducción desde la URL
+            playlist_id = command.split('/')[-1].split('?')[0]
+
+            # Obtener información de la lista de reproducción
+            playlist_info = sp.playlist(playlist_id)
+
+            # Crear una lista para almacenar los diccionarios de canciones
+            spotify_list = []
+
+            # Iterar sobre las pistas de la lista de reproducción y guardar información en la lista spotify_list
+            for track in playlist_info['tracks']['items']:
+                song_name = track['track']['name']
+                artist_name = track['track']['artists'][0]['name']
+                track_dict = {'name': song_name, 'author': artist_name}
+                spotify_list.append(track_dict)
+
+            loop = False
+            count = 0
+            for song_name in spotify_list:
+                search = f"{song_name['name']} de {song_name['author']}"
+                result, songs = self.SearchInYT(GuildActual, songs_added, search)
+                if result:
+                    songs_added = songs
+                    if not loop:
+                        asyncio.create_task(self.play_next(ctx))
+                        loop = True
+                else:
+                    print(f'No se encontraron búsquedas válidas para [ {search} ].')
+
+                count += 1
+                if count == 4:
+                    embed = Embed(title="Estamos agregando muchas canciones",
+                                  description="Esto puede tardar un poco...")
+                    await ctx.send(embed=embed)
+
+                await asyncio.sleep(0.3)
+            
+            return (True, songs_added)
 
     def SearchInYT(self, GuildActual, songs_added, command):
         videos = VideosSearch(command, limit=1)
