@@ -56,10 +56,10 @@ class Queue_buttons(discord.ui.View):
         await interaction.response.defer()
 
     async def on_timeout(self):
-        # remove buttons on timeout
-        if message.author == self.bot.user:
-            message = self.ctx.message
-            await message.edit(view=None)
+        # eliminar los botones cuando se agote el tiempo
+        if self.ctx.message.author == self.ctx.bot.user:
+            await self.ctx.message.edit(view=None)
+
 
     @staticmethod
     def compute_total_pages(total_results: int, results_per_page: int) -> int:
