@@ -250,13 +250,13 @@ class Music_Ext(commands.Cog):
                     if result:
                         songs_added = songs
                     else:
-                        await ctx.send(f'No se encontraron búsquedas válidas para {result[1]}.')
+                        await ctx.send(f'No se encontraron búsquedas válidas para {result}.')
                 else:
                     result, songs = self.SearchInYT(table_name, songs_added, command)
                     if result:
                         songs_added = songs
                     else:
-                        await ctx.send(f'No se encontraron búsquedas válidas para {result[1]}.')
+                        await ctx.send(f'No se encontraron búsquedas válidas para {result}.')
 
                 embed_title = "Canción agregada a la playlist" if len(
                     songs_added) == 1 else "Canciones agregadas a la playlist"
@@ -675,4 +675,3 @@ class Music_Ext(commands.Cog):
 
         return Search
     
-
