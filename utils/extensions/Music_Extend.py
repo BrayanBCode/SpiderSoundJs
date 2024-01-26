@@ -519,6 +519,7 @@ class Music_Ext(commands.Cog):
             playlist_url = match.group(0)
             playlist = Playlist(playlist_url)
             video_urls = playlist.video_urls
+            video_urls = list(video_urls)
 
             # Obtener la cola actual
             current_queue = get_all_items(f"Playlist_{str(GuildActual)}")
@@ -547,11 +548,10 @@ class Music_Ext(commands.Cog):
                 print()
 
                 asyncio.create_task(self.play_next(ctx))  # Iniciar la reproducción de la primera canción
-                print(type(video_urls))
 
             # Agregar las demás canciones después de la primera
 
-            for video_url in video_urls:
+            for video_url in video_urls[1:]:
                 video = YouTube(video_url)
 
                 duration = video.length
