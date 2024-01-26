@@ -515,7 +515,6 @@ class Music_Ext(commands.Cog):
         
     async def addToPlaylistMixYT(self, YouTube_playlist_pattern, songs_added, GuildActual, command, ctx):
         match = re.search(YouTube_playlist_pattern, command)
-        print('Mix')
         if match:
             playlist_url = match.group(0)
             playlist = Playlist(playlist_url)
@@ -545,13 +544,14 @@ class Music_Ext(commands.Cog):
 
                 dict_list = [{'url': first_video_url}]
                 add_item(f"Playlist_{str(GuildActual)}", dict_list)
-                print('\n')
+                print()
 
                 asyncio.create_task(self.play_next(ctx))  # Iniciar la reproducción de la primera canción
+                video_urls = video_urls[1:]
 
             # Agregar las demás canciones después de la primera
 
-            for video_url in video_urls[1:]:
+            for video_url in video_urls:
                 video = YouTube(video_url)
 
                 duration = video.length
@@ -675,4 +675,3 @@ class Music_Ext(commands.Cog):
         Search = os.path.isfile(file_path)
 
         return Search
-    
