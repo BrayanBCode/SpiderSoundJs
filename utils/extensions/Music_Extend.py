@@ -547,7 +547,7 @@ class Music_Ext(commands.Cog):
                 print()
 
                 asyncio.create_task(self.play_next(ctx))  # Iniciar la reproducción de la primera canción
-                video_urls.pop(0)
+                print(type(video_urls))
 
             # Agregar las demás canciones después de la primera
 
