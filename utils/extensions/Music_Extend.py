@@ -229,18 +229,22 @@ class Music_Ext(commands.Cog):
 
                 spotify_pattern = r'(https?://(?:open\.spotify\.com/(?:track|playlist)/|spotify:(?:track|playlist):)[a-zA-Z0-9]+)'
                 YouTube_pattern = r'(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[^\s]+)'
-                YouTube_playlist_pattern = r'(https?://(?:www\.)?(?:youtube\.com/playlist\?list=)[^\s]+)'
-
+                YouTube_playlist_pattern = r'(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[^\s]+(?:&list=[^\s]+)?[^\s]*)'
 
                 table_name = f"Playlist_{str(GuildActual.id)}"
                 if not tabla_existe(table_name):
                     Crear_Tabla(
                         GuildActual, dynamic_Model_table_Playlist(f"Playlist_{str(GuildActual.id)}"))
 
-                if re.match(YouTube_pattern, command) or re.match(YouTube_playlist_pattern, command):
+
+                if re.match(YouTube_playlist_pattern, command):
+                    songs_added = await self.addToPlaylistMixYT(YouTube_playlist_pattern, songs_added, GuildActual.id, command, ctx)
+
+                    
+                elif re.match(YouTube_pattern, command):
                     songs_added = self.addToPlaylistYT(
                         YouTube_pattern, songs_added, table_name, command)
-
+                
                 elif re.match(spotify_pattern, command):
                     result, songs = await self.addToPlaylistSpotify(ctx, table_name, command, songs_added)
                     if result:
@@ -540,14 +544,16 @@ class Music_Ext(commands.Cog):
                 print(f"Error al crear la carpeta '{nombre_carpeta}': {e}")
         else:
             print(f"La carpeta '{nombre_carpeta}' ya existe.")
-
+ 
     def addToPlaylistYT(self, YouTube_pattern, songs_added, GuildActual, command):
         url_list = []
+        video_urls = []
 
         urls = re.findall(YouTube_pattern, command)
         for url in urls:
             playlist = Playlist(url) if 'list' in url.lower() else None
-            video_urls = playlist.video_urls if playlist else [url]
+            current_video_urls = playlist.video_urls if playlist else [url]
+            video_urls.extend(current_video_urls)
 
         for video_url in video_urls:
             video = YouTube(video_url)
@@ -567,11 +573,71 @@ class Music_Ext(commands.Cog):
                 'artist': video.author
             })
 
-        dict_list = []
-        for item in url_list:
-            dict_list.append({'url': item})
+        dict_list = [{'url': item} for item in url_list]
+        add_item(f"Playlist_{str(GuildActual)}", dict_list)
 
-        add_item(GuildActual, dict_list)
+        return songs_added
+        
+    async def addToPlaylistMixYT(self, YouTube_playlist_pattern, songs_added, GuildActual, command, ctx):
+        match = re.search(YouTube_playlist_pattern, command)
+        print('Mix')
+        if match:
+            playlist_url = match.group(0)
+            playlist = Playlist(playlist_url)
+            video_urls = playlist.video_urls
+
+            # Obtener la cola actual
+            current_queue = get_all_items(f"Playlist_{str(GuildActual)}")
+            print(current_queue)
+            # Si no hay canciones en la cola, iniciar la reproducción de la primera canción
+            if len(current_queue) == 0:
+                first_video_url = video_urls[0]
+                first_video = YouTube(first_video_url)
+                
+                duration = first_video.length
+                mins, secs = divmod(duration, 60)
+                hours, mins = divmod(mins, 60)
+                duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+
+                thumbnail = first_video.thumbnail_url
+
+                songs_added.append({
+                    'title': first_video.title,
+                    'duration': duration_formatted,
+                    'thumbnail': thumbnail,
+                    'artist': first_video.author
+                })
+
+                dict_list = [{'url': first_video_url}]
+                add_item(f"Playlist_{str(GuildActual)}", dict_list)
+                print('\n')
+
+                asyncio.create_task(self.play_next(ctx))  # Iniciar la reproducción de la primera canción
+
+            # Agregar las demás canciones después de la primera
+
+            for video_url in video_urls:
+                video = YouTube(video_url)
+
+                duration = video.length
+                mins, secs = divmod(duration, 60)
+                hours, mins = divmod(mins, 60)
+                duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+
+                thumbnail = video.thumbnail_url
+
+                songs_added.append({
+                    'title': video.title,
+                    'duration': duration_formatted,
+                    'thumbnail': thumbnail,
+                    'artist': video.author
+                })
+
+                dict_list = [{'url': video_url}]
+                add_item(f"Playlist_{str(GuildActual)}", dict_list)
+
+                await asyncio.sleep(0.3)  # Agrega un retraso de 0.3 segundos de forma asíncrona
+
         return songs_added
 
     def SearchInYT(self, GuildActual, songs_added, command):
@@ -581,7 +647,7 @@ class Music_Ext(commands.Cog):
         if len(results['result']) > 0:
             video_url = results['result'][0]['link']
             video = YouTube(video_url)
-            add_item(GuildActual, [{'url': video_url}])
+            add_item(f"Playlist_{str(GuildActual)}", [{'url': video_url}])
 
             duration = video.length
             mins, secs = divmod(duration, 60)

@@ -60,7 +60,6 @@ class Queue_buttons(discord.ui.View):
         if self.ctx.message.author == self.ctx.bot.user:
             await self.ctx.message.edit(view=None)
 
-
     @staticmethod
     def compute_total_pages(total_results: int, results_per_page: int) -> int:
         return ((total_results - 1) // results_per_page) + 1

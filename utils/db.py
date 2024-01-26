@@ -58,7 +58,7 @@ def add_item(table_name, data):
 
             db.session.commit()
 
-            print("Datos ingresados")
+            print(f"Datos ingresados a la tabla {table_name}")
         else:
             print(f"No se pudo ingresar el dato en la tabla: {table_name}")
 
