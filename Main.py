@@ -30,7 +30,7 @@ async def on_ready():
     await Status()
     try:
         await bot.add_cog(Music_Ext(bot))
-
+#
     except Exception as e:
         print(str(e))
 
