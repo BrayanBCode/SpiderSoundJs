@@ -64,25 +64,26 @@ class Music_Ext(commands.Cog):
             displayMax = 6
 
             emb = discord.Embed(title="Araña Sound - Playlist", description="", color=0x120062)
-
-            if ServerID in CURRENTLY_PLAYING:
-                videoCurrent = YouTube(CURRENTLY_PLAYING[ServerID]['url'])
-
-                duration = videoCurrent.length
-                mins, secs = divmod(duration, 60)
-                hours, mins = divmod(mins, 60)
-                duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
-
-                emb.add_field(name="Reproduciendo actual", 
-                            value=f"{videoCurrent.title} de {videoCurrent.author}\n Duracion: {duration_formatted}\n", 
-                            inline=False)
-                emb.set_thumbnail(url=videoCurrent.thumbnail_url)
-
             if len(queue) > 0:
+
+
                 async def get_page(page: int):
                     try:
+                        nonlocal emb
+                        emb.clear_fields()
+                        if ServerID in CURRENTLY_PLAYING:
+                            videoCurrent = YouTube(CURRENTLY_PLAYING[ServerID]['url'])
+
+                            duration = videoCurrent.length
+                            mins, secs = divmod(duration, 60)
+                            hours, mins = divmod(mins, 60)
+                            duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+
+                            emb.add_field(name="Reproduciendo actual", 
+                                        value=f"{videoCurrent.title} de {videoCurrent.author}\n Duracion: {duration_formatted}", 
+                                        inline=False)
+                            emb.set_thumbnail(url=videoCurrent.thumbnail_url)
                         offset = (page-1) * displayMax
-                        emb = discord.Embed(title="Araña Sound - Playlist", description="", color=0x120062)  # Crea un nuevo embed aquí
                         
                         for index, url in enumerate(queue[offset:offset+displayMax], start=offset + 1):
                             video = YouTube(url)
@@ -91,14 +92,15 @@ class Music_Ext(commands.Cog):
                             hours, mins = divmod(mins, 60)
                             duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
 
-                            emb.add_field(name=f'{index}. {video.title} de {video.author}', value=f'Duracion: {duration_formatted}\npedida por {ctx.author}', inline=False)
+                            emb.add_field(name=f'{index}. {video.title} - {video.author}', value=f'Duración: {duration_formatted}\n[Ver en Youtube]({url})', inline=False)
 
                         n = Queue_buttons.compute_total_pages(len(queue), displayMax)
                         emb.set_footer(text=f"Pedido por {ctx.author} - Pagina {page} de {n}", icon_url=ctx.author.avatar.url)
-                        return emb, n
-
+                        return emb, n 
+                    
                     except Exception as e:
                         print(f"Error al obtener la página: {e}")
+                    #TODO aca termina la funcion get_page
 
 
 
@@ -236,11 +238,9 @@ class Music_Ext(commands.Cog):
                     Crear_Tabla(
                         GuildActual, dynamic_Model_table_Playlist(f"Playlist_{str(GuildActual.id)}"))
 
-
                 if re.match(YouTube_playlist_pattern, command):
                     songs_added = await self.addToPlaylistMixYT(YouTube_playlist_pattern, songs_added, GuildActual.id, command, ctx)
 
-                    
                 elif re.match(YouTube_pattern, command):
                     songs_added = self.addToPlaylistYT(
                         YouTube_pattern, songs_added, table_name, command)
@@ -258,28 +258,12 @@ class Music_Ext(commands.Cog):
                     else:
                         await ctx.send(f'No se encontraron búsquedas válidas para {songs}.')
 
-                embed_title = "Canción agregada a la playlist" if len(
-                    songs_added) == 1 else "Canciones agregadas a la playlist"
-                embed = Embed(title=embed_title, color=0x120062)
-
-                i = 0
-                for song in songs_added:
-                    i += 1
-                    if i <= 5:
-                        embed.add_field(
-                            name=f"{song['title']} - {song['artist']}",
-                            value=f"Duración: {song['duration']}",
-                            inline=False
-                        )
-                        embed.set_thumbnail(url=song['thumbnail'])
-                    else:
-                        embed.add_field(
-                            name=f"**Y {len(songs_added) - 5} canciones más...**",
-                            # Cambiar *texto a (Peticion de X usuario)
-                            value=f"Total de canciones agregadas: {len(songs_added)}",
-                            inline=False
-                        )
-                        break
+                song = songs_added[0]
+                embed = Embed(title=f'Araña Sound - Playlist', description=f'Se agrego a la playlist')
+                embed.add_field(name=f'{song["title"]}', value=f'{song["artist"]}', inline=True)
+                embed.add_field(name=f'{song["duration"]}', value=f'[Ver en YouTube]({song["url"]})', inline=True)
+                if len(songs_added) > 0:
+                    embed.description = f'Se agregaron {len(songs_added)} más.'
 
                 await ctx.send(embed=embed)
 
@@ -505,7 +489,8 @@ class Music_Ext(commands.Cog):
                 'title': video.title,
                 'duration': duration_formatted,
                 'thumbnail': thumbnail,
-                'artist': video.author
+                'artist': video.author,
+                'url': video_url
             })
 
         dict_list = [{'url': item} for item in url_list]
@@ -540,7 +525,8 @@ class Music_Ext(commands.Cog):
                     'title': first_video.title,
                     'duration': duration_formatted,
                     'thumbnail': thumbnail,
-                    'artist': first_video.author
+                    'artist': first_video.author,
+                    'url': first_video_url
                 })
 
                 dict_list = [{'url': first_video_url}]
@@ -565,7 +551,8 @@ class Music_Ext(commands.Cog):
                     'title': video.title,
                     'duration': duration_formatted,
                     'thumbnail': thumbnail,
-                    'artist': video.author
+                    'artist': video.author,
+                    'url': video_url
                 })
 
                 dict_list = [{'url': video_url}]
@@ -648,7 +635,7 @@ class Music_Ext(commands.Cog):
         if len(results['result']) > 0:
             video_url = results['result'][0]['link']
             video = YouTube(video_url)
-            add_item(f"Playlist_{str(GuildActual)}", [{'url': video_url}])
+            add_item(GuildActual, [{'url': video_url}])
 
             duration = video.length
             mins, secs = divmod(duration, 60)
@@ -661,7 +648,8 @@ class Music_Ext(commands.Cog):
                 'title': video.title,
                 'duration': duration_formatted,
                 'thumbnail': thumbnail,
-                'artist': video.author
+                'artist': video.author,
+                'url': video_url
             })
             return (True, songs_added)
         else:
