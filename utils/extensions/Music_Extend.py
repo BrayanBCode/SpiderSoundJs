@@ -14,12 +14,9 @@ from utils.db import *
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
-
 CURRENTLY_PLAYING = {}
 INACTIVE_TIMERS = {}
 ACTIVE_LOOP = {}
-
-
 
 class Music_Ext(commands.Cog):
     def __init__(self, bot):
@@ -65,6 +62,7 @@ class Music_Ext(commands.Cog):
 
             emb = discord.Embed(title="Araña Sound - Playlist", description="", color=0x120062)
             if len(queue) > 0:
+
 
 
                 async def get_page(page: int):
@@ -228,8 +226,7 @@ class Music_Ext(commands.Cog):
                     except Exception as e:
                         print(f'Error al conectar al canal de voz: {e}')
                         return
-
-                spotify_pattern = r'(https?://(?:open\.spotify\.com/(?:track|playlist)/|spotify:(?:track|playlist):)[a-zA-Z0-9]+)'
+                spotify_pattern = r'(https?://(?:open\.spotify\.com/(?:track|playlist|album)/|spotify:(?:track|playlist|album):)[a-zA-Z0-9]+)'
                 YouTube_pattern = r'(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[^\s]+)'
                 YouTube_playlist_pattern = r'(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[^\s]+(?:&list=[^\s]+)?[^\s]*)'
 
@@ -238,12 +235,11 @@ class Music_Ext(commands.Cog):
                     Crear_Tabla(
                         GuildActual, dynamic_Model_table_Playlist(f"Playlist_{str(GuildActual.id)}"))
 
-                if re.match(YouTube_playlist_pattern, command):
+                if re.match(YouTube_pattern, command):
+                    songs_added = self.addToPlaylistYT(YouTube_pattern, songs_added, table_name, command)
+                    
+                elif re.match(YouTube_playlist_pattern, command):
                     songs_added = await self.addToPlaylistMixYT(YouTube_playlist_pattern, songs_added, GuildActual.id, command, ctx)
-
-                elif re.match(YouTube_pattern, command):
-                    songs_added = self.addToPlaylistYT(
-                        YouTube_pattern, songs_added, table_name, command)
                 
                 elif re.match(spotify_pattern, command):
                     result, songs = await self.addToPlaylistSpotify(ctx, table_name, command, songs_added)
@@ -259,11 +255,11 @@ class Music_Ext(commands.Cog):
                         await ctx.send(f'No se encontraron búsquedas válidas para {songs}.')
 
                 song = songs_added[0]
-                embed = Embed(title=f'Araña Sound - Playlist', description=f'Se agrego a la playlist')
+                embed = Embed(title=f'Araña Sound - Playlist', description=f'Se agrego a la playlist', color=0x120062)
                 embed.add_field(name=f'{song["title"]}', value=f'{song["artist"]}', inline=True)
                 embed.add_field(name=f'{song["duration"]}', value=f'[Ver en YouTube]({song["url"]})', inline=True)
                 if len(songs_added) > 0:
-                    embed.description = f'Se agregaron {len(songs_added)} más.'
+                    embed.set_footer(text=f'pedido por {ctx.author} - Se agregaron {len(songs_added)} más.', icon_url=ctx.author.avatar.url)
 
                 await ctx.send(embed=embed)
 
@@ -494,7 +490,7 @@ class Music_Ext(commands.Cog):
             })
 
         dict_list = [{'url': item} for item in url_list]
-        add_item(f"Playlist_{str(GuildActual)}", dict_list)
+        add_item(GuildActual, dict_list)
 
         return songs_added
         
@@ -503,8 +499,8 @@ class Music_Ext(commands.Cog):
         if match:
             playlist_url = match.group(0)
             playlist = Playlist(playlist_url)
-            video_urls = playlist.video_urls
-            video_urls = list(video_urls)
+            video_urls = list(playlist.video_urls)
+
 
             # Obtener la cola actual
             current_queue = get_all_items(f"Playlist_{str(GuildActual)}")
@@ -530,7 +526,7 @@ class Music_Ext(commands.Cog):
                 })
 
                 dict_list = [{'url': first_video_url}]
-                add_item(f"Playlist_{str(GuildActual)}", dict_list)
+                add_item(GuildActual, dict_list)
                 print()
 
                 asyncio.create_task(self.play_next(ctx))  # Iniciar la reproducción de la primera canción
