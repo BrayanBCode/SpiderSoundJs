@@ -50,24 +50,16 @@ async def Status():
 
 @bot.command(name='help', aliases=['h'])#
 async def help(ctx):
-    embed = discord.Embed(title="Guia de de comandos",
-                          description="En esta guia se nombraran los comandos implementados en el Bot.", color=0x7289DA)
-    embed.add_field(name=f"**{bot.command_prefix}play**",
-                    value=f"Para reproducir música, simplemente escribe **{bot.command_prefix}play** seguido del nombre de la canción, el artista o la URL de la canción que desees escuchar.", inline=False)
-    embed.add_field(name=f"**{bot.command_prefix}stop**",
-                    value=f"Para pausar la comandos.Musica utilize **{bot.command_prefix}stop** una vez para reanudar la comandos.Musica utilize **{bot.command_prefix}stop** nuevamente", inline=False)
-    embed.add_field(name=f"**{bot.command_prefix}skip**",
-                    value=f"Para saltear una cancion utilize **{bot.command_prefix}skip**, para saltear varias agrege un numero, ejemplo: **{bot.command_prefix}skip 3**", inline=False)
-    embed.add_field(name=f"**{bot.command_prefix}queue**",
-                    value=f"Muestra la playlist y la cancion que se esta reproduciendo actualmente", inline=False)
-    embed.add_field(name=f"**{bot.command_prefix}remove**",
-                    value=f"Quita de la playlist la cancion que el usuario desee ejemplo: **{bot.command_prefix}remove 5**", inline=False)
-    embed.add_field(name=f"**{bot.command_prefix}clear**",
-                    value=f"Limpia la playlist", inline=False)
-    embed.add_field(name=f"**{bot.command_prefix}loop**",
-                    value=f"Activa el modo loop de la playlist lo que hace que se repita indefinidamente la playlist.", inline=False)
-    embed.add_field(name=f"\n**Novedades**",
-                    value=f"+ Ahora admitimos canciones y playlist de Spotify", inline=False)
+    embed = discord.Embed(title="Guia de de comandos", description="En esta guia se nombraran los comandos implementados en el Bot.", color=0x120062)
+    embed.add_field(name=f"**{bot.command_prefix}play**", value=f"Para reproducir música, simplemente escribe **{bot.command_prefix}play** seguido del nombre de la canción, el artista o la URL de la canción que desees escuchar.", inline=False)
+    embed.add_field(name=f"**{bot.command_prefix}pause**", value=f"Para pausar la comandos.Musica utilize **{bot.command_prefix}stop** una vez para reanudar la comandos.Musica utilize **{bot.command_prefix}stop** nuevamente", inline=False)
+    embed.add_field(name=f"**{bot.command_prefix}stop**", value=f"Frena la reproduccion de la cancion actual y se pausa la playlist", inline=False)
+    embed.add_field(name=f"**{bot.command_prefix}skip**", value=f"Para saltear una cancion utilize **{bot.command_prefix}skip**, para saltear varias agrege un numero, ejemplo: **{bot.command_prefix}skip 3**", inline=False)
+    embed.add_field(name=f"**{bot.command_prefix}queue**", value=f"Muestra la playlist y la cancion que se esta reproduciendo actualmente", inline=False)
+    embed.add_field(name=f"**{bot.command_prefix}remove**",value=f"Quita de la playlist la cancion que el usuario desee ejemplo: **{bot.command_prefix}remove 5**", inline=False)
+    embed.add_field(name=f"**{bot.command_prefix}clear**", value=f"Limpia la playlist", inline=False)
+    embed.add_field(name=f"**{bot.command_prefix}loop**", value=f"Activa el modo loop de la playlist lo que hace que se repita indefinidamente la playlist.", inline=False)
+    embed.add_field(name=f"**{bot.command_prefix}leave**", value=f"Desconecta del canal de voz", inline=False)
 
     await ctx.send(embed=embed)
 

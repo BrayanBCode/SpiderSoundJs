@@ -8,6 +8,7 @@ from discord import Embed, FFmpegPCMAudio
 from youtubesearchpython import VideosSearch
 from pytube import Playlist, YouTube
 from utils.extensions.Buttons import Queue_buttons
+from utils.extensions.Buttons import Player_buttons
 
 from utils.db import *
 
@@ -16,7 +17,8 @@ from spotipy.oauth2 import SpotifyClientCredentials
 
 CURRENTLY_PLAYING = {}
 INACTIVE_TIMERS = {}
-ACTIVE_LOOP = {}
+ACTIVE_LOOP = {} 
+CTX_STORAGE = {}
 
 class Music_Ext(commands.Cog):
     def __init__(self, bot):
@@ -47,9 +49,8 @@ class Music_Ext(commands.Cog):
                 print(
                     f"La lista de reproducción para el servidor {beforeguild.name} ha sido limpiada.")
         except:
-            print(
-                f"Evento de Voz detectado - Usuario: {member} en {member.guild.name}")
-            
+            pass
+                        
     @commands.command(name='queue', aliases=['q'])
     async def queue(self, ctx):
         try:
@@ -116,7 +117,7 @@ class Music_Ext(commands.Cog):
         voice_client = ctx.guild.voice_client
         
         if command <= 0:
-            await ctx.send("Por favor, proporciona un número positivo de canciones para saltar.")
+            await ctx.send(embed=Embed(description="❌ Por favor, proporciona un número positivo de canciones para saltar."))
             return
 
         if command == 1:
@@ -129,7 +130,7 @@ class Music_Ext(commands.Cog):
         playlist_length = len(songs_info)
 
         if playlist_length == 0 or None:
-            await ctx.send("No hay más canciones en la lista de reproducción para saltar.")
+            await ctx.send(embed=Embed(description="❌ No hay más canciones en la lista de reproducción para saltar."))
             return
 
         if not ACTIVE_LOOP[GuildActual]:
@@ -182,19 +183,19 @@ class Music_Ext(commands.Cog):
 
                     await ctx.send(embed=embed)
                 else:
-                    await ctx.send("El número proporcionado está fuera del rango de canciones disponibles.")
+                    await ctx.send(embed=Embed(description="❌ El número proporcionado está fuera del rango de canciones disponibles."))
             else:
-                await ctx.send("No hay canciones en la lista de reproducción para eliminar.")
+                await ctx.send(embed=Embed(description="❌ No hay canciones en la lista de reproducción para eliminar."))
         except ValueError:
             print("command no es un int")
-            await ctx.send("Por favor, proporciona un número válido para remover una canción.")
+            await ctx.send(embed=Embed(description="❌ Por favor, proporciona un número válido para remover una canción."))
 
     @commands.command(name='loop')
     async def loop(self, ctx):
         GuildActual = ctx.guild.id
         ACTIVE_LOOP[GuildActual] = not ACTIVE_LOOP[GuildActual]
-        Status = 'Activado' if ACTIVE_LOOP[GuildActual] else 'Desactivado'
-        await ctx.send(f"Loop: {Status}")
+        Status = 'Activado 🔁' if ACTIVE_LOOP[GuildActual] else 'Desactivado ⛔'
+        await ctx.send(embed=Embed(description=f"Loop: {Status}"))
 
     @commands.command(name='play', aliases=['p'])
     async def AddSongs(self, ctx, *, command):
@@ -204,11 +205,10 @@ class Music_Ext(commands.Cog):
         try:
             channel = ctx.author.voice.channel
         except:
-            await ctx.send("Debe estar conectado a un canal de voz")
+            await ctx.send(embed=Embed(description="❌ Debe estar conectado a un canal de voz"))
             return
 
-        print(
-            f'\nComando emitido por [{ctx.author.name}] en ({ctx.guild.name}) - command: {self.bot.command_prefix}play {command}\n')
+        print(f'\nComando emitido por [{ctx.author.name}] en ({ctx.guild.name}) - command: {self.bot.command_prefix}play {command}\n')
 
         self.clearMusicFolder()
         songs_added = []
@@ -226,6 +226,7 @@ class Music_Ext(commands.Cog):
                     except Exception as e:
                         print(f'Error al conectar al canal de voz: {e}')
                         return
+                    
                 spotify_pattern = r'(https?://(?:open\.spotify\.com/(?:track|playlist|album)/|spotify:(?:track|playlist|album):)[a-zA-Z0-9]+)'
                 YouTube_pattern = r'(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[^\s]+)'
                 YouTube_playlist_pattern = r'(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[^\s]+(?:&list=[^\s]+)?[^\s]*)'
@@ -234,54 +235,84 @@ class Music_Ext(commands.Cog):
                 if not tabla_existe(table_name):
                     Crear_Tabla(
                         GuildActual, dynamic_Model_table_Playlist(f"Playlist_{str(GuildActual.id)}"))
+                   
+                if re.match(YouTube_pattern, command) and 'list=' not in command:
+                    songs_added = self.addToPlaylistYT(YouTube_pattern, songs_added, table_name, command)        
 
-                if re.match(YouTube_pattern, command):
-                    songs_added = self.addToPlaylistYT(YouTube_pattern, songs_added, table_name, command)
-                    
                 elif re.match(YouTube_playlist_pattern, command):
-                    songs_added = await self.addToPlaylistMixYT(YouTube_playlist_pattern, songs_added, GuildActual.id, command, ctx)
-                
+                    songs_added = await self.addToPlaylistMixYT(YouTube_playlist_pattern, songs_added, table_name, command, ctx)  
+
                 elif re.match(spotify_pattern, command):
                     result, songs = await self.addToPlaylistSpotify(ctx, table_name, command, songs_added)
                     if result:
                         songs_added = songs
                     else:
-                        await ctx.send(f'No se encontraron búsquedas válidas para {songs}.')
+                        await ctx.send(embed=Embed(description=f'❌ No se encontraron búsquedas válidas para {songs}.'))
+
                 else:
                     result, songs = self.SearchInYT(table_name, songs_added, command)
                     if result:
                         songs_added = songs
                     else:
-                        await ctx.send(f'No se encontraron búsquedas válidas para {songs}.')
+                        await ctx.send(f'❌ No se encontraron búsquedas válidas para {songs}.')
 
-                song = songs_added[0]
-                embed = Embed(title=f'Araña Sound - Playlist', description=f'Se agrego a la playlist', color=0x120062)
-                embed.add_field(name=f'{song["title"]}', value=f'{song["artist"]}', inline=True)
-                embed.add_field(name=f'{song["duration"]}', value=f'[Ver en YouTube]({song["url"]})', inline=True)
+                print(songs_added)
+
                 if len(songs_added) > 0:
-                    embed.set_footer(text=f'pedido por {ctx.author} - Se agregaron {len(songs_added)} más.', icon_url=ctx.author.avatar.url)
+                    if len(songs_added) > 2:
+                        song = songs_added[1]
+                    else:
+                        song = songs_added[0] 
+                    embed = Embed(title=f'Araña Sound - Playlist', description=f'Se agrego a la playlist', color=0x120062)
+                    embed.add_field(name=f'{song["title"]}', value=f'{song["artist"]}', inline=True)
+                    embed.add_field(name=f'{song["duration"]}', value=f'[Ver en YouTube]({song["url"]})', inline=True)
+                    embed.set_thumbnail(url=song['thumbnail'])
+                    if len(songs_added[1:]) > 0:
+                        embed.set_footer(text=f'pedido por {ctx.author} - Se agregaron {len(songs_added[1:])} más.', icon_url=ctx.author.avatar.url)
+                    else:
+                        embed.set_footer(text=f'pedido por {ctx.author}', icon_url=ctx.author.avatar.url)
 
-                await ctx.send(embed=embed)
+                    await ctx.send(embed=embed)
 
                 if not voice_client.is_playing():
                     await self.play_next(ctx)
 
             else:
-                await ctx.send("¡Debes estar en un canal de voz para reproducir música!")
+                await ctx.send(embed=Embed(description="❌ ¡Debes estar en un canal de voz para reproducir música!"))
 
-    @commands.command(name='stop', aliases=['pause', 'resume'])
-    async def stop(self, ctx):
+    @commands.command(name='pause')
+    async def pauseResume(self, ctx):
         voice_client = ctx.guild.voice_client
 
         if voice_client.is_playing():
             voice_client.pause()
-            await ctx.send("Canción pausada")
+            await ctx.send(embed=Embed(description="Canción pausada ⏸️"))
         elif voice_client.is_paused():
             voice_client.resume()
-            await ctx.send("Canción reanudada")
+            await ctx.send(embed=Embed(description="Canción reanudada ▶️"))
         else:
-            await ctx.send("No hay ninguna canción en reproducción para pausar o reanudar.")
+            await ctx.send(embed=Embed(description="❌ No hay ninguna canción en reproducción para pausar o reanudar."))
             
+    @commands.command(name='stop')
+    async def stop(self, ctx):
+        voice_client = ctx.guild.voice_client
+        if voice_client and (voice_client.is_playing or voice_client.is_paused):
+            voice_client.stop()
+            voice_client.pause()
+            ctx.send(embed=Embed(description='✅ Cancion parada con exito'))
+
+    @commands.command(name='leave', aliases=['lv'])
+    async def leave(self, ctx):
+        voice_client = ctx.guild.voice_client
+
+        if voice_client:
+            await ctx.send(embed=Embed(description='🚪🚶Desconectando del canal de voz'))
+            if voice_client.is_playing() or voice_client.is_paused():
+                voice_client.stop()
+            voice_client.leave()
+        else:
+            await ctx.send(embed=Embed(description='❌ El bot necesita estar conectado a un canal'))
+
     async def play_next(self, ctx):
         GuildActual = ctx.guild.id
         voice_client = ctx.voice_client
@@ -289,7 +320,6 @@ class Music_Ext(commands.Cog):
             return
 
         with app.app_context():
-
             if len(get_all_items(f"Playlist_{str(GuildActual)}")) > 0:
                 if not voice_client.is_playing():
                     videoUrl = str(get_all_items(f"Playlist_{str(GuildActual)}")[0][1])
@@ -308,10 +338,8 @@ class Music_Ext(commands.Cog):
                         output_path = 'temp'
                         video_path = os.path.join(output_path, video_stream.default_filename)
 
-
                         # Descargar el video
                         video_stream.download(output_path=output_path)
-
 
                         # Reproducir el video
                         audio_source = FFmpegPCMAudio(video_path)
@@ -331,7 +359,10 @@ class Music_Ext(commands.Cog):
                         embed.add_field(name=f'Duracion: {duration_formatted}', value=f'[Ver en Youtube]({videoUrl})')
 
                         embed.set_thumbnail(url=video.thumbnail_url)
-                        await ctx.send(embed=embed)
+                        buttons_view = Player_buttons(ctx, self)
+
+                        # Enviar el mensaje con la vista y los botones
+                        message = await ctx.send(embed=embed, view=buttons_view)
 
                         CURRENTLY_PLAYING[GuildActual] = {
                             'title': video.title,
@@ -363,7 +394,6 @@ class Music_Ext(commands.Cog):
                 video_url = str(CURRENTLY_PLAYING[GuildActual]['url'])
                 add_item(f"Playlist_{str(GuildActual)}", [{'url': video_url}])
                 await self.play_next(ctx)
-            else:
                 CURRENTLY_PLAYING.pop(GuildActual)
                 break
 
@@ -496,6 +526,7 @@ class Music_Ext(commands.Cog):
         
     async def addToPlaylistMixYT(self, YouTube_playlist_pattern, songs_added, GuildActual, command, ctx):
         match = re.search(YouTube_playlist_pattern, command)
+        print(match)
         if match:
             playlist_url = match.group(0)
             playlist = Playlist(playlist_url)
@@ -504,6 +535,9 @@ class Music_Ext(commands.Cog):
 
             # Obtener la cola actual
             current_queue = get_all_items(f"Playlist_{str(GuildActual)}")
+            if current_queue == None:
+                current_queue = []
+
             print(current_queue)
             # Si no hay canciones en la cola, iniciar la reproducción de la primera canción
             if len(current_queue) == 0:
@@ -552,11 +586,38 @@ class Music_Ext(commands.Cog):
                 })
 
                 dict_list = [{'url': video_url}]
-                add_item(f"Playlist_{str(GuildActual)}", dict_list)
+                add_item(GuildActual, dict_list)
 
                 await asyncio.sleep(0.3)  # Agrega un retraso de 0.3 segundos de forma asíncrona
 
         return songs_added
+    
+    def SearchInYT(self, GuildActual, songs_added, command):
+        videos = VideosSearch(command, limit=1)
+        results = videos.result()
+
+        if len(results['result']) > 0:
+            video_url = results['result'][0]['link']
+            video = YouTube(video_url)
+            add_item(GuildActual, [{'url': video_url}])
+
+            duration = video.length
+            mins, secs = divmod(duration, 60)
+            hours, mins = divmod(mins, 60)
+            duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+
+            thumbnail = video.thumbnail_url
+
+            songs_added.append({
+                'title': video.title,
+                'duration': duration_formatted,
+                'thumbnail': thumbnail,
+                'artist': video.author,
+                'url': video_url
+            })
+            return (True, songs_added)
+        else:
+            return (False, f"No se encontro busqueda valida para {command}")
 
     async def addToPlaylistSpotify(self, ctx, GuildActual, command, songs_added):
 
@@ -624,33 +685,6 @@ class Music_Ext(commands.Cog):
             
             return (True, songs_added)
 
-    def SearchInYT(self, GuildActual, songs_added, command):
-        videos = VideosSearch(command, limit=1)
-        results = videos.result()
-
-        if len(results['result']) > 0:
-            video_url = results['result'][0]['link']
-            video = YouTube(video_url)
-            add_item(GuildActual, [{'url': video_url}])
-
-            duration = video.length
-            mins, secs = divmod(duration, 60)
-            hours, mins = divmod(mins, 60)
-            duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
-
-            thumbnail = video.thumbnail_url
-
-            songs_added.append({
-                'title': video.title,
-                'duration': duration_formatted,
-                'thumbnail': thumbnail,
-                'artist': video.author,
-                'url': video_url
-            })
-            return (True, songs_added)
-        else:
-            return (False, f"No se encontro busqueda valida para {command}")
-
     def SearchForFile(self, Dir, file):
         # Crear la ruta combinando el directorio y el nombre de archivo
         file_path = os.path.join(Dir, file)
@@ -659,3 +693,7 @@ class Music_Ext(commands.Cog):
         Search = os.path.isfile(file_path)
 
         return Search
+    
+
+
+ 

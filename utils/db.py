@@ -67,10 +67,8 @@ def get_item_by_id(table_name, item_id):
         if tabla_existe(table_name):
             table = get_table(table_name)
             result = db.session.query(table).filter_by(id=item_id).first()
-            print(f"get_item_by_id: {result}")
             return result
         else:
-            print(f"get_item_by_id: {tabla_existe(table_name)}")
             return None
 
 def update_item(table_name, item_id, new_data):

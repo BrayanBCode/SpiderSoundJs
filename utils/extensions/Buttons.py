@@ -63,3 +63,35 @@ class Queue_buttons(discord.ui.View):
     @staticmethod
     def compute_total_pages(total_results: int, results_per_page: int) -> int:
         return ((total_results - 1) // results_per_page) + 1
+    
+class Player_buttons(discord.ui.View):
+    def __init__(self, ctx, music_ext_instance):
+        self.ctx = ctx
+        self.music_ext_instance = music_ext_instance
+        super().__init__()
+
+    @discord.ui.button(emoji='⏹️', style=discord.ButtonStyle.blurple, custom_id="stop_button")
+    async def stop_button_callback(self, button: discord.ui.Button, interaction: discord.Interaction):
+        vc = self.ctx.guild.voice_client
+        vc.stop()
+        await interaction.response.defer()
+
+
+    @discord.ui.button(emoji='⏯️', style=discord.ButtonStyle.blurple, custom_id="pauseResume_button")
+    async def pause_button_callback(self, button: discord.ui.Button, interaction: discord.Interaction):
+        vc = self.ctx.guild.voice_client
+        if vc.is_playing() or vc.is_paused():
+            vc.pause()
+        else:
+            vc.resume()
+        await interaction.response.defer()
+
+    @discord.ui.button(emoji='⏭️', style=discord.ButtonStyle.blurple, custom_id="skip_button")
+    async def skip_button_callback(self, button: discord.ui.Button, interaction: discord.Interaction):
+        vc = self.ctx.guild.voice_client
+        vc.stop()
+        vc.pause()
+        await interaction.response.defer()
+
+
+        
