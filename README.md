@@ -1,4 +1,4 @@
-## Araña Sound - EN DESARROLLO ' puto
+## Araña Sound - EN DESARROLLO
 <img src="https://github.com/BrayanBCode/ProyectoFinalKodland/assets/134159765/7f81ca3a-6e63-437d-baaf-6799bca6109c" alt="Araña Sound Logo" width="50%">
 
 El bot esta hosteado las 24/7.
