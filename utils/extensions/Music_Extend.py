@@ -64,8 +64,6 @@ class Music_Ext(commands.Cog):
             emb = discord.Embed(title="Araña Sound - Playlist", description="", color=0x120062)
             if len(queue) > 0:
 
-
-
                 async def get_page(page: int):
                     try:
                         nonlocal emb
@@ -100,8 +98,6 @@ class Music_Ext(commands.Cog):
                     except Exception as e:
                         print(f"Error al obtener la página: {e}")
                     #TODO aca termina la funcion get_page
-
-
 
                 await Queue_buttons(ctx, get_page).navegate()
             else:
@@ -256,8 +252,6 @@ class Music_Ext(commands.Cog):
                     else:
                         await ctx.send(f'❌ No se encontraron búsquedas válidas para {songs}.')
 
-                print(songs_added)
-
                 if len(songs_added) > 0:
                     if len(songs_added) > 2:
                         song = songs_added[1]
@@ -359,10 +353,12 @@ class Music_Ext(commands.Cog):
                         embed.add_field(name=f'Duracion: {duration_formatted}', value=f'[Ver en Youtube]({videoUrl})')
 
                         embed.set_thumbnail(url=video.thumbnail_url)
-                        buttons_view = Player_buttons(ctx, self)
+                        #buttons_view = Player_buttons(ctx, self)
 
                         # Enviar el mensaje con la vista y los botones
-                        message = await ctx.send(embed=embed, view=buttons_view)
+                        #message = await ctx.send(embed=embed, view=buttons_view)
+                        message = await ctx.send(embed=embed)
+
 
                         CURRENTLY_PLAYING[GuildActual] = {
                             'title': video.title,

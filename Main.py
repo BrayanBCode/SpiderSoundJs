@@ -52,7 +52,7 @@ async def Status():
 async def help(ctx):
     embed = discord.Embed(title="Guia de de comandos", description="En esta guia se nombraran los comandos implementados en el Bot.", color=0x120062)
     embed.add_field(name=f"**{bot.command_prefix}play**", value=f"Para reproducir música, simplemente escribe **{bot.command_prefix}play** seguido del nombre de la canción, el artista o la URL de la canción que desees escuchar.", inline=False)
-    embed.add_field(name=f"**{bot.command_prefix}pause**", value=f"Para pausar la comandos.Musica utilize **{bot.command_prefix}stop** una vez para reanudar la comandos.Musica utilize **{bot.command_prefix}stop** nuevamente", inline=False)
+    embed.add_field(name=f"**{bot.command_prefix}pause**", value=f"Para pausar la playlist utilize **{bot.command_prefix}pause** una vez para reanudar la comandos.Musica utilize **{bot.command_prefix}pause** nuevamente", inline=False)
     embed.add_field(name=f"**{bot.command_prefix}stop**", value=f"Frena la reproduccion de la cancion actual y se pausa la playlist", inline=False)
     embed.add_field(name=f"**{bot.command_prefix}skip**", value=f"Para saltear una cancion utilize **{bot.command_prefix}skip**, para saltear varias agrege un numero, ejemplo: **{bot.command_prefix}skip 3**", inline=False)
     embed.add_field(name=f"**{bot.command_prefix}queue**", value=f"Muestra la playlist y la cancion que se esta reproduciendo actualmente", inline=False)

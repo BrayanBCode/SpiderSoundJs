@@ -65,9 +65,10 @@ class Queue_buttons(discord.ui.View):
         return ((total_results - 1) // results_per_page) + 1
     
 class Player_buttons(discord.ui.View):
-    def __init__(self, ctx, music_ext_instance):
+    def __init__(self, ctx, music_ext_instance, get_ctx: Callable):
         self.ctx = ctx
         self.music_ext_instance = music_ext_instance
+        self.get_ctx = get_ctx
         super().__init__()
 
     @discord.ui.button(emoji='⏹️', style=discord.ButtonStyle.blurple, custom_id="stop_button")
