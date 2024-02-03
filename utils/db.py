@@ -1,5 +1,5 @@
 #* Seccion de la Base de Datos ------------------------------
-import re, os
+import re, os, random
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData, Table, Column, Integer, String, update
@@ -217,6 +217,35 @@ def eliminar_entradas_de_todas_las_tablas():
             remove_all_items(str(tabla))
             
         print(f"Todas las entradas de la tablas han sido eliminadas.")
+
+        
+def mezclar_entradas(table_name):
+    with app.app_context():
+        if tabla_existe(table_name):
+            # Obtener la instancia de la tabla dinámica existente
+            tabla = get_table(table_name)
+
+            # Obtener todas las entradas de la tabla
+            entradas = db.session.query(tabla).all()
+
+            # Mezclar aleatoriamente las entradas
+            random.shuffle(entradas)
+
+            # Eliminar todas las entradas existentes en la tabla
+            remove_all_items(table_name)
+
+            # Reorganizar las IDs después de la eliminación
+            reorganize_ids_after_delete(table_name)
+
+            # Agregar las entradas mezcladas de nuevo a la tabla
+            for index, entrada in enumerate(entradas, start=1):
+                db.session.execute(tabla.insert().values(id=index, url=entrada.url))
+
+            db.session.commit()
+            print(f"Entradas mezcladas aleatoriamente en la tabla {table_name}")
+        else:
+            print(f"No se pudo mezclar la tabla: {table_name}, ya que no existe")
+
 
 
 

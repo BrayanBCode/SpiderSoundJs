@@ -307,6 +307,12 @@ class Music_Ext(commands.Cog):
         else:
             await ctx.send(embed=Embed(description='❌ El bot necesita estar conectado a un canal'))
 
+    @commands.command(name='shuffle', aliases=['mix'])
+    async def shuffle(self, ctx):
+        table_name = f"Playlist_{str(ctx.guild.id)}"
+        mezclar_entradas(table_name)
+        await ctx.send(embed=Embed(description='Playlist mezclada 🔀'))
+
     async def play_next(self, ctx):
         GuildActual = ctx.guild.id
         voice_client = ctx.voice_client
