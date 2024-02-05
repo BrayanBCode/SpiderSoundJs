@@ -530,67 +530,73 @@ class Music_Ext(commands.Cog):
         match = re.search(YouTube_playlist_pattern, command)
         print(match)
         if match:
-            playlist_url = match.group(0)
-            playlist = Playlist(playlist_url)
-            video_urls = list(playlist.video_urls)
+            try:
+                playlist_url = match.group(0)
+                playlist = Playlist(playlist_url)
+                video_urls = list(playlist.video_urls)
 
 
-            # Obtener la cola actual
-            current_queue = get_all_items(f"Playlist_{str(GuildActual)}")
-            if current_queue == None:
-                current_queue = []
+                # Obtener la cola actual
+                current_queue = get_all_items(GuildActual)
+                if current_queue == None:
+                    current_queue = []
 
-            print(current_queue)
-            # Si no hay canciones en la cola, iniciar la reproducción de la primera canción
-            if len(current_queue) == 0:
-                first_video_url = video_urls[0]
-                first_video = YouTube(first_video_url)
+                print(current_queue)
+                # Si no hay canciones en la cola, iniciar la reproducción de la primera canción
+                if len(current_queue) == 0:
+                    first_video_url = video_urls[0]
+                    first_video = YouTube(first_video_url)
+                    
+                    duration = first_video.length
+                    mins, secs = divmod(duration, 60)
+                    hours, mins = divmod(mins, 60)
+                    duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+
+                    thumbnail = first_video.thumbnail_url
+
+                    songs_added.append({
+                        'title': first_video.title,
+                        'duration': duration_formatted,
+                        'thumbnail': thumbnail,
+                        'artist': first_video.author,
+                        'url': first_video_url
+                    })
+
+                    dict_list = [{'url': first_video_url}]
+                    add_item(GuildActual, dict_list)
+                    print()
+
+                    asyncio.create_task(self.play_next(ctx))  # Iniciar la reproducción de la primera canción
+
+                # Agregar las demás canciones después de la primera
+
+                for video_url in video_urls[1:]:
+                    video = YouTube(video_url)
+
+                    duration = video.length
+                    mins, secs = divmod(duration, 60)
+                    hours, mins = divmod(mins, 60)
+                    duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+
+                    thumbnail = video.thumbnail_url
+
+                    songs_added.append({
+                        'title': video.title,
+                        'duration': duration_formatted,
+                        'thumbnail': thumbnail,
+                        'artist': video.author,
+                        'url': video_url
+                    })
+
+                    dict_list = [{'url': video_url}]
+                    add_item(GuildActual, dict_list)
+
+                    await asyncio.sleep(0.3)  # Agrega un retraso de 0.3 segundos de forma asíncrona
+            except Exception as e:
+                await ctx.send(embed=Embed(description='❌ Aun no aceptamos por completo Mixes de YT solo playlist creadas por el usuario o artistas'))
+                songs_added = self.addToPlaylistYT(YouTube_playlist_pattern, songs_added, GuildActual, command)
                 
-                duration = first_video.length
-                mins, secs = divmod(duration, 60)
-                hours, mins = divmod(mins, 60)
-                duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
-
-                thumbnail = first_video.thumbnail_url
-
-                songs_added.append({
-                    'title': first_video.title,
-                    'duration': duration_formatted,
-                    'thumbnail': thumbnail,
-                    'artist': first_video.author,
-                    'url': first_video_url
-                })
-
-                dict_list = [{'url': first_video_url}]
-                add_item(GuildActual, dict_list)
-                print()
-
-                asyncio.create_task(self.play_next(ctx))  # Iniciar la reproducción de la primera canción
-
-            # Agregar las demás canciones después de la primera
-
-            for video_url in video_urls[1:]:
-                video = YouTube(video_url)
-
-                duration = video.length
-                mins, secs = divmod(duration, 60)
-                hours, mins = divmod(mins, 60)
-                duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
-
-                thumbnail = video.thumbnail_url
-
-                songs_added.append({
-                    'title': video.title,
-                    'duration': duration_formatted,
-                    'thumbnail': thumbnail,
-                    'artist': video.author,
-                    'url': video_url
-                })
-
-                dict_list = [{'url': video_url}]
-                add_item(GuildActual, dict_list)
-
-                await asyncio.sleep(0.3)  # Agrega un retraso de 0.3 segundos de forma asíncrona
+        
 
         return songs_added
     
