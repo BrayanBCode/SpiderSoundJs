@@ -4,6 +4,17 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData, Table, Column, Integer, String, update
 
+"""
+
+Para Martu
+Los datos a guardar son:
+
+Canciones: URL y quien la pidio
+Canal de voz: ID del canal de voz
+Canal del utlimo mensaje del bot: ID del canal
+Ultimo mensaje del bot: ID del ultimo mensaje
+
+"""
 
 current_dir = os.path.abspath(os.path.dirname('Main.py'))
 data_folder = os.path.join(current_dir, 'Database')

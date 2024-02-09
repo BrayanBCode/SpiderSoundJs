@@ -422,7 +422,10 @@ class Music_Ext(commands.Cog):
                 # Verificar si el bot está solo en el canal de voz
                 if len(voice_client.channel.members) == 1 and voice_client.channel.members[0] == guild.me or not voice_client.is_playing():
                     # Esperar 2 minutos para verificar la inactividad
-                    await asyncio.sleep(120)
+                    if not voice_client.is_paused():
+                        await asyncio.sleep(120)
+                    else:
+                        await asyncio.sleep(300)
                     if len(voice_client.channel.members) == 1 and voice_client.channel.members[0] == guild.me or not voice_client.is_playing():
                         await voice_client.disconnect()
                         print(f"El bot ha sido desconectado del canal de voz en '{guild.name}' debido a la inactividad.")
