@@ -20,41 +20,41 @@ with app.app_context():
     db.create_all()
 
 # Modelo de tablas
-def dynamic_Model_table_Playlist(table_name):
+def dynamicModelTablePlaylist(table_name):
 
     metadata = MetaData()
-    dynamic_table = Table(
+    dynamicTable = Table(
         table_name, metadata,
         Column('id', Integer, primary_key=True, autoincrement=True),
         Column('url', String(100)),
     )
-    return dynamic_table
+    return dynamicTable
 
-def tabla_existe(table_name):
+def tableExists(table_name):
     inspector = db.inspect(db.engine)
     return str(table_name) in inspector.get_table_names()
 
-def Crear_Tabla(Guild, dynamic_table):
+def createTable(guild, dynamicTable):
     with app.app_context():
-        if not tabla_existe(Guild):
-            dynamic_table.create(bind=db.engine, checkfirst=True)
-            print(f"La tabla para el servidor {Guild.name} - ID: {Guild.id} fue creada")
+        if not tableExists(guild):
+            dynamicTable.create(bind=db.engine, checkfirst=True)
+            print(f"La tabla para el servidor {guild.name} - ID: {guild.id} fue creada")
         else:
             print("La tabla ya existe")
 
-def get_table(table_name):
+def getTable(table_name):
     return Table(table_name, MetaData(), autoload_with=db.engine)
 
 # Create
-def add_item(table_name, data):
+def addItem(table_name, data):
     with app.app_context():
-        if tabla_existe(table_name):
+        if tableExists(table_name):
             # Obtener la instancia de la tabla dinámica existente
-            tabla = get_table(table_name)
+            table = getTable(table_name)
 
             for items in data:
-            # Insertar los datos proporcionados en la tabla
-                db.session.execute(tabla.insert().values(**items))
+                # Insertar los datos proporcionados en la tabla
+                db.session.execute(table.insert().values(**items))
 
             db.session.commit()
 
@@ -62,20 +62,20 @@ def add_item(table_name, data):
         else:
             print(f"No se pudo ingresar el dato en la tabla: {table_name}")
 
-def get_item_by_id(table_name, item_id):
+def getItemById(table_name, item_id):
     with app.app_context():
-        if tabla_existe(table_name):
-            table = get_table(table_name)
+        if tableExists(table_name):
+            table = getTable(table_name)
             result = db.session.query(table).filter_by(id=item_id).first()
             return result
         else:
             return None
 
-def update_item(table_name, item_id, new_data):
+def updateItem(table_name, item_id, new_data):
     with app.app_context():
-        if tabla_existe(table_name):
-            table = get_table(table_name)
-            entry = get_item_by_id(table, item_id)
+        if tableExists(table_name):
+            table = getTable(table_name)
+            entry = getItemById(table, item_id)
             
             if entry:
                 # Actualizar los atributos del modelo con los nuevos datos
@@ -86,29 +86,29 @@ def update_item(table_name, item_id, new_data):
             else:
                 print("El elemento a reorganizar no existe")
 
-def remove_item_by_id(table_name, item_id):
+def removeItemById(table_name, item_id):
     with app.app_context():
-        if tabla_existe(table_name):
-            table = get_table(table_name)
-            entry = get_item_by_id(table, item_id)
+        if tableExists(table_name):
+            table = getTable(table_name)
+            entry = getItemById(table, item_id)
             
             if entry:
                 db.session.execute(table.delete().where(table.c.id == item_id))  # Elimina la fila con la condición
                 db.session.commit()
                 print("Elemento eliminado")
-                reorganize_ids_after_delete(table_name)
+                reorganizeIdsAfterDelete(table_name)
             else:
                 print("El elemento a eliminar no existe")
                 print(f"El elemento a eliminar es: {item_id} - {entry} de la tabla {table_name}")
 
-def get_all_items(table_name):
+def getAllItems(table_name):
     with app.app_context():
-        if tabla_existe(table_name):
+        if tableExists(table_name):
             
-            tabla = get_table(table_name)
+            table = getTable(table_name)
 
             # Realizar una consulta para obtener todos los elementos de la tabla
-            query = db.session.query(tabla).all()
+            query = db.session.query(table).all()
             return query
         else:
             return None
@@ -117,11 +117,11 @@ def listado(table_name):
     with app.app_context():
         table_name = str(table_name)  # Nombre de la tabla basado en el ID del servidor
 
-        if not tabla_existe(table_name):
+        if not tableExists(table_name):
             print(f"No existe la tabla para el servidor: {table_name}")
             return
 
-        items = get_all_items(table_name)
+        items = getAllItems(table_name)
         if items:
             print("Se han mostrado todos los elementos de la tabla")
             for item in items:
@@ -130,19 +130,20 @@ def listado(table_name):
         else:
             print(f"No se pudieron encontrar elementos en la tabla: {table_name}")
 
-def remove_all_items(table_name):
+def removeAllItems(table_name):
     with app.app_context():
-        if tabla_existe(table_name):
-            table = get_table(table_name)
+        if tableExists(table_name):
+            table = getTable(table_name)
             db.session.execute(table.delete())
             db.session.commit()
+            print(f"Se eliminaron las entradas de la tabla {table_name}")
         else:
             print(f"No se pudo eliminar las entradas, la tabla {table_name} no existe")
 
-def reorganize_ids_after_delete(table_name):
+def reorganizeIdsAfterDelete(table_name):
     with app.app_context():
-        if tabla_existe(table_name):
-            table = get_table(table_name)
+        if tableExists(table_name):
+            table = getTable(table_name)
 
             # Obtener todos los registros de la tabla ordenados por ID
             items = db.session.query(table).order_by(table.c.id).all()
@@ -160,9 +161,9 @@ def reorganize_ids_after_delete(table_name):
         else:
             print(f"La tabla {table_name} no existe.")
 
-def update_playlist_in_db(guild_id, songs_to_keep):    
+def updatePlaylistInDb(guild_id, songs_to_keep):    
     # Eliminar todas las canciones actuales de la lista de reproducción para el servidor en la base de datos
-    remove_all_items(guild_id)
+    removeAllItems(guild_id)
 
     # Preparar los datos de las canciones a mantener en la lista de reproducción
     songs_data = []
@@ -170,82 +171,80 @@ def update_playlist_in_db(guild_id, songs_to_keep):
         songs_data.append([{'url': song}])
 
     # Agregar las canciones que se desean mantener en la lista de reproducción para el servidor en la base de datos
-    add_item(guild_id, songs_data)
+    addItem(guild_id, songs_data)
 
     print(f"Lista de reproducción actualizada en la base de datos para el servidor {guild_id}")
 
-def delete_items_up_to_id(table_name, end_id):
+def deleteItemsUpToId(table_name, end_id):
     with app.app_context():
-        if tabla_existe(table_name):
-            table = get_table(table_name)
+        if tableExists(table_name):
+            table = getTable(table_name)
 
             # Ejecutar la sentencia DELETE directamente en la base de datos
             db.session.execute(table.delete().where(table.c.id <= end_id))
             db.session.commit()
 
             # Reorganizar las IDs después de la eliminación
-            reorganize_ids_after_delete(table_name)
+            reorganizeIdsAfterDelete(table_name)
 
             print(f"Elementos eliminados hasta la ID {end_id}")
         else:
             print(f"No existe la tabla: {table_name}")
 
-def loopedPlaylist(GuildActual, command):
+def loopedPlaylist(guild_actual, command):
         with app.app_context():
-            if tabla_existe(GuildActual):
-                table = get_table(GuildActual)
+            if tableExists(guild_actual):
+                table = getTable(guild_actual)
                 data_list = []
 
-                Skiped_songs = db.session.query(table).filter(table.c.id <= command).all()
-                delete_items_up_to_id(GuildActual, command)
+                skiped_songs = db.session.query(table).filter(table.c.id <= command).all()
+                deleteItemsUpToId(guild_actual, command)
         
 
-                for song in Skiped_songs:
+                for song in skiped_songs:
                     data_list.append({'url': str(song[1])})
 
-                add_item(GuildActual, data_list)
+                addItem(guild_actual, data_list)
                 print("Playlist con loop activa, re acomodando canciones al final de la playlist")
             else:
-                print(f"No existe la tabla: {GuildActual}")
+                print(f"No existe la tabla: {guild_actual}")
 
-def eliminar_entradas_de_todas_las_tablas():
+def deleteEntriesFromAllTables():
     with app.app_context():
         inspector = db.inspect(db.engine)
         tablas = inspector.get_table_names()
 
         for tabla in tablas:
-            remove_all_items(str(tabla))
+            removeAllItems(str(tabla))
             
         print(f"Todas las entradas de la tablas han sido eliminadas.")
-
-        
-def mezclar_entradas(table_name):
+   
+def shuffleEntries(table_name):
     with app.app_context():
-        if tabla_existe(table_name):
+        if tableExists(table_name):
             # Obtener la instancia de la tabla dinámica existente
-            tabla = get_table(table_name)
+            table = getTable(table_name)
 
             # Obtener todas las entradas de la tabla
-            entradas = db.session.query(tabla).all()
+            entradas = db.session.query(table).all()
 
             # Mezclar aleatoriamente las entradas
             random.shuffle(entradas)
 
             # Eliminar todas las entradas existentes en la tabla
-            remove_all_items(table_name)
+            removeAllItems(table_name)
 
             # Reorganizar las IDs después de la eliminación
-            reorganize_ids_after_delete(table_name)
+            reorganizeIdsAfterDelete(table_name)
 
             # Agregar las entradas mezcladas de nuevo a la tabla
             for index, entrada in enumerate(entradas, start=1):
-                db.session.execute(tabla.insert().values(id=index, url=entrada.url))
+                db.session.execute(table.insert().values(id=index, url=entrada.url))
 
             db.session.commit()
             print(f"Entradas mezcladas aleatoriamente en la tabla {table_name}")
         else:
             print(f"No se pudo mezclar la tabla: {table_name}, ya que no existe")
-
 
 
 
