@@ -9,6 +9,7 @@ from sqlalchemy import MetaData, Table, Column, Integer, String, update
 Para Martu
 Los datos a guardar son:
 
+Server: ID del server
 Canciones: URL y quien la pidio
 Canal de voz: ID del canal de voz
 Canal del utlimo mensaje del bot: ID del canal

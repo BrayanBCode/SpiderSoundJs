@@ -270,7 +270,7 @@ class Music_Ext(commands.Cog):
                     await ctx.send(embed=embed)
 
                 if not voice_client.is_playing():
-                    await self.playNext(ctx)
+                    await asyncio.create_task(self.playNext(ctx))
 
             else:
                 await ctx.send(embed=Embed(description="❌ ¡Debes estar en un canal de voz para reproducir música!"))
@@ -384,11 +384,11 @@ class Music_Ext(commands.Cog):
                 continue
 
             if len(getAllItems(f"Playlist_{str(GuildActual)}")) > 0 and not ACTIVE_LOOP[GuildActual]:
-                await self.playNext(ctx)
+                await asyncio.create_task(self.playNext(ctx))
             elif ACTIVE_LOOP[GuildActual]:
                 video_url = str(CURRENTLY_PLAYING[GuildActual]['url'])
                 addItem(f"Playlist_{str(GuildActual)}", [{'url': video_url}])
-                await self.playNext(ctx)
+                await asyncio.create_task(self.playNext(ctx))
                 CURRENTLY_PLAYING.pop(GuildActual)
                 break
 
