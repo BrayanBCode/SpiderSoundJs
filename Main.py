@@ -9,7 +9,7 @@ bot.load_extension('utils.cogs.musica')
 
 @bot.event
 async def on_ready():
-    print(f"{bot.user} is ready and online!")
+    print(f"{bot.user} esta en linea!")
 
 @bot.slash_command(name = "help", description = "Despliega el menu de ayuda")
 async def help(ctx):
