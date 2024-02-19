@@ -41,8 +41,7 @@ class Music_Ext(commands.Cog):
                 if not tableExists(f"Playlist_{str(guild.id)}"):
                     createTable(guild, dynamicModelTablePlaylist(f"Playlist_{str(guild.id)}"))
                     ACTIVE_LOOP[guild.id] = False
-                raise Exception(f"Error al querer agregar el servidor a la base de datos, contacte con el soporte [Soporte](https://discord.gg/8WvwFZcRpy)")
-            except Exception as e:
+            except Exception(f"Error al querer agregar el servidor a la base de datos, contacte con el soporte [Soporte](https://discord.gg/8WvwFZcRpy)") as e:
                 general_channel = discord.utils.get(guild.text_channels, name="general")  # Reemplaza "general" con el nombre de tu canal
                 if general_channel:
                     await general_channel.send(f"¡Oops! Se produjo un error al unirse al servidor.\n```{e}```")
