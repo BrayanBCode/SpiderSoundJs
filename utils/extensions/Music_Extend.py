@@ -32,6 +32,25 @@ class Music_Ext(commands.Cog):
 
         with app.app_context():
             deleteEntriesFromAllTables()
+            
+    @commands.Cog.listener()
+    async def on_guild_join(self, guild):
+        print(f'Me uni al servidor {guild.name}')
+        try:
+            ACTIVE_LOOP[guild.id] = False
+            raise Exception(f"Error al querer agregar el servidor a la base de datos, contacte con el soporte **[Soporte](https://discord.gg/8WvwFZcRpy)**")
+        except Exception as e:
+            general_channel = discord.utils.get(guild.text_channels, name="general")  # Reemplaza "general" con el nombre de tu canal
+            if general_channel:
+                await general_channel.send(f"¡Oops! Se produjo un error al unirse al servidor.\n```{e}```")
+            else:
+                # Si no hay canal llamado "general", intenta enviarlo al primer canal de texto disponible
+                text_channel = next((channel for channel in guild.text_channels if isinstance(channel, discord.TextChannel)), None)
+                if text_channel:
+                    await text_channel.send(f"¡Oops! Se produjo un error al unirse al servidor.\n```{e}```")
+
+            
+            
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
