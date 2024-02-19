@@ -5,11 +5,11 @@ from discord import Embed
 
 serverQueue = {}
 
-class musica(commands.Cog):
+class Music_Cog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @discord.slash_command(name = "play", description = "Agrega y reproduce musica desde YT, puede utilizar una url, nombre de la cancion y url de Spotify")
+    @discord.slash_command(name = "play", description = "Agrega y reproduce musica desde YT")
     async def play(self, ctx, url: str):
         channel = ctx.author.voice.channel
         voice_client =  ctx.guild.voice_client
@@ -64,6 +64,11 @@ class musica(commands.Cog):
     @discord.slash_command(name = "leave", description = "Desconecta el bot del canal de voz")
     async def leave(self, ctx,):
         await ctx.respond("Sin implementar")
+
+
+async def addToQueue():
+    print('pepe')
+    
         
 def setup(bot):
-    bot.add_cog(musica(bot))
+    bot.add_cog(Music_Cog(bot))
