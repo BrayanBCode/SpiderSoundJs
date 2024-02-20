@@ -1,4 +1,5 @@
 import discord
+from abc import ABC, abstractmethod
 from discord import Embed
 
 class HelpCommandMsg():
@@ -31,3 +32,4 @@ class SpotifyInstance():
         
     def Get(self):
         return (self.title, self.artist)
+

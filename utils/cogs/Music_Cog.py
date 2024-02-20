@@ -20,9 +20,7 @@ from discord import FFmpegPCMAudio
 # Imports de Interaz
 from discord import Embed
 
-# Declaracion de instancia de la API de Spotify
-client_credentials_manager = SpotifyClientCredentials(client_id=os.environ.get("clientID"), client_secret=os.environ.get("clientSecret"))
-sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+
 
 # SOLUCION TEMPORAL - DEBE IMPLEMENTARSE LA BD
 serverQueue = {}
@@ -158,10 +156,23 @@ async def spotifySearch(arg):
     return YouTubeSearch(Search)
 
 async def youTubePlaylistSearch(arg):
-    print('a')
-    
+    playlist = Playlist(arg)
+    Playlist_URL = list(Playlist.video_urls)
+    check = []
+    for url in Playlist_URL:
+        try:
+            video = YouTube(url)
+            check.append((True, Structures.YoutubeInstance(video.title, video.author)))
+        except Exception as e:
+            check.append((False, e))
+        
 async def youtubeVideoSearch(arg):
-    print('a')
+    try:
+        video = YouTube(arg)
+        YTInstance = Structures.YoutubeInstance(video.title, video.author, video.length, video.thumbnail_url)
+        return (True, YTInstance)
+    except Exception as e:
+        return (False, e)
 
 async def YouTubeSearch(arg):
     if not isinstance(arg, list):
