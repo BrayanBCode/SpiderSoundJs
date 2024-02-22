@@ -1,15 +1,8 @@
-*.mp4
-Parche 3.0
-instance/ServerPlaylist.db
-__pycache__/db.cpython-311.pyc
-testing
-utils/__pycache__/db.cpython-311.pyc
-*.pyc
-.env
-.cache
-temp
-Database
-Salida.txt
-WebHook
-nohup.out
-.vscode
+# Ignorar todo por defecto
+*
+
+# Lista blanca: incluir archivos específicos y una carpeta
+!*.py
+!*.md
+!lib/
+!utils/
