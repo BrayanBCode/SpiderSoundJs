@@ -14,8 +14,8 @@ def contiene_id_youtube(cadena):
 cadena1 = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 cadena2 = "Este es un texto sin enlaces de YouTube."
 
-print(contiene_id_youtube(cadena1))  # True
-print(contiene_id_youtube(cadena2))  # False
+#print(contiene_id_youtube(cadena1))  # True
+#print(contiene_id_youtube(cadena2))  # False
 
 # ---------------------------------------------------------
 
@@ -29,7 +29,7 @@ def contiene_id_youtube(cadena):
     coincidencias = patron_youtube.search(cadena)
 
     # Si se encuentra una coincidencia, devolver el identificador, de lo contrario, devolver None
-    return coincidencias.group(1) if coincidencias else None
+    return bool(coincidencias)
 
 # Ejemplos de uso:
 cadena1 = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
@@ -40,9 +40,9 @@ id_video1 = contiene_id_youtube(cadena1)
 id_video2 = contiene_id_youtube(cadena2)
 id_video3 = contiene_id_youtube(cadena3)
 
-print("ID del video 1:", id_video1)
-print("ID del video 2:", id_video2)
-print("ID del video 3:", id_video3)
+print("video 1:", id_video1)
+print("video 2:", id_video2)
+print("video 3:", id_video3)
 
 # ---------------------------------------------------------
 
@@ -56,7 +56,7 @@ def contiene_id_playlist_youtube(cadena):
     coincidencias = patron_playlist.search(cadena)
 
     # Si se encuentra una coincidencia, devolver el identificador, de lo contrario, devolver None
-    return cadena
+    return bool(coincidencias)
 
 # Ejemplos de uso:
 cadena1 = "https://www.youtube.com/playlist?list=PLx0sYbCqOb8TBPRdmBHs5Iftvv9TPboYG"

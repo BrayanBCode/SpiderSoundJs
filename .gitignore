@@ -2,7 +2,8 @@
 *
 
 # Lista blanca: incluir archivos específicos y una carpeta
-!*.py
-!*.md
 !lib/
 !utils/
+!Main.py
+!README.md
+
