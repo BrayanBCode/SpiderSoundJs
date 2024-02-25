@@ -1,8 +1,6 @@
 # Ignorar todo por defecto
-*
-
-# Lista blanca: incluir archivos específicos y una carpeta
-!lib/
-!utils/
-!Main.py
-!README.md
+temp
+test
+.env
+.cache
+__pycache__
