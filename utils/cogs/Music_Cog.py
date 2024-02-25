@@ -30,7 +30,39 @@ from typing import List
 
 
 #! SOLUCION TEMPORAL - DEBE IMPLEMENTARSE LA BD
+class MusicControls(discord.ui.View):
+    def __init__(self, cog, ctx):
+        super().__init__()
+        self.cog = cog
+        self.ctx = ctx
 
+    @discord.ui.button(label='Pausar', style=discord.ButtonStyle.primary)
+    async def pause(self, button, interaction):
+        interaction.defer()
+        voice_client = self.ctx.voice_client
+        if voice_client.is_playing():
+            voice_client.pause()
+
+    @discord.ui.button(label='Reanudar', style=discord.ButtonStyle.primary)
+    async def resume(self, button, interaction):
+        interaction.defer()
+        voice_client = self.ctx.voice_client
+        if voice_client.is_paused():
+            voice_client.resume()
+
+    @discord.ui.button(label='Detener', style=discord.ButtonStyle.primary)
+    async def stop(self, button, interaction):
+        interaction.defer()
+        voice_client = self.ctx.voice_client
+        if voice_client.is_playing() or voice_client.is_paused():
+            voice_client.stop()
+
+    @discord.ui.button(label='Siguiente', style=discord.ButtonStyle.primary)
+    async def skip(self, button, interaction):
+        voice_client = self.ctx.voice_client
+        if voice_client.is_playing() or voice_client.is_paused():
+            voice_client.stop()
+        await interaction.edit(embed=await self.cog.PlaySong(self.ctx))
 
 class Music_Cog(commands.Cog):
     def __init__(self, bot: discord.bot):
@@ -38,6 +70,7 @@ class Music_Cog(commands.Cog):
         self.serverQueue = {}  # Diccionario para guardar las colas de reproducción
         self.disconnect_tasks = {}  # Diccionario para guardar las tareas de desconexión
         self.PlayingSong = {}
+        self.is_loop = {}
         self.ctxs = {}  # Diccionario para guardar los contextos
     
     @discord.slash_command(name = "play", description = "Agrega y reproduce musica desde YT")
@@ -61,8 +94,9 @@ class Music_Cog(commands.Cog):
         if search != None:
             await self.addToQueue(search, Guild.id)
 
+        view = MusicControls(self, ctx)
 
-        await ctx.followup.send(embed=await self.PlaySong(ctx))
+        await ctx.followup.send(embed=await self.PlaySong(ctx), view=view)
   
         #await asyncio.create_task(await PlaySong(ctx))
 
@@ -91,11 +125,12 @@ class Music_Cog(commands.Cog):
         
     @discord.slash_command(name = "stop", description = "Detiene la reproduccion")
     async def stop(self, ctx: ApplicationContext):
-        voice_client: discord.VoiceClient = ctx.guild.voice_client
-        if self.PlayNext.is_running():
-            self.PlayNext.cancel()
-        voice_client.stop()
-        await ctx.respond(embed=Embed(description="Cancion detenida con exito"))
+        voice_client = ctx.voice_client
+        if voice_client.is_playing():
+            voice_client.stop()  # Detenemos la reproducción actual
+            guild = ctx.guild.id
+            if guild in self.ctxs and self.ctxs[guild].task and not self.ctxs[guild].task.done():
+                self.ctxs[guild].task.cancel()  # Cancelamos la tarea que reproduce la siguiente canción
         
     @discord.slash_command(name = "queue", description = "Muestra la cola de reproduccion")
     async def queue(self, ctx: ApplicationContext):
@@ -114,7 +149,7 @@ class Music_Cog(commands.Cog):
                 duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
                 queue_info.append({"title": video.title, "author": video.author, "duration": duration_formatted, "url": url})
 
-            view = SongMenu.PaginationView(queue_info, self.playing_song[guild], ctx)
+            view = SongMenu.PaginationView(queue_info, self.PlayingSong[guild], ctx)
             embed = await view.get_embed()
             await ctx.send(embed=embed, view=view)
         else:
@@ -135,12 +170,14 @@ class Music_Cog(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
         self.serverQueue[guild.id] = []
+        self.is_loop[guild.id] = False
         
     @commands.Cog.listener()
     async def on_ready(self) -> None:
         guilds = self.bot.guilds
         for guild in guilds:
             self.serverQueue[guild.id] = []
+            self.is_loop[guild.id] = False
           
           
     # TASKS SECTION --------------------------------------------------------------------------------
@@ -172,10 +209,9 @@ class Music_Cog(commands.Cog):
         voice_client = next((vc for vc in self.bot.voice_clients if vc.guild.id == guild_id), None)
         if voice_client is not None and (not voice_client.is_playing() or len(voice_client.channel.members) == 1):  # Si el bot no está reproduciendo nada o está solo en el canal
             await voice_client.disconnect()  # Desconectamos el bot
+            self.serverQueue[guild_id].clear()        
             del self.disconnect_tasks[guild_id]  # Eliminamos la tarea del diccionario    
     
-    
-
     @tasks.loop(seconds=3)
     async def PlayNext(self, ctx: ApplicationContext):
         voice_client = ctx.guild.voice_client
@@ -214,6 +250,9 @@ class Music_Cog(commands.Cog):
 
                 video_url = self.serverQueue[guild][0]
                 self.serverQueue[guild].pop(0)
+                   
+                if self.is_loop[guild]:  # Si el modo de loop está activado
+                    self.serverQueue[guild].append(self.PlayingSong['url'])  # Agregamos la canción al final de la cola
                 
                 try:
                     video = YouTube(video_url)
@@ -222,8 +261,13 @@ class Music_Cog(commands.Cog):
                     video_path = os.path.join(output_path, video_stream.default_filename)
                     video_stream.download(output_path=output_path)
 
+                    def after_playing(e):
+                        if os.path.exists(video_path):
+                            os.remove(video_path)
+                        self.bot.loop.create_task(self.PlaySong(self.ctxs[guild]))
+                    
                     audio_source = FFmpegPCMAudio(video_path)   
-                    voice_client.play(audio_source, after=lambda e: self.bot.loop.create_task(self.PlaySong(self.ctxs[guild])))     
+                    voice_client.play(audio_source, after=after_playing)     
                     
                     duration = video.length
                     mins, secs = divmod(duration, 60)
@@ -232,15 +276,16 @@ class Music_Cog(commands.Cog):
 
                     embed = Embed(title="Reproduciendo", color=0x120062)
                     embed.add_field(name=video.title, value=video.author, inline=True)
-                    embed.add_field(name=f'Duracion: {duration_formatted}', value=f'Ver en Youtube')
-                    embed.set_thumbnail(url=video.thumbnail_url)
+                    embed.add_field(name=f'Duracion: {duration_formatted}', value=f'[Ver en Youtube]({video_url})')
+                    embed.set_image(url=video.thumbnail_url)
 
                     self.ctxs[guild] = ctx  # Guardamos el contexto actual
                     self.PlayingSong[guild] = {
                         'title' : video.title,
                         'author' : video.author,
                         'duration': duration_formatted,
-                        'url' : video.url
+                        'thumbnail_url' : video.thumbnail_url,
+                        'url' : video_url
                     }
 
                     return embed
@@ -250,11 +295,11 @@ class Music_Cog(commands.Cog):
             else:
                 return Embed(description=f'Cancion agregada a la cola')
                     
-                
         else:
             return Embed(description='No hay canciones en la cola')
 
-        
+     
+    
     async def SkipFunction(self, ctx: ApplicationContext, posición):
         voice_client = ctx.guild.voice_client
         if len(self.serverQueue[ctx.guild.id]) > 0:
