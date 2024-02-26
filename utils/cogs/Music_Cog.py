@@ -7,14 +7,14 @@ from discord.commands.context import ApplicationContext
  
 
 # Imports utiles para los Cogs
-from utils.logic import Structures, SongMenu
+from utils.logic import PaginationQueue, Structures
 from discord import option
 
 # Imports para YT
 from youtubesearchpython import VideosSearch
 from pytube import Playlist, YouTube
 
-from utils.logic import url_handler, InactiveTest
+from utils.logic import url_handler
 
 # Imports para API Spotify
 import spotipy
@@ -31,38 +31,42 @@ from typing import List
 
 #! SOLUCION TEMPORAL - DEBE IMPLEMENTARSE LA BD
 class MusicControls(discord.ui.View):
-    def __init__(self, cog, ctx):
+    def __init__(self, cog, ctx, get_ctx: callable):
         super().__init__()
         self.cog = cog
         self.ctx = ctx
+        self.get_ctx = get_ctx
 
-    @discord.ui.button(label='Pausar', style=discord.ButtonStyle.primary)
+    def actualizar(self, guild_id):
+        self.ctx = self.cog.get_ctx(guild_id)
+    @discord.ui.button(emoji='⏹️', style=discord.ButtonStyle.primary)
+    async def stop(self, button, interaction):
+        self.actualizar(interaction.guild_id)
+        voice_client = self.ctx.voice_client
+        if voice_client.is_playing() or voice_client.is_paused():
+            voice_client.stop()
+
+    @discord.ui.button(emoji='⏸️', style=discord.ButtonStyle.primary)
     async def pause(self, button, interaction):
-        interaction.defer()
+        self.actualizar(interaction.guild_id)
         voice_client = self.ctx.voice_client
         if voice_client.is_playing():
             voice_client.pause()
 
-    @discord.ui.button(label='Reanudar', style=discord.ButtonStyle.primary)
+    @discord.ui.button(emoji='▶️', style=discord.ButtonStyle.primary)
     async def resume(self, button, interaction):
-        interaction.defer()
+        self.actualizar(interaction.guild_id)
         voice_client = self.ctx.voice_client
         if voice_client.is_paused():
             voice_client.resume()
 
-    @discord.ui.button(label='Detener', style=discord.ButtonStyle.primary)
-    async def stop(self, button, interaction):
-        interaction.defer()
-        voice_client = self.ctx.voice_client
-        if voice_client.is_playing() or voice_client.is_paused():
-            voice_client.stop()
-
-    @discord.ui.button(label='Siguiente', style=discord.ButtonStyle.primary)
+    @discord.ui.button(emoji='⏩', style=discord.ButtonStyle.primary)
     async def skip(self, button, interaction):
+        self.actualizar(interaction.guild_id)
         voice_client = self.ctx.voice_client
         if voice_client.is_playing() or voice_client.is_paused():
             voice_client.stop()
-        await interaction.edit(embed=await self.cog.PlaySong(self.ctx))
+        await self.cog.PlaySong(self.ctx)
 
 class Music_Cog(commands.Cog):
     def __init__(self, bot: discord.bot):
@@ -70,6 +74,8 @@ class Music_Cog(commands.Cog):
         self.serverQueue = {}  # Diccionario para guardar las colas de reproducción
         self.disconnect_tasks = {}  # Diccionario para guardar las tareas de desconexión
         self.PlayingSong = {}
+        self.Tasks = {}
+        self.LastPlaymessage = {}
         self.is_loop = {}
         self.ctxs = {}  # Diccionario para guardar los contextos
     
@@ -94,9 +100,7 @@ class Music_Cog(commands.Cog):
         if search != None:
             await self.addToQueue(search, Guild.id)
 
-        view = MusicControls(self, ctx)
-
-        await ctx.followup.send(embed=await self.PlaySong(ctx), view=view)
+        await self.PlaySong(ctx)
   
         #await asyncio.create_task(await PlaySong(ctx))
 
@@ -125,12 +129,18 @@ class Music_Cog(commands.Cog):
         
     @discord.slash_command(name = "stop", description = "Detiene la reproduccion")
     async def stop(self, ctx: ApplicationContext):
+        await ctx.defer()
         voice_client = ctx.voice_client
         if voice_client.is_playing():
             voice_client.stop()  # Detenemos la reproducción actual
             guild = ctx.guild.id
-            if guild in self.ctxs and self.ctxs[guild].task and not self.ctxs[guild].task.done():
-                self.ctxs[guild].task.cancel()  # Cancelamos la tarea que reproduce la siguiente canción
+
+            if guild in self.Tasks and self.Tasks[guild] and not self.ctxs[guild].done():
+                self.Tasks[guild].cancel()  # Cancelamos la tarea que reproduce la siguiente canción
+            await ctx.respond(embed=Embed(description="Cancion detenida con exito"))
+        else:
+            await ctx.respond(embed=Embed(description="No se esta reproduciendo nada"))
+
         
     @discord.slash_command(name = "queue", description = "Muestra la cola de reproduccion")
     async def queue(self, ctx: ApplicationContext):
@@ -149,7 +159,7 @@ class Music_Cog(commands.Cog):
                 duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
                 queue_info.append({"title": video.title, "author": video.author, "duration": duration_formatted, "url": url})
 
-            view = SongMenu.PaginationView(queue_info, self.PlayingSong[guild], ctx)
+            view = PaginationQueue.PaginationView(queue_info, self.PlayingSong[guild], ctx)
             embed = await view.get_embed()
             await ctx.send(embed=embed, view=view)
         else:
@@ -178,11 +188,15 @@ class Music_Cog(commands.Cog):
         for guild in guilds:
             self.serverQueue[guild.id] = []
             self.is_loop[guild.id] = False
-          
-          
-    # TASKS SECTION --------------------------------------------------------------------------------
-    
+            
+    @commands.Cog.listener()
+    async def on_slash_command(self, ctx):
+        self.ctxs[ctx.guild.id] = ctx  # Actualizamos el contexto para este servidor
 
+    # TASKS SECTION --------------------------------------------------------------------------------
+
+
+    
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
         if member.id == self.bot.user.id and after.channel is not None:
@@ -217,7 +231,7 @@ class Music_Cog(commands.Cog):
         voice_client = ctx.guild.voice_client
         if not voice_client.is_playing():
             if len(self.serverQueue[ctx.guild.id]) > 0:
-                await ctx.send(embed=await self.PlaySong(ctx))
+                await self.PlaySong(ctx)
             else:
                 await self.InactiveTimer(ctx)
 
@@ -239,10 +253,10 @@ class Music_Cog(commands.Cog):
         
         #! Agrega a la base de datos - TOCA CAMBIAR AL TENER LA BD
         for data in result:
-            self.serverQueue[guild].append(data[1])
-            print(f'Se agrego {data[1]} al server {guild}')          
+            if data[0] == True:
+                self.serverQueue[guild].append(data[1])
 
-    async def PlaySong(self, ctx):
+    async def PlaySong(self, ctx: ApplicationContext):
         if len(self.serverQueue[ctx.guild.id]) > 0:
             if not ctx.voice_client.is_playing():
                 guild = ctx.guild.id
@@ -261,13 +275,14 @@ class Music_Cog(commands.Cog):
                     video_path = os.path.join(output_path, video_stream.default_filename)
                     video_stream.download(output_path=output_path)
 
-                    def after_playing(e):
+
+                    async def after_playing():
                         if os.path.exists(video_path):
                             os.remove(video_path)
-                        self.bot.loop.create_task(self.PlaySong(self.ctxs[guild]))
-                    
+                        self.Tasks[guild] = asyncio.create_task(self.PlaySong(self.ctxs[guild]))
+                        
                     audio_source = FFmpegPCMAudio(video_path)   
-                    voice_client.play(audio_source, after=after_playing)     
+                    voice_client.play(audio_source, after=lambda e: asyncio.run(after_playing()))     
                     
                     duration = video.length
                     mins, secs = divmod(duration, 60)
@@ -279,7 +294,6 @@ class Music_Cog(commands.Cog):
                     embed.add_field(name=f'Duracion: {duration_formatted}', value=f'[Ver en Youtube]({video_url})')
                     embed.set_image(url=video.thumbnail_url)
 
-                    self.ctxs[guild] = ctx  # Guardamos el contexto actual
                     self.PlayingSong[guild] = {
                         'title' : video.title,
                         'author' : video.author,
@@ -287,19 +301,34 @@ class Music_Cog(commands.Cog):
                         'thumbnail_url' : video.thumbnail_url,
                         'url' : video_url
                     }
+                    self.ctxs[guild] = ctx  # Guardamos el contexto actual
 
-                    return embed
+                    """# Obtén el canal
+                    channel = self.bot.get_channel(self.ctxs[guild].guild.channel)
+
+                    # Obtén el último mensaje
+                    last_message = await channel.history(limit=1).flatten()
+                    last_message = last_message[0] if last_message else None
+
+                    if last_message:
+                        print(f"El último mensaje fue: {last_message.content}")
+                    else:
+                        print("No se encontraron mensajes en este canal.")"""
+
+                    view = MusicControls(self, ctx, self.get_ctx(guild))
+                    self.LastPlaymessage[ctx.guild.id] = await ctx.followup.send(embed=embed, view=view)
                 
                 except Exception as e:
-                    return Embed(description=f'Error de reproduccion: {e}')
+                    await ctx.send(embed=Embed(description=f'Error de reproduccion: {str(e)}'))
             else:
-                return Embed(description=f'Cancion agregada a la cola')
-                    
+                await ctx.send(embed=Embed(description=f'Cancion agregada a la cola'))                
         else:
-            return Embed(description='No hay canciones en la cola')
+            await ctx.send(embed=Embed(description='No hay canciones en la cola'))
 
-     
-    
+    def get_ctx(self, guild_id):
+        return self.ctxs[guild_id]
+
+
     async def SkipFunction(self, ctx: ApplicationContext, posición):
         voice_client = ctx.guild.voice_client
         if len(self.serverQueue[ctx.guild.id]) > 0:
@@ -308,12 +337,12 @@ class Music_Cog(commands.Cog):
                 ctx.send(embed=Embed(description="Saltando canciones"))
                 for data in range(posición):
                     self.serverQueue.pop(data)
-                return await self.PlaySong(ctx)
+                await self.PlaySong(ctx)
 
             else:
                 voice_client.stop()
                 ctx.send(embed=Embed(description="Saltando cancion"))
-                return await self.PlaySong(ctx)        
+                await self.PlaySong(ctx)        
         else:
             return Embed(description="No hay canciones en la cola")
 
@@ -329,11 +358,7 @@ class Music_Cog(commands.Cog):
         # agrega los resultados de la busqueda al principio de la cola
         self.serverQueue[ctx.guild.id].extend(result[1])
         voice_client.stop()
-        return await self.PlaySong(ctx)
+        self.LastPlaymessage[ctx.guild.id] = await self.PlaySong(ctx)
     
-        
-        
-    
-
 def setup(bot):
     bot.add_cog(Music_Cog(bot))
