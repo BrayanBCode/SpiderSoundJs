@@ -6,7 +6,7 @@ load_dotenv() # load all the variables from the env file
 bot = discord.Bot()
 
 cogs_list = [ # listado de cogs
-    'Music_Cog',
+    #'Music_TEST',
     'Help_Cog'
 ]
 
