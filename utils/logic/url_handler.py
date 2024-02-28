@@ -12,12 +12,10 @@ import re
 client_credentials_manager = SpotifyClientCredentials(client_id=os.environ.get("clientID"), client_secret=os.environ.get("clientSecret"))
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
-class MediaPlayer(ABC):
-    @abstractmethod
+class MediaPlayer():
     def check(self, arg):
         pass
     
-    @abstractmethod
     def search(self, arg):
         pass
      
@@ -56,7 +54,7 @@ class YoutubeSearch(MediaPlayer):
                 result = ydl.extract_info(f"ytsearch{num_videos}:{query}", download=False)
                 if 'entries' in result:
                     videos = result['entries']
-                    return [(True, video['url']) for video in videos]
+                    return [(True, f"https://www.youtube.com/watch?v={video['url']}") for video in videos]
                 else:
                     return [(False, "No se encontraron resultados.")]
             except youtube_dl.DownloadError as e:

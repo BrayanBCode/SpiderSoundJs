@@ -1,4 +1,4 @@
-import discord, os
+import discord, os, re
 import yt_dlp as youtube_dl
 
 from discord.ext import commands, tasks
@@ -21,7 +21,7 @@ class MusicPlayer(MediaPlayerStructure):
         self.LastCtx = None
         self.voice_clients = None
         print(f"Intancia de MusicPlayer creada para {self.guild.id}")
-        
+    
     async def PlaySong(self, ctx: ApplicationContext, search: str):        
         voice_client = await self.join(ctx)
         if not voice_client:
@@ -30,6 +30,7 @@ class MusicPlayer(MediaPlayerStructure):
         if search:
             print(search)
             await self.AddSongs(search)
+            await ctx.send("se agrego a la cola")
             
         if voice_client.is_playing():
             return
@@ -39,17 +40,17 @@ class MusicPlayer(MediaPlayerStructure):
             return
         
         ydl_opts = {
-            'quiet': True,
+            'quiet': False,
             'format': 'bestaudio/best',  # Descargar el mejor formato de audio disponible
             'outtmpl': f'temp/%(title)s.%(ext)s',  # Nombre del archivo de salida
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',  # Especificar MP3 como el códec preferido
-                'preferredquality': '5',  # Calidad estándar (128 kbps)
             }],
         }
-            
+
         video_url = self.Queue[0]
+        print (video_url)
         self.Queue.pop(0)
         
         if self.is_loop == True:
@@ -63,11 +64,11 @@ class MusicPlayer(MediaPlayerStructure):
                 song_artist = info_dict.get('channel', 'Artista desconocido')
                 song_duration = info_dict.get('duration', 'Duración desconocida')
                 song_thumbnail = info_dict.get('thumbnail', 'Sin foto de portada')
-                
+                                
                 ydl.download([video_url])  # Descargar la canción
                 video_file_path = os.path.join('temp', f"{info_dict['title']}.mp3")
 
-                print(f"Se descargo: {song_title} en {video_file_path}")
+                print(f"Se descargo: {video_file_path}")
 
                 audio_source = FFmpegPCMAudio(video_file_path)
                 voice_client.play(audio_source)
@@ -98,8 +99,10 @@ class MusicPlayer(MediaPlayerStructure):
 
             # Verifica si el bot estaba reproduciendo audio antes
             if not voice_client.is_playing():
-                # Si el bot dejó de reproducir audio, realiza alguna acción aquí
-                self.PlaySong(self.LastCtx)
+                
+                if not after.channel:
+                    # Si el bot dejó de reproducir audio, realiza alguna acción aquí
+                    self.PlaySong(self.LastCtx)
                 
     async def AddSongs(self, search):
         result: tuple = (False, 'Link invalido')
@@ -113,6 +116,8 @@ class MusicPlayer(MediaPlayerStructure):
         for data in result:
             if data[0] == True:
                 self.Queue.append(data[1])  
+                
+        
         
     async def join(self, ctx: ApplicationContext):
         # Verificar si el autor del comando está en un canal de voz
@@ -131,5 +136,6 @@ class MusicPlayer(MediaPlayerStructure):
         else:
             await ctx.send("¡Debes estar en un canal de voz para que el bot se una!")
             return None
-        
+
+
 
