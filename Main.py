@@ -6,12 +6,12 @@ load_dotenv() # load all the variables from the env file
 bot = discord.Bot()
 
 cogs_list = [ # listado de cogs
-    #'Music_TEST',
+    'Music_TEST',
     'Help_Cog'
 ]
 
 for cog in cogs_list:
-    bot.load_extension(f'utils.cogs.{cog}')
+    bot.load_extension(f'utils.Commands.{cog}')
     
 @bot.event
 async def on_ready():

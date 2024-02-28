@@ -21,26 +21,21 @@ class Music_SlashCommands(commands.Cog):
     @option('search', str, description="Nombre o url de la cancion")
     async def PlayCommand(self, ctx: ApplicationContext, search: str = None):
         MediaPlayerIntance: MusicPlayer = self.getIntance(ctx.guild.id)
-        print(MediaPlayerIntance.GetGuild())
+        await MediaPlayerIntance.PlaySong(ctx, search)
         
-
-    
-    
-    
-    
     @discord.Cog.listener()
     async def on_ready(self) -> None:
         guilds = self.bot.guilds
         for guild in guilds:
             self.MusicInstances.add(MusicPlayer(self.bot, guild))
             
-            
-            
-            
-            
-            
-            
-            
-            
+        
+    
+
+
+
+
+
+
 def setup(bot):
     bot.add_cog(Music_SlashCommands(bot))
