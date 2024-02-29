@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-<!-- Created by , GNU Texinfo 7.0.1 -->
+<!-- Created by , GNU Texinfo 7.0.3 -->
   <head>
     <meta charset="utf-8">
     <title>
@@ -2476,7 +2476,7 @@ Required pixel format depends on current framebuffer settings.
 </div>
 <div class="section-level-extent" id="opengl">
 <h3 class="section">4.6 opengl</h3>
-<p>OpenGL output device.
+<p>OpenGL output device. Deprecated and will be removed.
 </p>
 <p>To enable this output device you need to configure FFmpeg with <code class="code">--enable-opengl</code>.
 </p>
@@ -2613,8 +2613,14 @@ by the server.
 <div class="section-level-extent" id="sdl">
 <h3 class="section">4.9 sdl</h3>
 
-<p>SDL (Simple DirectMedia Layer) output device.
+<p>SDL (Simple DirectMedia Layer) output device. Deprecated and will be removed.
 </p>
+<p>For monitoring purposes in FFmpeg, pipes and a video player such as ffplay can be used:
+</p>
+<div class="example">
+<pre class="example-preformatted">ffmpeg -i INPUT -f nut -c:v rawvideo - | ffplay -
+</pre></div>
+
 <p>&quot;sdl2&quot; can be used as alias for &quot;sdl&quot;.
 </p>
 <p>This output device allows one to show a video stream in an SDL

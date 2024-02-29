@@ -12,12 +12,6 @@ class MediaPlayerStructure:
     
     def check(self, guild):
         return guild == self.guild.id
-    
-    def DurationFormat(self, seconds: int):
-        mins, secs = divmod(seconds, 60)
-        hours, mins = divmod(mins, 60)
-        duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
-        return duration_formatted
 
     
 class HelpCommandMsg():

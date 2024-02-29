@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-<!-- Created by , GNU Texinfo 7.0.1 -->
+<!-- Created by , GNU Texinfo 7.0.3 -->
   <head>
     <meta charset="utf-8">
     <title>
@@ -135,14 +135,9 @@ and should try to fix issues their commit causes.
 <div class="section-level-extent" id="Language">
 <h3 class="section">2.1 Language</h3>
 
-<p>FFmpeg is mainly programmed in the ISO C99 language, extended with:
-</p><ul class="itemize mark-bullet">
-<li>Atomic operations from C11 <samp class="file">stdatomic.h</samp>. They are emulated on
-architectures/compilers that do not support them, so all FFmpeg-internal code
-may use atomics without any extra checks. However, <samp class="file">stdatomic.h</samp> must not
-be included in public headers, so they stay C99-compatible.
-</li></ul>
-
+<p>FFmpeg is mainly programmed in the ISO C11 language, except for the public
+headers which must stay C99 compatible.
+</p>
 <p>Compiler-specific extensions may be used with good reason, but must not be
 depended on, i.e. the code must still compile and work with compilers lacking
 the extension.
