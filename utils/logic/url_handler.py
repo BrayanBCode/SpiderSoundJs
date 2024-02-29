@@ -109,7 +109,7 @@ class YoutubePlaylist(MediaPlayer):
                 result = ydl.extract_info(playlist_url, download=False)
                 if 'entries' in result:
                     songs = result['entries']
-                    return [(True, song['url']) for song in songs]
+                    return [(True, f'https://www.youtube.com/watch?v={song['url']}') for song in songs]
                 else:
                     return [(False, "No se encontraron canciones en la playlist.")]
             except youtube_dl.DownloadError as e:

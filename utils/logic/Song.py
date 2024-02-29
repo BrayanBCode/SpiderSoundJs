@@ -1,7 +1,7 @@
 import yt_dlp as youtube_dl
        
 
-class Song():
+class SongData():
     def __init__(self, video_url) -> None:
         ydl_opts = {
             'quiet': False,
