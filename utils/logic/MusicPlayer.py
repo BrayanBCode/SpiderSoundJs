@@ -133,13 +133,13 @@ class MusicPlayer(MediaPlayerStructure):
 
     async def loop(self, ctx: ApplicationContext):
         self.is_loop = not self.is_loop
-        self.Messages.LoopMessage(ctx, self.is_loop)
+        await self.Messages.LoopMessage(ctx, self.is_loop)
 
     async def leave(self, ctx: ApplicationContext):
         if ctx.voice_client:
             ctx.voice_client.disconnect()
-            self.Messages.LeaveMessage(ctx)
+            await self.Messages.LeaveMessage(ctx)
             #ctx.send(embed=Embed(description="Me desconecte con exito"))
         else:
-            self.Messages.LeaveMessage(ctx)
+            await self.Messages.LeaveMessage(ctx)
             #ctx.send(embed=Embed(description="No estoy en un canal de voz"))

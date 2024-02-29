@@ -29,7 +29,7 @@ class Music_SlashCommands(commands.Cog):
     async def stop(self, ctx: ApplicationContext):
         ctx.defer()
         MediaPlayerIntance: MusicPlayer = self.getIntance(ctx.guild.id)
-        MediaPlayerIntance.Stop(ctx)
+        await MediaPlayerIntance.Stop(ctx)
         
 
     @discord.slash_command(name = "loop", description = "Activa o desactiva el loop de la cola")
@@ -42,7 +42,7 @@ class Music_SlashCommands(commands.Cog):
     async def leave(self, ctx: ApplicationContext):   
         ctx.defer()
         MediaPlayerIntance: MusicPlayer = self.getIntance(ctx.guild.id)
-        MediaPlayerIntance.leave(ctx)
+        await MediaPlayerIntance.leave(ctx)
 
 
     @discord.Cog.listener()
