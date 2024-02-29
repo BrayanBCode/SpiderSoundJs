@@ -3,3 +3,6 @@ test
 .env
 .cache
 __pycache__
+temp/
+test/
+__pycache__/
