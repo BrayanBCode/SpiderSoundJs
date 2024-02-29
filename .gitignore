@@ -1,14 +1,5 @@
-*.mp4
-Parche 3.0
-instance/ServerPlaylist.db
-__pycache__/db.cpython-311.pyc
-testing
-utils/__pycache__/db.cpython-311.pyc
-*.pyc
+temp
+test
 .env
 .cache
-temp
-Database
-Salida.txt
-WebHook
-nohup.out
+__pycache__
