@@ -35,36 +35,41 @@ class MensajesEmbebidos():
         await self.Send(ctx, embed)
         
     async def PauseMessage(self, ctx:ApplicationContext):
-        await self.Send(ctx, Embed(description="Cancion pausada"))
+        await self.Send(ctx, Embed(description="Cancion pausada."))
     
     async def ResumeMessage(self, ctx:ApplicationContext):
-        await self.Send(ctx, Embed(description="Cancion reanudada"))
+        await self.Send(ctx, Embed(description="Cancion reanudada."))
         
     async def StopMessage(self, ctx: ApplicationContext):
-        await self.Send(ctx, Embed(description="Reproduccion detenida"))
+        await self.Send(ctx, Embed(description="Reproduccion detenida."))
         
     async def SkipMessage(self, ctx:ApplicationContext):
-        await self.Send(ctx, Embed(description="Cancion saltada"))
+        await self.Send(ctx, Embed(description="Cancion saltada."))
                 
     async def QueueMessage(self, ctx:ApplicationContext):
-        await self.Send(ctx, Embed(description="Playlist"))
+        await self.Send(ctx, Embed(description="Playlist."))
         
     async def RemoveMessage(self, ctx:ApplicationContext):
-        await self.Send(ctx, Embed(description="Cancion removida"))
+        await self.Send(ctx, Embed(description="Cancion removida."))
         
     async def ClearMessage(self, ctx:ApplicationContext):
-        await self.Send(ctx, Embed(description="Cola vaciada"))
+        await self.Send(ctx, Embed(description="Cola vaciada."))
         
     async def LoopMessage(self, ctx:ApplicationContext, is_loop):
         Status = 'Activado 🔁' if is_loop else 'Desactivado ⛔'
-        await self.Send(ctx, Embed(description=f"Loop: {Status}"))
+        await self.Send(ctx, Embed(description=f"Loop: {Status}."))
 
     async def LeaveMessage(self, ctx:ApplicationContext):
-        await self.Send(ctx, Embed(description="Me desconecte"))
+        await self.Send(ctx, Embed(description="Me desconecte."))
 
     async def JoinMessage(self, ctx:ApplicationContext):
-        await self.Send(ctx, Embed(description="Me uni"))
+        await self.Send(ctx, Embed(description="Me uni."))
 
+    async def ConectionErrorMessage(self, ctx: ApplicationContext):
+        await self.Send(ctx, Embed(description="Debe agregar musica para poder saltarla."))
+
+    async def SkipWarning(self, ctx: ApplicationContext):
+        await self.Send(ctx, Embed(description="Esta es la ultima cancion de la cola, saltando cancion."))
     
     async def Send(self, ctx: ApplicationContext, embed):
         try:

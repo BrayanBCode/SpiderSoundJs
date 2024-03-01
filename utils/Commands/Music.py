@@ -29,9 +29,9 @@ class Music_SlashCommands(commands.Cog):
     async def stop(self, ctx: ApplicationContext):
         await ctx.defer()
         MediaPlayerIntance: MusicPlayer = self.getIntance(ctx.guild.id)
+        MediaPlayerIntance.setStoped(True)
         await MediaPlayerIntance.Stop(ctx)
-        
-
+                
     @discord.slash_command(name = "loop", description = "Activa o desactiva el loop de la cola")
     async def loop(self, ctx: ApplicationContext):
         await ctx.defer()
@@ -44,7 +44,18 @@ class Music_SlashCommands(commands.Cog):
         MediaPlayerIntance: MusicPlayer = self.getIntance(ctx.guild.id)
         await MediaPlayerIntance.leave(ctx)
 
-
+    @discord.slash_command(name = "skip", description = "salta una o mas canciones")
+    @option('posición', int, description="Posición en la que se encuentra en la cola")
+    async def skip(self, ctx: ApplicationContext, posicion: int = None):
+        await ctx.defer()
+        MediaPlayerIntance: MusicPlayer = self.getIntance(ctx.guild.id)
+        await MediaPlayerIntance.Skip(ctx, posicion)
+        
+        
+    @discord.Cog.listener()
+    async def on_guild_join(self, guild):
+        self.MusicInstances.add(MusicPlayer(self.bot, guild))
+        
     @discord.Cog.listener()
     async def on_ready(self) -> None:
         guilds = self.bot.guilds

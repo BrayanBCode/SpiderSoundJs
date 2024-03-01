@@ -32,18 +32,13 @@ class MusicPlayer(MediaPlayerStructure):
     
     def setStoped(self, check: bool):
         self.stoped = check
-        
-    async def Stop(self, ctx: ApplicationContext):
-        voice_client: discord.VoiceClient = ctx.voice_client
-        if not voice_client is None:
-            voice_client.stop()
-            self.setStoped(False)
-            await self.Messages.StopMessage(ctx)
+        print('setStoped:',self.stoped)
 
     async def PlaySong(self, ctx: ApplicationContext, search: str):
+        print('PlaySong:', self.stoped)
         if self.stoped:
             return
-                
+        
         voice_client: discord.VoiceClient = await self.join(ctx)
         if not voice_client:
             return
@@ -119,7 +114,28 @@ class MusicPlayer(MediaPlayerStructure):
             print(data)
             if data[0] == True:
                 self.Queue.append(data[1])  
-                   
+
+    async def Stop(self, ctx: ApplicationContext):
+        voice_client: discord.VoiceClient = ctx.voice_client
+        if not voice_client is None:
+            voice_client.stop()
+            await self.Messages.StopMessage(ctx)
+
+    async def Skip(self, ctx: ApplicationContext, posicion: int = None):
+        voice_client: discord.VoiceClient = ctx.voice_client
+        if voice_client is None:
+            self.Messages.ConectionErrorMessage(ctx)
+            return
+
+        if len(self.Queue) == 0 and voice_client.is_playing:
+            voice_client.stop()
+            self.Messages.SkipWarning(ctx)
+
+        if posicion is None or posicion <= 1:
+            voice_client.stop()
+            self.Messages.SkipMessage(ctx)
+            return
+            
     async def join(self, ctx: ApplicationContext):
         # Verificar si el autor del comando está en un canal de voz
         if ctx.author.voice:
