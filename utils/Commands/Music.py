@@ -20,27 +20,27 @@ class Music_SlashCommands(commands.Cog):
     @discord.slash_command(name = "play", description = "Agrega y reproduce musica desde YT")
     @option('search', str, description="Nombre o url de la cancion")
     async def PlayCommand(self, ctx: ApplicationContext, search: str = None):
-        ctx.defer()
+        await ctx.defer()
         MediaPlayerIntance: MusicPlayer = self.getIntance(ctx.guild.id)
         MediaPlayerIntance.setStoped(False)
         await MediaPlayerIntance.PlaySong(ctx, search)
         
     @discord.slash_command(name = "stop", description = "Detiene la reproduccion")
     async def stop(self, ctx: ApplicationContext):
-        ctx.defer()
+        await ctx.defer()
         MediaPlayerIntance: MusicPlayer = self.getIntance(ctx.guild.id)
         await MediaPlayerIntance.Stop(ctx)
         
 
     @discord.slash_command(name = "loop", description = "Activa o desactiva el loop de la cola")
     async def loop(self, ctx: ApplicationContext):
-        ctx.defer()
+        await ctx.defer()
         MediaPlayerIntance: MusicPlayer = self.getIntance(ctx.guild.id)
         await MediaPlayerIntance.loop(ctx)
         
     @discord.slash_command(name = "leave", description = "Desconecta el bot del canal de voz")
     async def leave(self, ctx: ApplicationContext):   
-        ctx.defer()
+        await ctx.defer()
         MediaPlayerIntance: MusicPlayer = self.getIntance(ctx.guild.id)
         await MediaPlayerIntance.leave(ctx)
 

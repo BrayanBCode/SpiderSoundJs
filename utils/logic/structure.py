@@ -21,3 +21,11 @@ class HelpCommandMsg():
         
     def save(self, embed):
         embed.add_field(name=self.title, value=self.description, inline=False)
+        
+class SpotifyInstance():
+    def __init__(self, title, artist) -> None:
+        self.title = title
+        self.artist = artist
+        
+    def Get(self):
+        return (self.title, self.artist)

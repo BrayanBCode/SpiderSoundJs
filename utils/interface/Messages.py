@@ -57,9 +57,8 @@ class MensajesEmbebidos():
         
     async def LoopMessage(self, ctx:ApplicationContext, is_loop):
         Status = 'Activado 🔁' if is_loop else 'Desactivado ⛔'
-        await ctx.send(embed=Embed(description=f"Loop: {Status}"))
+        await self.Send(ctx, Embed(description=f"Loop: {Status}"))
 
-        
     async def LeaveMessage(self, ctx:ApplicationContext):
         await self.Send(ctx, Embed(description="Me desconecte"))
 
@@ -69,13 +68,13 @@ class MensajesEmbebidos():
     
     async def Send(self, ctx: ApplicationContext, embed):
         try:
-            await ctx.followup(embed=embed)
+            await ctx.followup.send(embed=embed)
         except Exception as e:
             await ctx.send(embed=embed)
             
     
             
-def DurationFormat(self, seconds: int):
+def DurationFormat(seconds: int):
     mins, secs = divmod(seconds, 60)
     hours, mins = divmod(mins, 60)
     duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)

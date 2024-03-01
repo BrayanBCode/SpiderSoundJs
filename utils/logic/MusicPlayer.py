@@ -12,6 +12,10 @@ from utils.logic import url_handler
 from utils.logic.Song import SongData
 
 from utils.interface.Messages import MensajesEmbebidos
+from dotenv import load_dotenv
+
+load_dotenv()
+api_key = os.getenv('YT_KEY')
 
 
 class MusicPlayer(MediaPlayerStructure):
@@ -55,7 +59,9 @@ class MusicPlayer(MediaPlayerStructure):
             await ctx.send(embed=Embed(description="No hay mas canciones en la cola"))
             return
         
+        
         ydl_opts = {
+            'api_key': 'AIzaSyCf4qHNcwgJjOBYN0SGiikTmpMF5gBHcEs',
             'quiet': False,
             'format': 'bestaudio/best',  # Descargar el mejor formato de audio disponible
             'outtmpl': f'temp/%(id)s.%(ext)s',  # Nombre del archivo de salida
@@ -95,7 +101,7 @@ class MusicPlayer(MediaPlayerStructure):
                 
                 self.LastCtx = ctx
                 
-                await self.Messages.PlayingMessage(ctx, Song.title, Song.artist, Song.duration, video_url, Song.thumbnail)
+                await self.Messages.PlayMessage(ctx, Song.title, Song.artist, Song.duration, video_url, Song.thumbnail)
       
             except youtube_dl.DownloadError as e:
                 await ctx.send(f"Error al descargar la canción: {str(e)}")
@@ -110,6 +116,7 @@ class MusicPlayer(MediaPlayerStructure):
         
         #! Agrega a la base de datos - TOCA CAMBIAR AL TENER LA BD
         for data in result:
+            print(data)
             if data[0] == True:
                 self.Queue.append(data[1])  
                    
