@@ -2,6 +2,8 @@ import discord
 from discord import Embed
 from utils.logic import structure
 from discord.commands.context import ApplicationContext
+import yt_dlp as youtube_dl
+from utils.interface.QueuePagination import PaginationView as QueueView
 
 HelpList = [
     ('/play', 'Reporducir musica, escribe el nombre de la canción, el artista o la URL de la canción que desees escuchar, se admiten playlist de Spotify.'),
@@ -17,9 +19,9 @@ HelpList = [
     ('/join', 'Mueve o conecta el bot a tu canal de voz actual')
 ]
 
-class MensajesEmbebidos():
+class EmbeddedMessages():
     def __init__(self) -> None:
-        Help = [structure.HelpCommandMsg(title=data[0], description=data[1]) for data in HelpList]
+        Help = [ structure.HelpCommandMsg(title=data[0], description=data[1]) for data in HelpList ]
         embed = discord.Embed(title="Guia de comandos", description="Guia de comandos.", color=0x120062)
         for field in Help:
             field.save(embed)
@@ -45,9 +47,6 @@ class MensajesEmbebidos():
         
     async def SkipMessage(self, ctx:ApplicationContext):
         await self.Send(ctx, Embed(description="Cancion saltada."))
-                
-    async def QueueMessage(self, ctx:ApplicationContext):
-        await self.Send(ctx, Embed(description="Playlist."))
         
     async def RemoveMessage(self, ctx:ApplicationContext):
         await self.Send(ctx, Embed(description="Cancion removida."))
@@ -65,19 +64,29 @@ class MensajesEmbebidos():
     async def JoinMessage(self, ctx:ApplicationContext):
         await self.Send(ctx, Embed(description="Me uni."))
 
-    async def ConectionErrorMessage(self, ctx: ApplicationContext):
+    async def SkipErrorMessage(self, ctx: ApplicationContext):
         await self.Send(ctx, Embed(description="Debe agregar musica para poder saltarla."))
 
     async def SkipWarning(self, ctx: ApplicationContext):
         await self.Send(ctx, Embed(description="Esta es la ultima cancion de la cola, saltando cancion."))
+    
+    async def QueueEmptyMessage(self, ctx:ApplicationContext):
+        embed = Embed(title="Araña Sound - Cola de reproduccion")
+        embed.add_field(name="La cola esta vacia")
+        await self.Send(ctx, embed)
+        
+    async def QueueList(self, ctx: ApplicationContext, queue: list, PlayingSong: dict = None):
+        view = QueueView(queue, PlayingSong, ctx)
+        embed = await view.get_embed()
+        await ctx.followup.send(embed=embed, view=view)
+
+    
     
     async def Send(self, ctx: ApplicationContext, embed):
         try:
             await ctx.followup.send(embed=embed)
         except Exception as e:
             await ctx.send(embed=embed)
-            
-    
             
 def DurationFormat(seconds: int):
     mins, secs = divmod(seconds, 60)

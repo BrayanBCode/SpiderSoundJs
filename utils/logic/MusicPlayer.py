@@ -11,7 +11,6 @@ from utils.logic.structure import MediaPlayerStructure
 from utils.logic import url_handler
 from utils.logic.Song import SongData
 
-from utils.interface.Messages import MensajesEmbebidos
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -23,16 +22,16 @@ class MusicPlayer(MediaPlayerStructure):
         super().__init__(bot=bot, guild=guild)
         self.Queue = []
         self.is_loop = False
-        self.PlayingSong = {}
+        self.PlayingSong = None
         self.LastCtx = None
         self.stoped = False
-        self.Messages: MensajesEmbebidos = MensajesEmbebidos()
         
         print(f"Intancia de MusicPlayer creada para {self.guild.id}")
     
     def setStoped(self, check: bool):
         self.stoped = check
         print('setStoped:',self.stoped)
+        
 
     async def PlaySong(self, ctx: ApplicationContext, search: str):
         print('PlaySong:', self.stoped)
@@ -54,6 +53,7 @@ class MusicPlayer(MediaPlayerStructure):
             await ctx.send(embed=Embed(description="No hay mas canciones en la cola"))
             return
         
+        self.PlayingSong = None
         
         ydl_opts = {
             'api_key': 'AIzaSyCf4qHNcwgJjOBYN0SGiikTmpMF5gBHcEs',
@@ -83,15 +83,18 @@ class MusicPlayer(MediaPlayerStructure):
                 voice_client.play(audio_source, after=lambda e: (
                     self.Queue.append(video_url) if self.is_loop else None,
                     self.bot.loop.create_task(self.PlaySong(self.LastCtx, None)),
-                    os.remove(video_file_path)
+                    os.remove(video_file_path),
+                    
+                    
                     )
                 )
                 
                 self.PlayingSong = { 
                     'title': Song.title,
                     'Artista': Song.artist,
-                    'Duración': Song.duration,
-                    'thumbnail': Song.thumbnail
+                    'Duracion': Song.duration,
+                    'thumbnail': Song.thumbnail,
+                    'url': video_url
                 }
                 
                 self.LastCtx = ctx
@@ -124,7 +127,7 @@ class MusicPlayer(MediaPlayerStructure):
     async def Skip(self, ctx: ApplicationContext, posicion: int = None):
         voice_client: discord.VoiceClient = ctx.voice_client
         if voice_client is None:
-            self.Messages.ConectionErrorMessage(ctx)
+            self.Messages.SkipErrorMessage(ctx)
             return
 
         if len(self.Queue) == 0 and voice_client.is_playing:
@@ -166,3 +169,7 @@ class MusicPlayer(MediaPlayerStructure):
         else:
             await self.Messages.LeaveMessage(ctx)
             #ctx.send(embed=Embed(description="No estoy en un canal de voz"))
+            
+    async def queue(self, ctx: ApplicationContext):
+        await self.Messages.QueueList(ctx=ctx, queue=self.Queue, PlayingSong=self.PlayingSong)
+        

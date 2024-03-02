@@ -51,7 +51,11 @@ class Music_SlashCommands(commands.Cog):
         MediaPlayerIntance: MusicPlayer = self.getIntance(ctx.guild.id)
         await MediaPlayerIntance.Skip(ctx, posicion)
         
-        
+    @discord.slash_command(name = "queue", description = "Muestra la cola de reproduccion")
+    async def queue(self, ctx: ApplicationContext):
+        await ctx.defer()
+        MediaPlayerIntance: MusicPlayer = self.getIntance(ctx.guild.id)
+        await MediaPlayerIntance.queue(ctx)
     @discord.Cog.listener()
     async def on_guild_join(self, guild):
         self.MusicInstances.add(MusicPlayer(self.bot, guild))

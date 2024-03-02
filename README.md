@@ -1,0 +1,1 @@
+Bot de pruebas: https://discord.com/oauth2/authorize?client_id=1114600638043660288&permissions=8&scope=bot+applications.commands
