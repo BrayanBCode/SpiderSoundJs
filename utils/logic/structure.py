@@ -17,7 +17,6 @@ class MediaPlayerStructure:
     def check(self, guild):
         return guild == self.guild.id
 
-    
 class HelpCommandMsg():
     def __init__(self, title, description) -> None:
         self.title = title

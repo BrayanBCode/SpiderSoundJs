@@ -9,7 +9,7 @@ from discord import Embed
 
 from utils.logic.structure import MediaPlayerStructure
 from utils.logic import url_handler
-from utils.logic.Song import SongData
+from utils.logic.Song import SongBasic
 
 from dotenv import load_dotenv
 
@@ -43,8 +43,9 @@ class MusicPlayer(MediaPlayerStructure):
             return
         
         if search:
-            await self.AddSongs(search)
-            await ctx.send(embed=Embed(description="se agrego a la cola"))
+            AddMessage = await self.Messages.AddSongsWaiting(ctx)
+            addedSongs = await self.AddSongs(search, ctx)
+            await self.Messages.AddedSongsMessage(AddMessage, addedSongs)
             
         if voice_client.is_playing():
             return
@@ -56,7 +57,7 @@ class MusicPlayer(MediaPlayerStructure):
         self.PlayingSong = None
         
         ydl_opts = {
-            'api_key': 'AIzaSyCf4qHNcwgJjOBYN0SGiikTmpMF5gBHcEs',
+            'api_key': api_key,
             'quiet': False,
             'format': 'bestaudio/best',  # Descargar el mejor formato de audio disponible
             'outtmpl': f'temp/%(id)s.%(ext)s',  # Nombre del archivo de salida
@@ -66,45 +67,41 @@ class MusicPlayer(MediaPlayerStructure):
             }],
         }
 
-        video_url = self.Queue[0]
+        Song: SongBasic = self.Queue[0]
         self.Queue.pop(0)
         
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             try:
-                Song = SongData(video_url)
-                info_dict = Song.info
-
-                ydl.download([video_url])  # Descargar la canción
-                video_file_path =  os.path.join('temp', f"{info_dict['id']}.mp3")
+                
+                ydl.download([Song.url])  # Descargar la canción
+                video_file_path =  os.path.join('temp', f"{Song.id}.mp3")
 
                 print(f"Se descargo: {video_file_path}")
-                                      
+                
                 audio_source = FFmpegPCMAudio(video_file_path)
                 voice_client.play(audio_source, after=lambda e: (
-                    self.Queue.append(video_url) if self.is_loop else None,
+                    self.Queue.append(Song.url) if self.is_loop else None,
                     self.bot.loop.create_task(self.PlaySong(self.LastCtx, None)),
-                    os.remove(video_file_path),
-                    
-                    
+                    os.remove(video_file_path)
                     )
                 )
                 
                 self.PlayingSong = { 
                     'title': Song.title,
-                    'Artista': Song.artist,
-                    'Duracion': Song.duration,
+                    'artista': Song.artist,
+                    'duracion': Song.duration,
                     'thumbnail': Song.thumbnail,
-                    'url': video_url
+                    'url': Song.url
                 }
                 
                 self.LastCtx = ctx
                 
-                await self.Messages.PlayMessage(ctx, Song.title, Song.artist, Song.duration, video_url, Song.thumbnail)
+                await self.Messages.PlayMessage(ctx, Song)
       
             except youtube_dl.DownloadError as e:
                 await ctx.send(f"Error al descargar la canción: {str(e)}")
                 
-    async def AddSongs(self, search: str):
+    async def AddSongs(self, search: str, ctx: ApplicationContext):
         result: tuple = (False, 'Link invalido')
         mediaplayers = [ url_handler.YoutubePlaylist(), url_handler.YoutubeVideo(), url_handler.SpotifyPlaylist(), url_handler.SpotifySong(), url_handler.YoutubeSearch() ]
         for player in mediaplayers:
@@ -114,9 +111,11 @@ class MusicPlayer(MediaPlayerStructure):
         
         #! Agrega a la base de datos - TOCA CAMBIAR AL TENER LA BD
         for data in result:
-            print(data)
             if data[0] == True:
-                self.Queue.append(data[1])  
+                data[1].avatar = ctx.author.avatar
+                data[1].author = ctx.author.nick if ctx.author.nick else ctx.author.name
+                self.Queue.append(data[1])
+        return result
 
     async def Stop(self, ctx: ApplicationContext):
         voice_client: discord.VoiceClient = ctx.voice_client
@@ -127,7 +126,7 @@ class MusicPlayer(MediaPlayerStructure):
     async def Skip(self, ctx: ApplicationContext, posicion: int = None):
         voice_client: discord.VoiceClient = ctx.voice_client
         if voice_client is None:
-            self.Messages.SkipErrorMessage(ctx)
+            await self.Messages.SkipErrorMessage(ctx)
             return
 
         if len(self.Queue) == 0 and voice_client.is_playing:
@@ -171,5 +170,4 @@ class MusicPlayer(MediaPlayerStructure):
             #ctx.send(embed=Embed(description="No estoy en un canal de voz"))
             
     async def queue(self, ctx: ApplicationContext):
-        await self.Messages.QueueList(ctx=ctx, queue=self.Queue, PlayingSong=self.PlayingSong)
-        
+        await self.Messages.QueueList(ctx=ctx, queue=self.Queue)

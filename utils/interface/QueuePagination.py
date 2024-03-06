@@ -1,42 +1,88 @@
 import discord
-from discord import Embed
-from utils.logic.Song import SongData
+from discord.ext import commands
+import math
+from discord.commands.context import ApplicationContext
+from utils.logic.Song import SongBasic
+
 
 class PaginationView(discord.ui.View):
-    def __init__(self, queue, playing_song, ctx):
-        super().__init__()
-        self.queue = queue
-        self.playing_song = playing_song
-        self.ctx = ctx
-        self.current_page = 0
+    data : list
+    current_page : int = 1
+    sep : int = 5
 
-    async def get_embed(self):
-        offset = self.current_page * 5
-        embed = discord.Embed(title='Cola de Reproducción', color=0x120062)
-        
-        if self.playing_song is not None:
-            embed.add_field(name="**Reproduciendo**")
-            embed.add_field(name=f"{self.playing_song['title']}", value=f"{self.playing_song['artist']}", inline=True)
-            embed.add_field(name=f"Duracion: {self.playing_song['duration']}", value=f"Ver en Youtube")
-        
-        for index, url in enumerate(self.queue[offset:offset+5], start=offset + 1):
-            song = SongData(url)
-            embed.add_field(name=f'{index}. {song.title} - {song.artist}', value=f'Duración: {song.duration}\n[Ver en Youtube]({url})', inline=False)
-        
-        n = (len(self.queue) - 1) // 5 + 1
-        embed.set_footer(text=f"Pedido por {self.ctx.author} - Pagina {self.current_page + 1} de {n}", icon_url=self.ctx.author.avatar.url)
+    async def send(self, ctx: ApplicationContext):
+        await ctx.followup.send(".", ephemeral=True)
+        self.message = await ctx.send(view=self)
+        await self.update_message(self.data[:self.sep])
+
+    def create_embed(self, data):
+        total_pages = math.ceil(len(self.data) / self.sep)
+        embed = discord.Embed(title=f"Cola de reproduccion - Pagina {self.current_page} / {total_pages}", color=0x4b009c)
+        for i, item in enumerate(data, start=(self.current_page - 1) * self.sep + 1):
+            item : SongBasic
+            embed.add_field(name=f"{i}. {item.title}", value=f"{item.artist} - {DurationFormat(item.duration)}", inline=False)
         return embed
 
-    @discord.ui.button(label='Anterior', style=discord.ButtonStyle.primary)
-    async def previous_page(self, button, interaction):
-        if self.current_page > 0:
-            self.current_page -= 1
-            embed = await self.get_embed()
-            await interaction.response.edit_message(embed=embed)
+    async def update_message(self,data):
+        self.update_buttons()
+        await self.message.edit(embed=self.create_embed(data), view=self)
 
-    @discord.ui.button(label='Siguiente', style=discord.ButtonStyle.primary)
-    async def next_page(self, button, interaction):
-        if self.current_page < (len(self.queue) - 1) // 5:
-            self.current_page += 1
-            embed = await self.get_embed()
-            await interaction.response.edit_message(embed=embed)
+    def update_buttons(self):
+        total_pages = math.ceil(len(self.data) / self.sep)
+        if self.current_page == 1:
+            self.first_page_button.disabled = True
+            self.prev_button.disabled = True
+            self.first_page_button.style = discord.ButtonStyle.gray
+            self.prev_button.style = discord.ButtonStyle.gray
+        else:
+            self.first_page_button.disabled = False
+            self.prev_button.disabled = False
+            self.first_page_button.style = discord.ButtonStyle.green
+            self.prev_button.style = discord.ButtonStyle.primary
+
+        if self.current_page == total_pages:
+            self.next_button.disabled = True
+            self.last_page_button.disabled = True
+            self.last_page_button.style = discord.ButtonStyle.gray
+            self.next_button.style = discord.ButtonStyle.gray
+        else:
+            self.next_button.disabled = False
+            self.last_page_button.disabled = False
+            self.last_page_button.style = discord.ButtonStyle.green
+            self.next_button.style = discord.ButtonStyle.primary
+
+    def get_current_page_data(self):
+        from_item = (self.current_page - 1) * self.sep
+        until_item = from_item + self.sep
+        return self.data[from_item:until_item]
+
+    @discord.ui.button(label="|<", style=discord.ButtonStyle.green)
+    async def first_page_button(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await interaction.response.defer()
+        self.current_page = 1
+        await self.update_message(self.get_current_page_data())
+
+    @discord.ui.button(label="<", style=discord.ButtonStyle.primary)
+    async def prev_button(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await interaction.response.defer()
+        self.current_page -= 1
+        await self.update_message(self.get_current_page_data())
+
+    @discord.ui.button(label=">", style=discord.ButtonStyle.primary)
+    async def next_button(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await interaction.response.defer()
+        self.current_page += 1
+        await self.update_message(self.get_current_page_data())
+
+    @discord.ui.button(label=">|", style=discord.ButtonStyle.green)
+    async def last_page_button(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await interaction.response.defer()
+        self.current_page = math.ceil(len(self.data) / self.sep)
+        await self.update_message(self.get_current_page_data())
+
+def DurationFormat(seconds):
+    seconds = int(seconds)
+    mins, secs = divmod(seconds, 60)
+    hours, mins = divmod(mins, 60)
+    duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+    return duration_formatted

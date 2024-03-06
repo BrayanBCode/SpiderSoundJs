@@ -1,12 +1,10 @@
-from abc import ABC, abstractmethod
-from youtubesearchpython import VideosSearch
-from pytube import Playlist, YouTube
-import youtube_dl
-from utils.logic import structure
-import spotipy, os
-from spotipy.oauth2 import SpotifyClientCredentials
-from typing import List
 import re
+import youtube_dl
+import spotipy, os
+
+from utils.logic.Song import SongBasic
+from utils.logic import structure
+from spotipy.oauth2 import SpotifyClientCredentials
 
 # Declaracion de instancia de la API de Spotify
 client_credentials_manager = SpotifyClientCredentials(client_id=os.environ.get("clientID"), client_secret=os.environ.get("clientSecret"))
@@ -33,28 +31,29 @@ class YoutubeSearch(MediaPlayer):
         return not bool(coincidencias)
         
     def search(self, query, num_videos=1):
-        """
-        Busca videos en YouTube utilizando yt_dlp.
 
-        Args:
-            query (str): Consulta de búsqueda.
-            num_videos (int, optional): Número de videos a buscar (por defecto son 5).
-
-        Returns:
-            list: Lista de enlaces de los videos encontrados.
-        """
         ydl_opts = {
             'quiet': True,  # Evita la salida de log
-            'format': 'best',  # Elige el mejor formato disponible
-            'extract_flat': True,  # Extrae solo la información básica
+            'skip_download': True,  # Evita descargar los videos
+            'playlist_items': '1-25'
         }
 
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             try:
                 result = ydl.extract_info(f"ytsearch{num_videos}:{query}", download=False)
                 if 'entries' in result:
-                    videos = result['entries']
-                    return [(True, f"https://www.youtube.com/watch?v={video['url']}") for video in videos]
+                    songs = result['entries']
+                    return [
+                        (True, 
+                         SongBasic(                            
+                                title=song.get('title', 'Canción sin título'),
+                                artist=song.get('uploader', 'Artista desconocido'),
+                                duration=song.get('duration', 'Duración desconocida'),
+                                thumbnail=song.get('thumbnail', 'Sin foto de portada'),
+                                id=song.get('id')
+                            )
+                        ) for song in songs
+                    ]
                 else:
                     return [(False, "No se encontraron resultados.")]
             except youtube_dl.DownloadError as e:
@@ -73,8 +72,33 @@ class YoutubeVideo(MediaPlayer):
         print('YoutubeVideo: ', bool(coincidencias))
         return bool(coincidencias) 
     
-    def search(self, arg):
-        return [(True, arg)]     
+    def search(self, video_url):
+        
+        ydl_opts = {
+            'quiet': True,
+            'skip_download': True,
+            'force_generic_extractor': True,
+            'extract_flat': True,
+            'format': 'best'
+        }
+
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            try:
+                song = ydl.extract_info(video_url, download=False)
+                return [
+                    (True, 
+                        SongBasic(                            
+                            title=song.get('title', 'Canción sin título'),
+                            artist=song.get('uploader', 'Artista desconocido'),
+                            duration=song.get('duration', 'Duración desconocida'),
+                            thumbnail=song.get('thumbnail', 'Sin foto de portada'),
+                            id=song.get('id')
+                        )
+                    )
+                ]
+
+            except youtube_dl.DownloadError as e:
+                return [(False, f"Error al obtener datos de la canción: {str(e)}")]  
     
 class YoutubePlaylist(MediaPlayer):
     def check(self, arg):
@@ -88,29 +112,32 @@ class YoutubePlaylist(MediaPlayer):
         print('YoutubePlaylist: ', bool(coincidencias))
         return bool(coincidencias)
     
-    def search(self, playlist_url):
-        """
-        Obtiene los enlaces de las canciones de una playlist de YouTube.
-
-        Args:
-            playlist_url (str): URL de la playlist.
-
-        Returns:
-            list: Lista de enlaces de las canciones.
-        """
+    def search(self, playlist_url):        
         ydl_opts = {
             'quiet': True,  # Evita la salida de log
-            'extract_flat': True,  # Extrae solo la información básica
-            'force_generic_extractor': True,  # Utiliza el extractor genérico para playlists
+            'skip_download': True,  # Evita descargar los videos
+            'playlist_items': '1-25'
         }
+
 
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             try:
                 result = ydl.extract_info(playlist_url, download=False)
                 if 'entries' in result:
                     songs = result['entries']
-                    print(songs)
-                    return [(True, f"https://www.youtube.com/watch?v={song['url']}") for song in songs]
+                    
+                    return [
+                        (True,
+                            SongBasic(                            
+                                title=song.get('title', 'Canción sin título'),
+                                artist=song.get('uploader', 'Artista desconocido'),
+                                duration=song.get('duration', 'Duración desconocida'),
+                                thumbnail=song.get('thumbnail', 'Sin foto de portada'),
+                                id=song.get('id')
+                            )
+                        ) for song in songs
+                    ]
+                    
                 else:
                     return [(False, "No se encontraron canciones en la playlist.")]
             except youtube_dl.DownloadError as e:
@@ -140,9 +167,7 @@ class SpotifySong(MediaPlayer):
         return YoutubeSearch().search(Search)
       
 class SpotifyPlaylist(MediaPlayer):    
-    def check(self, arg):
-        
-        print('SpotifyPlaylist: ',"open.spotify.com/playlist/" in arg)
+    def check(self, arg):        
         return "open.spotify.com/playlist/" in arg
     
     def search(self, arg):
