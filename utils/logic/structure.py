@@ -5,7 +5,7 @@ class MediaPlayerStructure:
     def __init__(self, bot, guild) -> None:
         self.bot = bot
         self.guild = guild
-        self.Messages = EmbeddedMessages()
+        self.Messages = EmbeddedMessages
 
         
     def GetGuild(self):

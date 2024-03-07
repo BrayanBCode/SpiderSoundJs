@@ -1,8 +1,11 @@
 temp
 test
+testing
 .env
 .cache
 __pycache__
 temp/
 test/
 __pycache__/
+/testing
+testing/test.py

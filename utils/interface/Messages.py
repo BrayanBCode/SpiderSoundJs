@@ -19,15 +19,15 @@ HelpList = [
     ('/leave', 'Desconecta el bot del canal'),
     ('/join', 'Mueve o conecta el bot a tu canal de voz actual')
 ]
+Help = [ structure.HelpCommandMsg(title=data[0], description=data[1]) for data in HelpList ]
+HelpEmbed = discord.Embed(title="Guia de comandos", description="Guia de comandos.", color=0x120062)
+for field in Help:
+    field.save(HelpEmbed)
+    
+class EmbeddedMessages:
 
-class EmbeddedMessages():
-    def __init__(self) -> None:
-        Help = [ structure.HelpCommandMsg(title=data[0], description=data[1]) for data in HelpList ]
-        embed = discord.Embed(title="Guia de comandos", description="Guia de comandos.", color=0x120062)
-        for field in Help:
-            field.save(embed)
-            
-        self.HelpEmbed = embed
+    async def HelpMessage(self):
+        return HelpEmbed
 
     async def PlayMessage(self, ctx: ApplicationContext, video: SongBasic):
         print(video)

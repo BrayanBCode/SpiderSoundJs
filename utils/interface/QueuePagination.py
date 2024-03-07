@@ -17,7 +17,7 @@ class PaginationView(discord.ui.View):
 
     def create_embed(self, data):
         total_pages = math.ceil(len(self.data) / self.sep)
-        embed = discord.Embed(title=f"Cola de reproduccion - Pagina {self.current_page} / {total_pages}", color=0x4b009c)
+        embed = discord.Embed(title=f"Cola de reproduccion - Pagina {self.current_page} / {total_pages}", color=0x120062)
         for i, item in enumerate(data, start=(self.current_page - 1) * self.sep + 1):
             item : SongBasic
             embed.add_field(name=f"{i}. {item.title}", value=f"{item.artist} - {DurationFormat(item.duration)}", inline=False)

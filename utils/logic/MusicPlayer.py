@@ -103,18 +103,16 @@ class MusicPlayer(MediaPlayerStructure):
                 
     async def AddSongs(self, search: str, ctx: ApplicationContext):
         result: tuple = (False, 'Link invalido')
-        mediaplayers = [ url_handler.YoutubePlaylist(), url_handler.YoutubeVideo(), url_handler.SpotifyPlaylist(), url_handler.SpotifySong(), url_handler.YoutubeSearch() ]
+        mediaplayers = [ url_handler.YoutubePlaylist(), url_handler.YoutubeVideo(), url_handler.YoutubeSearch() ] # url_handler.SpotifyPlaylist(), url_handler.SpotifySong(),
         for player in mediaplayers:
             if player.check(search):
-                result = player.search(search)
+                result = player.search(search, ctx)
                 break
         
         #! Agrega a la base de datos - TOCA CAMBIAR AL TENER LA BD
         for data in result:
-            if data[0] == True:
-                data[1].avatar = ctx.author.avatar
-                data[1].author = ctx.author.nick if ctx.author.nick else ctx.author.name
-                self.Queue.append(data[1])
+            if isinstance(data, SongBasic):
+                self.Queue.append(data)
         return result
 
     async def Stop(self, ctx: ApplicationContext):
@@ -131,11 +129,11 @@ class MusicPlayer(MediaPlayerStructure):
 
         if len(self.Queue) == 0 and voice_client.is_playing:
             voice_client.stop()
-            self.Messages.SkipWarning(ctx)
+            await self.Messages.SkipWarning(ctx)
 
         if posicion is None or posicion <= 1:
             voice_client.stop()
-            self.Messages.SkipMessage(ctx)
+            await self.Messages.SkipMessage(ctx)
             return
             
     async def join(self, ctx: ApplicationContext):
