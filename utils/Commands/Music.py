@@ -67,12 +67,5 @@ class Music_SlashCommands(commands.Cog):
             self.MusicInstances.add(MusicPlayer(self.bot, guild))
             
         
-    
-
-
-
-
-
-
 def setup(bot):
     bot.add_cog(Music_SlashCommands(bot))

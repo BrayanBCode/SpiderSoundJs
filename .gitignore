@@ -6,6 +6,5 @@ testing
 __pycache__
 temp/
 test/
+testing/
 __pycache__/
-/testing
-testing/test.py

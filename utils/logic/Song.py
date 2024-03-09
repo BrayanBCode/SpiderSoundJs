@@ -20,10 +20,10 @@ class SongData():
             self.thumbnail = self.info.get('thumbnail', 'Sin foto de portada')
                 
 class SongBasic():
-    def __init__(self, title: str, artist: str, duration: int, thumbnail: str, avatar: str, author: str, id: int) -> None:
+    def __init__(self, title: str, artist: str, duration, thumbnail: str, avatar: str, author: str, id: int) -> None:
         self.title = title
         self.artist = artist
-        self.duration = duration
+        self.duration = int(duration)
         self.thumbnail = thumbnail
         self.avatar = avatar
         self.author = author

@@ -1,4 +1,4 @@
-import discord, os, re
+import discord, os, re, asyncio
 import yt_dlp as youtube_dl
 
 from discord.ext import commands, tasks
@@ -21,10 +21,12 @@ class MusicPlayer(MediaPlayerStructure):
     def __init__(self, bot, guild) -> None:        
         super().__init__(bot=bot, guild=guild)
         self.Queue = []
+        self.stoped = False
+        self.LastCtx = None
         self.is_loop = False
         self.PlayingSong = None
-        self.LastCtx = None
-        self.stoped = False
+        self.voice_client = None
+        self.inactivity_task = None
         
         print(f"Intancia de MusicPlayer creada para {self.guild.id}")
     
@@ -38,8 +40,8 @@ class MusicPlayer(MediaPlayerStructure):
         if self.stoped:
             return
         
-        voice_client: discord.VoiceClient = await self.join(ctx)
-        if not voice_client:
+        self.voice_client: discord.VoiceClient = await self.join(ctx)
+        if not self.voice_client:
             return
         
         if search:
@@ -47,7 +49,7 @@ class MusicPlayer(MediaPlayerStructure):
             addedSongs = await self.AddSongs(search, ctx)
             await self.Messages.AddedSongsMessage(AddMessage, addedSongs)
             
-        if voice_client.is_playing():
+        if self.voice_client.is_playing():
             return
             
         if len(self.Queue) == 0:
@@ -79,7 +81,7 @@ class MusicPlayer(MediaPlayerStructure):
                 print(f"Se descargo: {video_file_path}")
                 
                 audio_source = FFmpegPCMAudio(video_file_path)
-                voice_client.play(audio_source, after=lambda e: (
+                self.voice_client.play(audio_source, after=lambda e: (
                     self.Queue.append(Song.url) if self.is_loop else None,
                     self.bot.loop.create_task(self.PlaySong(self.LastCtx, None)),
                     os.remove(video_file_path)
@@ -94,26 +96,48 @@ class MusicPlayer(MediaPlayerStructure):
                     'url': Song.url
                 }
                 
+                if self.inactivity_task is None or self.inactivity_task.done():
+                    self.inactivity_task = asyncio.create_task(self.check_inactivity())
+                
+                
                 self.LastCtx = ctx
                 
                 await self.Messages.PlayMessage(ctx, Song)
       
             except youtube_dl.DownloadError as e:
-                await ctx.send(f"Error al descargar la canción: {str(e)}")
+                await ctx.send(f"Error al descargar la canción: {str(e)}")  
+                   
+
                 
     async def AddSongs(self, search: str, ctx: ApplicationContext):
         result: tuple = (False, 'Link invalido')
         mediaplayers = [ url_handler.YoutubePlaylist(), url_handler.YoutubeVideo(), url_handler.YoutubeSearch() ] # url_handler.SpotifyPlaylist(), url_handler.SpotifySong(),
         for player in mediaplayers:
-            if player.check(search):
-                result = player.search(search, ctx)
-                break
-        
+            player: url_handler.MediaPlayer
+            if not player.check(search):
+                continue
+            
+            result = await player.getResult(search, ctx, self)   
+    
         #! Agrega a la base de datos - TOCA CAMBIAR AL TENER LA BD
         for data in result:
             if isinstance(data, SongBasic):
                 self.Queue.append(data)
         return result
+
+    async def check_inactivity(self):
+        time = 0
+        while True:
+            await asyncio.sleep(5)
+            if self.voice_client.is_playing():
+                time = 0
+            else:
+                time += 5
+            if time >= 150:  # 5 minutos de inactividad
+                await self.voice_client.disconnect()
+                await self.Messages.InactiveMessage(self.LastCtx)
+                self.check_inactivity = None
+                break
 
     async def Stop(self, ctx: ApplicationContext):
         voice_client: discord.VoiceClient = ctx.voice_client
@@ -166,6 +190,8 @@ class MusicPlayer(MediaPlayerStructure):
         else:
             await self.Messages.LeaveMessage(ctx)
             #ctx.send(embed=Embed(description="No estoy en un canal de voz"))
-            
+        
+    
+        
     async def queue(self, ctx: ApplicationContext):
         await self.Messages.QueueList(ctx=ctx, queue=self.Queue)

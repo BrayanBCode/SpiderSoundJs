@@ -19,15 +19,15 @@ HelpList = [
     ('/leave', 'Desconecta el bot del canal'),
     ('/join', 'Mueve o conecta el bot a tu canal de voz actual')
 ]
-Help = [ structure.HelpCommandMsg(title=data[0], description=data[1]) for data in HelpList ]
-HelpEmbed = discord.Embed(title="Guia de comandos", description="Guia de comandos.", color=0x120062)
-for field in Help:
-    field.save(HelpEmbed)
-    
-class EmbeddedMessages:
 
-    async def HelpMessage(self):
-        return HelpEmbed
+class EmbeddedMessages():
+    def __init__(self) -> None:
+        Help = [ structure.HelpCommandMsg(title=data[0], description=data[1]) for data in HelpList ]
+        embed = discord.Embed(title="Guia de comandos", description="Guia de comandos.", color=0x120062)
+        for field in Help:
+            field.save(embed)
+            
+        self.HelpEmbed = embed
 
     async def PlayMessage(self, ctx: ApplicationContext, video: SongBasic):
         print(video)
@@ -79,6 +79,9 @@ class EmbeddedMessages:
         embed.add_field(name="La cola esta vacia")
         await self.Send(ctx, embed)
         
+    async def InactiveMessage(self, ctx: ApplicationContext):
+        await self.Send(ctx, Embed(description="Desconexion por inactividad"))
+        
     async def AddSongsWaiting(self, ctx: ApplicationContext):
         embed = Embed(description="⌛ Agregando canciones...", color=0x120062)
         return await self.Send(ctx, embed)
@@ -86,8 +89,8 @@ class EmbeddedMessages:
     async def AddedSongsMessage(self, ctx: ApplicationContext, Songs: list):
         embed = Embed(title="🎵🗃️ Canciones agregadas a la cola", color=0x180081)
         for data in Songs:
-            if data[0] and len(embed.fields) < 2: 
-                data: SongBasic = data[1]
+            if isinstance(data, SongBasic) and len(embed.fields) < 2: 
+                data: SongBasic = data
                 embed.add_field(name=f"``{data.title}`` de ``{data.artist}``", value=f"Duracion: {DurationFormat(data.duration)} - [Ver en Youtube]({data.url})")
         embed.set_footer(text=f"Se agregaron {len(Songs[:-2])} mas.")
         await ctx.edit(embed=embed)
