@@ -30,7 +30,6 @@ class EmbeddedMessages():
         self.HelpEmbed = embed
 
     async def PlayMessage(self, ctx: ApplicationContext, video: SongBasic):
-        print(video)
         embed = Embed(title="Reproduciendo 🎧", color=0x120062)
         embed.add_field(name=f"**{video.title}**", value=f"**{video.artist}**", inline=True)
         embed.add_field(name="|", value="", inline=True)
@@ -66,7 +65,7 @@ class EmbeddedMessages():
         await self.Send(ctx, Embed(description="Me desconecte.", color=0x120062))
 
     async def JoinMessage(self, ctx: ApplicationContext):
-        await self.Send(ctx, Embed(description="Me uni.", color=0x120062))
+        await self.Send(ctx, Embed(description=f'Conectado al canal de voz: {ctx.author.voice.channel}', color=0x120062))
 
     async def SkipErrorMessage(self, ctx: ApplicationContext):
         await self.Send(ctx, Embed(description="❌ Debe agregar musica para poder saltarla.", color=0x180081))
@@ -99,6 +98,10 @@ class EmbeddedMessages():
         pagination_view = QueueView(timeout=None)
         pagination_view.data = queue
         await pagination_view.send(ctx)
+        
+    async def JoinErrorMessage(self, ctx: ApplicationContext, e):
+        await self.Send(ctx, Embed(description=f"¡Ocurrió un error al unirse al canal de voz: {e}"))
+
 
     async def Send(self, ctx: ApplicationContext, embed):
         try:
@@ -112,3 +115,11 @@ def DurationFormat(seconds):
     hours, mins = divmod(mins, 60)
     duration_formatted = '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
     return duration_formatted
+
+"""
+                await ctx.send(f'Conectado al canal de voz: {channel.name}')
+
+                await ctx.send(f"¡Ocurrió un error al unirse al canal de voz: {e}")
+
+            await ctx.send("¡Debes estar en un canal de voz para que el bot se una!")
+"""

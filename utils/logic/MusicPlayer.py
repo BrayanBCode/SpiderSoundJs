@@ -1,5 +1,5 @@
 import discord, os, re, asyncio
-import yt_dlp as youtube_dl
+import yt_dlp
 
 from discord.ext import commands, tasks
 from discord import option
@@ -8,7 +8,7 @@ from discord import FFmpegPCMAudio
 from discord import Embed
 
 from utils.logic.structure import MediaPlayerStructure
-from utils.logic import url_handler
+from utils.logic.Video_handlers import Search_handler
 from utils.logic.Song import SongBasic
 
 from dotenv import load_dotenv
@@ -32,11 +32,9 @@ class MusicPlayer(MediaPlayerStructure):
     
     def setStoped(self, check: bool):
         self.stoped = check
-        print('setStoped:',self.stoped)
         
 
     async def PlaySong(self, ctx: ApplicationContext, search: str):
-        print('PlaySong:', self.stoped)
         if self.stoped:
             return
         
@@ -47,6 +45,7 @@ class MusicPlayer(MediaPlayerStructure):
         if search:
             AddMessage = await self.Messages.AddSongsWaiting(ctx)
             addedSongs = await self.AddSongs(search, ctx)
+            print(addedSongs)
             await self.Messages.AddedSongsMessage(AddMessage, addedSongs)
             
         if self.voice_client.is_playing():
@@ -72,7 +71,7 @@ class MusicPlayer(MediaPlayerStructure):
         Song: SongBasic = self.Queue[0]
         self.Queue.pop(0)
         
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             try:
                 
                 ydl.download([Song.url])  # Descargar la canción
@@ -99,31 +98,15 @@ class MusicPlayer(MediaPlayerStructure):
                 if self.inactivity_task is None or self.inactivity_task.done():
                     self.inactivity_task = asyncio.create_task(self.check_inactivity())
                 
-                
                 self.LastCtx = ctx
                 
                 await self.Messages.PlayMessage(ctx, Song)
       
-            except youtube_dl.DownloadError as e:
+            except yt_dlp.DownloadError as e:
                 await ctx.send(f"Error al descargar la canción: {str(e)}")  
-                   
-
-                
+                       
     async def AddSongs(self, search: str, ctx: ApplicationContext):
-        result: tuple = (False, 'Link invalido')
-        mediaplayers = [ url_handler.YoutubePlaylist(), url_handler.YoutubeVideo(), url_handler.YoutubeSearch() ] # url_handler.SpotifyPlaylist(), url_handler.SpotifySong(),
-        for player in mediaplayers:
-            player: url_handler.MediaPlayer
-            if not player.check(search):
-                continue
-            
-            result = await player.getResult(search, ctx, self)   
-    
-        #! Agrega a la base de datos - TOCA CAMBIAR AL TENER LA BD
-        for data in result:
-            if isinstance(data, SongBasic):
-                self.Queue.append(data)
-        return result
+         return await Search_handler.searchModule(search, ctx, self)
 
     async def check_inactivity(self):
         time = 0
@@ -133,10 +116,10 @@ class MusicPlayer(MediaPlayerStructure):
                 time = 0
             else:
                 time += 5
-            if time >= 150:  # 5 minutos de inactividad
+            if time >= 300:  # 10 minutos de inactividad
                 await self.voice_client.disconnect()
                 await self.Messages.InactiveMessage(self.LastCtx)
-                self.check_inactivity = None
+                self.inactivity_task = None
                 break
 
     async def Stop(self, ctx: ApplicationContext):
@@ -190,8 +173,6 @@ class MusicPlayer(MediaPlayerStructure):
         else:
             await self.Messages.LeaveMessage(ctx)
             #ctx.send(embed=Embed(description="No estoy en un canal de voz"))
-        
-    
         
     async def queue(self, ctx: ApplicationContext):
         await self.Messages.QueueList(ctx=ctx, queue=self.Queue)
