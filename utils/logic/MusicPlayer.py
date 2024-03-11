@@ -21,7 +21,7 @@ class MusicPlayer(MediaPlayerStructure):
     def __init__(self, bot, guild) -> None:        
         super().__init__(bot=bot, guild=guild)
         self.Queue = []
-        self.stoped = False
+        self.stoped = True
         self.LastCtx = None
         self.is_loop = False
         self.PlayingSong = None
@@ -33,13 +33,16 @@ class MusicPlayer(MediaPlayerStructure):
     def setStoped(self, check: bool):
         self.stoped = check
         
-
     async def PlaySong(self, ctx: ApplicationContext, search: str):
         if self.stoped:
             return
         
         self.voice_client: discord.VoiceClient = await self.join(ctx)
+        
         if not self.voice_client:
+            return
+        
+        if self.voice_client.is_paused():
             return
         
         if search:
@@ -52,7 +55,7 @@ class MusicPlayer(MediaPlayerStructure):
             return
             
         if len(self.Queue) == 0:
-            await ctx.send(embed=Embed(description="No hay mas canciones en la cola"))
+            await self.Messages.NoSongInQueueMessage(ctx)
             return
         
         self.PlayingSong = None
@@ -76,7 +79,7 @@ class MusicPlayer(MediaPlayerStructure):
                 
                 ydl.download([Song.url])  # Descargar la canción
                 video_file_path =  os.path.join('temp', f"{Song.id}.mp3")
-
+                
                 print(f"Se descargo: {video_file_path}")
                 
                 audio_source = FFmpegPCMAudio(video_file_path)
@@ -150,15 +153,15 @@ class MusicPlayer(MediaPlayerStructure):
                 # Unirse al canal de voz del autor
                 channel = ctx.author.voice.channel
                 voice_channel = await channel.connect()
-                await ctx.send(f'Conectado al canal de voz: {channel.name}')
+                await self.Messages.JoinMessage(ctx)
                 return ctx.voice_client
             except discord.ClientException:
                 return ctx.voice_client
             except Exception as e:
-                await ctx.send(f"¡Ocurrió un error al unirse al canal de voz: {e}")
+                await self.Messages.JoinErrorMessage(ctx, e)
                 return None
         else:
-            await ctx.send("¡Debes estar en un canal de voz para que el bot se una!")
+            await self.Messages.JoinMissingChannelError(ctx)
             return None
 
     async def loop(self, ctx: ApplicationContext):
@@ -167,7 +170,10 @@ class MusicPlayer(MediaPlayerStructure):
 
     async def leave(self, ctx: ApplicationContext):
         if ctx.voice_client:
-            ctx.voice_client.disconnect()
+            self.setStoped(True)
+            self.is_loop = False
+            
+            await ctx.voice_client.disconnect()
             await self.Messages.LeaveMessage(ctx)
             #ctx.send(embed=Embed(description="Me desconecte con exito"))
         else:
@@ -176,3 +182,20 @@ class MusicPlayer(MediaPlayerStructure):
         
     async def queue(self, ctx: ApplicationContext):
         await self.Messages.QueueList(ctx=ctx, queue=self.Queue)
+        
+    async def pause(self, ctx: ApplicationContext):
+        self.setStoped(True)
+        self.voice_client.pause()
+        await self.Messages.PauseMessage(ctx)
+        
+    async def resume(self, ctx: ApplicationContext):
+        self.setStoped(False)
+        self.voice_client.resume()
+        await self.Messages.ResumeMessage(ctx)
+        
+    async def remove(self, ctx: ApplicationContext, posicion: int ):
+        if posicion > self.Queue or posicion < 0:
+            await self.Messages.RemoveLenghtError(ctx)
+            return
+        
+        

@@ -37,53 +37,59 @@ class EmbeddedMessages():
         embed.set_image(url=video.thumbnail)
         embed.set_footer(text=f"Pedido por {video.author}", icon_url=video.avatar)
         
-        await self.Send(ctx, embed)
+        await self.SendFollowUp(ctx, embed)
         
     async def PauseMessage(self, ctx: ApplicationContext):
-        await self.Send(ctx, Embed(description="Cancion pausada.", color=0x120062))
+        await self.SendFollowUp(ctx, Embed(description="Cancion pausada.", color=0x120062))
     
     async def ResumeMessage(self, ctx: ApplicationContext):
-        await self.Send(ctx, Embed(description="Cancion reanudada.", color=0x120062))
+        await self.SendFollowUp(ctx, Embed(description="Cancion reanudada.", color=0x120062))
         
     async def StopMessage(self, ctx: ApplicationContext):
-        await self.Send(ctx, Embed(description="Reproduccion detenida.", color=0x120062))
+        await self.SendFollowUp(ctx, Embed(description="Reproduccion detenida.", color=0x120062))
         
     async def SkipMessage(self, ctx: ApplicationContext):
-        await self.Send(ctx, Embed(description="Cancion saltada.", color=0x120062))
+        await self.SendFollowUp(ctx, Embed(description="Cancion saltada.", color=0x120062))
         
-    async def RemoveMessage(self, ctx: ApplicationContext):
-        await self.Send(ctx, Embed(description="Cancion removida.", color=0x120062))
+    async def RemoveMessage(self, ctx: ApplicationContext, RemovedSong: SongBasic):
+        embed = Embed(description="Cancion removida.", color=0x120062)
+        embed.add_field(name=f"{RemovedSong.title}", value=f"{RemovedSong.artist}", inline=True)
+        embed.add_field(name=f"Duracion: {DurationFormat(RemovedSong.duration)}", value=f"[Ver en Youtube]({RemovedSong.url})")
+        embed.set_footer(icon_url=RemovedSong.avatar)
+        embed.set_thumbnail(RemovedSong.thumbnail)
+        
+        await self.SendFollowUp(ctx, embed)
         
     async def ClearMessage(self, ctx: ApplicationContext):
-        await self.Send(ctx, Embed(description="Cola vaciada.", color=0x120062))
+        await self.SendFollowUp(ctx, Embed(description="Cola vaciada.", color=0x120062))
         
     async def LoopMessage(self, ctx: ApplicationContext, is_loop):
         Status = 'Activado 🔁' if is_loop else 'Desactivado ⛔'
-        await self.Send(ctx, Embed(description=f"Loop: {Status}.", color=0x120062))
+        await self.SendFollowUp(ctx, Embed(description=f"Loop: {Status}.", color=0x120062))
 
     async def LeaveMessage(self, ctx: ApplicationContext):
-        await self.Send(ctx, Embed(description="Me desconecte.", color=0x120062))
+        await self.SendFollowUp(ctx, Embed(description="Me desconecte.", color=0x120062))
 
     async def JoinMessage(self, ctx: ApplicationContext):
-        await self.Send(ctx, Embed(description=f'Conectado al canal de voz: {ctx.author.voice.channel}', color=0x120062))
+        await self.SendFollowUp(ctx, Embed(description=f'Conectado al canal de voz: {ctx.author.voice.channel}', color=0x120062))
 
     async def SkipErrorMessage(self, ctx: ApplicationContext):
-        await self.Send(ctx, Embed(description="❌ Debe agregar musica para poder saltarla.", color=0x180081))
+        await self.SendFollowUp(ctx, Embed(description="❌ Debe agregar musica para poder saltarla.", color=0x180081))
 
     async def SkipWarning(self, ctx: ApplicationContext):
-        await self.Send(ctx, Embed(description="⚠️ Esta es la ultima cancion de la cola, saltando cancion.", color=0x180081))
+        await self.SendFollowUp(ctx, Embed(description="⚠️ Esta es la ultima cancion de la cola, saltando cancion.", color=0x180081))
     
     async def QueueEmptyMessage(self, ctx: ApplicationContext):
         embed = Embed(title="Araña Sound - Cola de reproduccion", color=0x180081)
         embed.add_field(name="La cola esta vacia")
-        await self.Send(ctx, embed)
+        await self.SendFollowUp(ctx, embed)
         
     async def InactiveMessage(self, ctx: ApplicationContext):
-        await self.Send(ctx, Embed(description="Desconexion por inactividad"))
+        await self.SendFollowUp(ctx, Embed(description="Desconexion por inactividad"))
         
     async def AddSongsWaiting(self, ctx: ApplicationContext):
         embed = Embed(description="⌛ Agregando canciones...", color=0x120062)
-        return await self.Send(ctx, embed)
+        return await self.SendFollowUp(ctx, embed)
     
     async def AddedSongsMessage(self, ctx: ApplicationContext, Songs: list):
         embed = Embed(title="🎵🗃️ Canciones agregadas a la cola", color=0x180081)
@@ -100,14 +106,23 @@ class EmbeddedMessages():
         await pagination_view.send(ctx)
         
     async def JoinErrorMessage(self, ctx: ApplicationContext, e):
-        await self.Send(ctx, Embed(description=f"¡Ocurrió un error al unirse al canal de voz: {e}"))
+        await self.SendFollowUp(ctx, Embed(description=f"¡Ocurrió un error al unirse al canal de voz: {e}"))
 
+    async def JoinMissingChannelError(self, ctx: ApplicationContext):
+        await self.SendFollowUp(ctx, Embed(description="¡Debes estar en un canal de voz para que el bot se una!"))
 
-    async def Send(self, ctx: ApplicationContext, embed):
+    async def NoSongInQueueMessage(self, ctx: ApplicationContext):
+        await self.SendFollowUp(ctx, Embed(description="No hay mas canciones en la cola"))
+
+    async def RemoveLenghtError(self, ctx: ApplicationContext):
+        await self.SendFollowUp(ctx, Embed(description="No hay canciones en esa posición"))
+
+    async def SendFollowUp(self, ctx: ApplicationContext, embed):
         try:
             return await ctx.followup.send(embed=embed)
         except Exception as e:
             return await ctx.send(embed=embed)
+            
             
 def DurationFormat(seconds):
     seconds = int(seconds)
