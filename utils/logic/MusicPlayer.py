@@ -89,8 +89,9 @@ class MusicPlayer(MediaPlayerStructure):
                 audio_source = FFmpegPCMAudio(video_file_path)
                 self.voice_client.play(audio_source, after=lambda e: (
                     self.Queue.append(Song.url) if self.is_loop else None,
-                    self.bot.loop.create_task(self.PlaySong(self.LastCtx, None)),
-                    os.remove(video_file_path)
+                    self.bot.loop.create_task(
+                        self.PlaySong(self.LastCtx, None)),
+                        os.remove(video_file_path)
                     )
                 )
                 
@@ -228,11 +229,18 @@ class MusicPlayer(MediaPlayerStructure):
         
     async def forceplay(self, ctx: ApplicationContext, url: str):
         AddMessage = await self.Messages.AddSongsWaiting(ctx)
-        result = searchModule(ctx, url, self, ConfigMediaSearch.forcePlayConfig())        
-        self.Queue.insert(0, result)
+        result = await searchModule(ctx, url, self, ConfigMediaSearch.forcePlayConfig())  
+        
+        self.Queue = result + self.Queue        
         await self.Messages.AddedSongsMessage(AddMessage, result)
-        self.voice_client.stop()
         
+        if self.voice_client is None:
+            self.voice_client = await self.join(ctx)
         
+        if self.voice_client.is_playing():
+            self.voice_client.stop()
+            return
         
+        if self.voice_client:
+            await self.PlaySong(ctx, None)
 

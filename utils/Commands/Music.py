@@ -91,11 +91,12 @@ class Music_SlashCommands(commands.Cog):
         MediaPlayerIntance: MusicPlayer = self.getIntance(ctx.guild.id)
         await MediaPlayerIntance.join(ctx)        
 
-    """@discord.slash_command(name = "forceplay", description = "salta una o mas canciones")
+    @discord.slash_command(name = "forceplay", description = "salta una o mas canciones")
     async def forceplay(self, ctx: ApplicationContext, url: str):  
         await ctx.defer()
         MediaPlayerIntance: MusicPlayer = self.getIntance(ctx.guild.id)
-        await MediaPlayerIntance.forceplay(ctx, url)"""
+        MediaPlayerIntance.setStoped(False)
+        await MediaPlayerIntance.forceplay(ctx, url)
         
     @discord.Cog.listener()
     async def on_ready(self) -> None:
