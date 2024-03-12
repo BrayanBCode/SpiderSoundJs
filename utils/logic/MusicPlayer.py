@@ -8,8 +8,10 @@ from discord import FFmpegPCMAudio
 from discord import Embed
 
 from utils.logic.structure import MediaPlayerStructure
-from utils.logic.Video_handlers import Search_handler
+from utils.logic.Video_handlers.Search_handler import searchModule
 from utils.logic.Song import SongBasic
+from utils.logic.config import ConfigMediaSearch
+
 
 from dotenv import load_dotenv
 
@@ -48,8 +50,10 @@ class MusicPlayer(MediaPlayerStructure):
         if search:
             AddMessage = await self.Messages.AddSongsWaiting(ctx)
             addedSongs = await self.AddSongs(search, ctx)
-            print(addedSongs)
-            await self.Messages.AddedSongsMessage(AddMessage, addedSongs)
+            if not len(addedSongs) == 0:
+                await self.Messages.AddedSongsMessage(AddMessage, addedSongs)
+            else:
+                await self.Messages.AddSongsError(ctx)
             
         if self.voice_client.is_playing():
             return
@@ -109,7 +113,12 @@ class MusicPlayer(MediaPlayerStructure):
                 await ctx.send(f"Error al descargar la canción: {str(e)}")  
                        
     async def AddSongs(self, search: str, ctx: ApplicationContext):
-         return await Search_handler.searchModule(search, ctx, self)
+        result = await searchModule(ctx, search, self, ConfigMediaSearch.default())
+        #! Agrega a la base de datos - TOCA CAMBIAR AL TENER LA BD
+        self.Queue.extend(result)
+        return result
+     
+     
 
     async def check_inactivity(self):
         time = 0
@@ -130,6 +139,9 @@ class MusicPlayer(MediaPlayerStructure):
         if not voice_client is None:
             voice_client.stop()
             await self.Messages.StopMessage(ctx)
+            return
+        
+        await self.Messages.StopErrorMessage(ctx)
 
     async def Skip(self, ctx: ApplicationContext, posicion: int = None):
         voice_client: discord.VoiceClient = ctx.voice_client
@@ -137,15 +149,22 @@ class MusicPlayer(MediaPlayerStructure):
             await self.Messages.SkipErrorMessage(ctx)
             return
 
-        if len(self.Queue) == 0 and voice_client.is_playing:
+        if len(self.Queue) == 0 and voice_client.is_playing():
             voice_client.stop()
             await self.Messages.SkipWarning(ctx)
+            return
 
         if posicion is None or posicion <= 1:
             voice_client.stop()
-            await self.Messages.SkipMessage(ctx)
+            await self.Messages.SkipSimpleMessage(ctx)
             return
-            
+        
+        skipedSongs = self.Queue[:posicion-1]
+        self.Queue = self.Queue[posicion-1:]
+        
+        await self.Messages.SkipMessage(ctx, skipedSongs)
+        voice_client.stop()
+       
     async def join(self, ctx: ApplicationContext):
         # Verificar si el autor del comando está en un canal de voz
         if ctx.author.voice:
@@ -198,4 +217,22 @@ class MusicPlayer(MediaPlayerStructure):
             await self.Messages.RemoveLenghtError(ctx)
             return
         
+        SongDeleted = self.Queue[posicion-1]
+        self.Queue.pop(posicion-1)
         
+        await self.Messages.RemoveMessage(ctx, SongDeleted)
+        
+    async def clear(self, ctx):
+        self.Queue.clear()
+        await self.Messages.ClearMessage(ctx)
+        
+    async def forceplay(self, ctx: ApplicationContext, url: str):
+        AddMessage = await self.Messages.AddSongsWaiting(ctx)
+        result = searchModule(ctx, url, self, ConfigMediaSearch.forcePlayConfig())        
+        self.Queue.insert(0, result)
+        await self.Messages.AddedSongsMessage(AddMessage, result)
+        self.voice_client.stop()
+        
+        
+        
+

@@ -48,11 +48,23 @@ class EmbeddedMessages():
     async def StopMessage(self, ctx: ApplicationContext):
         await self.SendFollowUp(ctx, Embed(description="Reproduccion detenida.", color=0x120062))
         
-    async def SkipMessage(self, ctx: ApplicationContext):
+    async def StopErrorMessage(self, ctx: ApplicationContext):
+        await self.SendFollowUp(ctx, Embed(description="No hay nada que detener"))
+    
+    async def SkipSimpleMessage(self, ctx: ApplicationContext):
         await self.SendFollowUp(ctx, Embed(description="Cancion saltada.", color=0x120062))
         
+    async def SkipMessage(self, ctx: ApplicationContext, SkipedSongs: list):
+        embed = Embed(title="Canciones saltadas.")
+        for data in SkipedSongs:
+            if isinstance(data, SongBasic) and len(embed.fields) < 2: 
+                data: SongBasic = data
+                embed.add_field(name=f"``{data.title}`` de ``{data.artist}``", value=f"Duracion: {DurationFormat(data.duration)} - [Ver en Youtube]({data.url})")
+        embed.set_footer(text=f"Se saltaron {len(SkipedSongs[:-2])} mas.")
+        await self.SendFollowUp(ctx, embed)
+
     async def RemoveMessage(self, ctx: ApplicationContext, RemovedSong: SongBasic):
-        embed = Embed(description="Cancion removida.", color=0x120062)
+        embed = Embed(title="Cancion removida.", color=0x120062)
         embed.add_field(name=f"{RemovedSong.title}", value=f"{RemovedSong.artist}", inline=True)
         embed.add_field(name=f"Duracion: {DurationFormat(RemovedSong.duration)}", value=f"[Ver en Youtube]({RemovedSong.url})")
         embed.set_footer(icon_url=RemovedSong.avatar)
@@ -100,6 +112,9 @@ class EmbeddedMessages():
         embed.set_footer(text=f"Se agregaron {len(Songs[:-2])} mas.")
         await ctx.edit(embed=embed)
         
+    async def AddSongsError(self, ctx: ApplicationContext):
+        await self.SendFollowUp(ctx, Embed(description="Error de busqueda contacte con el soporte"))
+        
     async def QueueList(self, ctx: ApplicationContext, queue: list):            
         pagination_view = QueueView(timeout=None)
         pagination_view.data = queue
@@ -122,8 +137,7 @@ class EmbeddedMessages():
             return await ctx.followup.send(embed=embed)
         except Exception as e:
             return await ctx.send(embed=embed)
-            
-            
+        
 def DurationFormat(seconds):
     seconds = int(seconds)
     mins, secs = divmod(seconds, 60)

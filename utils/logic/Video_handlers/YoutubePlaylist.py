@@ -25,8 +25,8 @@ class YoutubePlaylist(MediaHandler):
         
         added.extend(self.search(search, ctx))
         added.extend(limitAdded)
-        instance.Queue.extend(added)
-
+        
+        print("getResult:", added)
         return added
 
     
