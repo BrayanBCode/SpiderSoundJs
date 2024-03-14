@@ -7,3 +7,4 @@ def default():
 
 def forcePlayConfig():
     return [ YoutubeVideo(), YoutubeSearch() ]
+
