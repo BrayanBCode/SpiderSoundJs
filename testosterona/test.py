@@ -20,3 +20,7 @@ class SummonerClass():
     def seticon(self):
         icon = self.Summoner["profileIconId"]
         return f"https://ddragon.leagueoflegends.com/cdn/11.14.1/img/profileicon/{icon}.png"
+    
+    def setname(self):
+        name = self.Summoner["name"]
+        return name
