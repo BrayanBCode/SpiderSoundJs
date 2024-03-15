@@ -13,8 +13,8 @@ class GetLvl(commands.Cog):
     async def lollvl (self, ctx: ApplicationContext, invocador: str) -> None:
         pepe = SummonerClass()
         pepe.getsumm(invocador)
-        emb = Embed(title="Sumoner Sheet", description=pepe.setlvl())
-        emb.add_field(name=pepe.setname,value="")
+        emb = Embed(title="Sumoner Sheet", description=pepe.setname())
+        emb.add_field(name=pepe.setlvl(),value="")
         emb.set_image(pepe.seticon())
         await ctx.respond(embed=emb)
 
