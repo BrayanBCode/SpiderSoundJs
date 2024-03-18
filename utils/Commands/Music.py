@@ -15,7 +15,7 @@ class Music_SlashCommands(commands.Cog):
     def getIntance(self, guildId: discord.Guild):
         for guild in self.MusicInstances:
             if guild.check(guildId):
-                    return guild
+                return guild
                 
     @discord.slash_command(name = "play", description = "Agrega y reproduce musica desde YT")
     @option('search', str, description="Nombre o url de la cancion")
@@ -31,7 +31,7 @@ class Music_SlashCommands(commands.Cog):
         MediaPlayerIntance: MusicPlayer = self.getIntance(ctx.guild.id)
         MediaPlayerIntance.setStoped(True)
         await MediaPlayerIntance.Stop(ctx)
-                
+        
     @discord.slash_command(name = "loop", description = "Activa o desactiva el loop de la cola")
     async def loop(self, ctx: ApplicationContext):
         await ctx.defer()
@@ -43,7 +43,7 @@ class Music_SlashCommands(commands.Cog):
         await ctx.defer()
         MediaPlayerIntance: MusicPlayer = self.getIntance(ctx.guild.id)
         await MediaPlayerIntance.leave(ctx)
-
+        
     @discord.slash_command(name = "skip", description = "salta una o mas canciones")
     @option('posición', int, description="Posición en la que se encuentra en la cola")
     async def skip(self, ctx: ApplicationContext, posicion: int = None):
@@ -56,10 +56,6 @@ class Music_SlashCommands(commands.Cog):
         await ctx.defer()
         MediaPlayerIntance: MusicPlayer = self.getIntance(ctx.guild.id)
         await MediaPlayerIntance.queue(ctx)
-        
-    @discord.Cog.listener()
-    async def on_guild_join(self, guild):
-        self.MusicInstances.add(MusicPlayer(self.bot, guild))
         
     @discord.slash_command(name = "remove", description = "Quita una cancion de la cola a eleccion, vea la posicion de la cancion con /queue")
     async def remove(self, ctx: ApplicationContext, posición: int):   
@@ -90,13 +86,17 @@ class Music_SlashCommands(commands.Cog):
         await ctx.defer()
         MediaPlayerIntance: MusicPlayer = self.getIntance(ctx.guild.id)
         await MediaPlayerIntance.join(ctx)        
-
+        
     @discord.slash_command(name = "forceplay", description = "salta una o mas canciones")
     async def forceplay(self, ctx: ApplicationContext, url: str):  
         await ctx.defer()
         MediaPlayerIntance: MusicPlayer = self.getIntance(ctx.guild.id)
         MediaPlayerIntance.setStoped(False)
         await MediaPlayerIntance.forceplay(ctx, url)
+        
+    @discord.Cog.listener()
+    async def on_guild_join(self, guild):
+        self.MusicInstances.add(MusicPlayer(self.bot, guild))
         
     @discord.Cog.listener()
     async def on_ready(self) -> None:

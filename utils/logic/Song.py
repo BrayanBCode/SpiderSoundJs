@@ -1,5 +1,4 @@
 import yt_dlp
-       
 
 class SongData():
     def __init__(self, video_url) -> None:
@@ -21,7 +20,6 @@ class SongData():
                 
 class SongBasic():
     def __init__(self, title: str, artist: str, duration, thumbnail: str, avatar: str, author: str, id: int) -> None:
-        print(duration)
         self.title = title
         self.artist = artist
         self.duration = int(duration)

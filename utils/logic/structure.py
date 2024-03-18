@@ -1,4 +1,4 @@
-from utils.interface.Messages import EmbeddedMessages
+from utils.interface.SendEmbed import EmbeddedMessages
 
 
 class MediaPlayerStructure:

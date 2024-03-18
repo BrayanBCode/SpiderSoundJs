@@ -8,7 +8,8 @@ bot = discord.Bot()
 cogs_list = [ # listado de cogs
     'Music',
     'Help',
-    'LolLvl'
+    'LolLvl',
+    "ReaccionRol"
 ]
 
 for cog in cogs_list:
@@ -18,4 +19,4 @@ for cog in cogs_list:
 async def on_ready():
     print(f"{bot.user} esta en linea!")
 
-bot.run(os.getenv('TEST')) # run the bot with the token*
+bot.run(os.getenv('TOKEN')) # run the bot with the token*

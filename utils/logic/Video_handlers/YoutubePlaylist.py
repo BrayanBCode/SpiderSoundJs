@@ -1,34 +1,34 @@
 from utils.logic.Video_handlers.MediaHandler import MediaHandler
-import re, yt_dlp
+import re, yt_dlp, asyncio
     
 class YoutubePlaylist(MediaHandler):
     ydl_opts_Playlist = {
         'quiet': False,  # Evita la salida de log
         'skip_download': True,  # Evita descargar los videos
-        'playlist_items': '4-25'
+        'playlist_items': '1-25'
     }
     
     ydl_opts_Playlist_limited = {
         'quiet': False,  # Evita la salida de log
         'skip_download': True,  # Evita descargar los videos
-        'playlist_items': '1-3'
+        'playlist_items': '1-2'
     }
     
     async def getResult(self, search, ctx, instance):
         added = []
         limitAdded = []
-
+        
         limitAdded.extend(self.limitSearch(search, ctx))
         instance.Queue.extend(limitAdded)
 
+        print("getResult antes de Playsong:",instance.Queue)
         await instance.PlaySong(ctx, None)
-        
-        added.extend(self.search(search, ctx))
+        print("getResult despues de Playsong:",instance.Queue)
+        added.extend(self.search(search, ctx)[2:])
         added.extend(limitAdded)
         
         print("getResult:", added)
         return added
-
     
     def check(self, arg):
         # Patrón regex para buscar un identificador de playlist de YouTube

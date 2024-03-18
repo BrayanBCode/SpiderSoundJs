@@ -35,6 +35,9 @@ class MusicPlayer(MediaPlayerStructure):
     def setStoped(self, check: bool):
         self.stoped = check
         
+    def getQueue(self):
+        return self.Queue
+        
     async def PlaySong(self, ctx: ApplicationContext, search: str):
         if self.stoped:
             return
@@ -50,8 +53,10 @@ class MusicPlayer(MediaPlayerStructure):
         if search:
             AddMessage = await self.Messages.AddSongsWaiting(ctx)
             addedSongs = await self.AddSongs(search, ctx)
+            print("Llegada final:", addedSongs)
             if not len(addedSongs) == 0:
                 await self.Messages.AddedSongsMessage(AddMessage, addedSongs)
+                self.Queue.extend(addedSongs)
             else:
                 await self.Messages.AddSongsError(ctx)
             
@@ -74,9 +79,10 @@ class MusicPlayer(MediaPlayerStructure):
                 'preferredcodec': 'mp3',  # Especificar MP3 como el códec preferido
             }],
         }
-
+        print(self.guild, "- antes Queue:", self.Queue)
         Song: SongBasic = self.Queue[0]
         self.Queue.pop(0)
+        print(self.guild, "- despues Queue:", self.Queue)
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             try:
@@ -109,17 +115,15 @@ class MusicPlayer(MediaPlayerStructure):
                 self.LastCtx = ctx
                 
                 await self.Messages.PlayMessage(ctx, Song)
-      
+                
             except yt_dlp.DownloadError as e:
                 await ctx.send(f"Error al descargar la canción: {str(e)}")  
-                       
+    
     async def AddSongs(self, search: str, ctx: ApplicationContext):
         result = await searchModule(ctx, search, self, ConfigMediaSearch.default())
         #! Agrega a la base de datos - TOCA CAMBIAR AL TENER LA BD
         self.Queue.extend(result)
         return result
-     
-     
 
     async def check_inactivity(self):
         time = 0

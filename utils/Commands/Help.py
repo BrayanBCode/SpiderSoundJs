@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from utils.logic import structure
-from utils.interface.Messages import EmbeddedMessages
+from utils.interface.SendEmbed import EmbeddedMessages
 
 class Help_Cog(commands.Cog):
     def __init__(self, bot) -> None:
