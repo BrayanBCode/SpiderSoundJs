@@ -36,7 +36,7 @@ class MediaHandler():
 
         # Si no se encuentra en 'thumbnail', intenta obtenerlo desde 'thumbnails'
         if thumbnail is defaultImg:
-            thumbnails = song.get('thumbnails', [])
+            thumbnails = song.get('thumbnails', defaultImg)
             if thumbnails:
                 thumbnail = thumbnails[0].get('url', 'Sin foto de portada')
         

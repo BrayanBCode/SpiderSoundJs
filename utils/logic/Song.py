@@ -28,6 +28,7 @@ class SongBasic():
         self.author = author
         self.url = f"https://www.youtube.com/watch?v={id}"
         self.id = id
+        print(self)
         
     def __str__(self):
         return (

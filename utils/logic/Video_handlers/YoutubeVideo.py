@@ -26,6 +26,7 @@ class YoutubeVideo(MediaHandler):
         with yt_dlp.YoutubeDL(self.ydl_opts_Video) as ydl:
             try:
                 result = ydl.extract_info(video_url, download=False)
+                
                 return [self.extract(result, ctx)]
             
             except yt_dlp.DownloadError as e:

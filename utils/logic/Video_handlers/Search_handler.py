@@ -6,10 +6,8 @@ async def searchModule(ctx, search: str, intance, config) -> list:
         player: MediaHandler
         if not player.check(search):
             continue
-        result = await player.getResult(search, ctx, intance)
-        break  
+        
+        return await player.getResult(search, ctx, intance)
 
-
-    return result
             
     

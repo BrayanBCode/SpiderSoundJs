@@ -42,10 +42,10 @@ class MusicPlayer(MediaPlayerStructure):
         if self.stoped:
             return
         
-        self.voice_client: discord.VoiceClient = await self.join(ctx)
-        
         if not self.voice_client:
-            return
+            self.voice_client: discord.VoiceClient = await self.join(ctx)
+            if not self.voice_client:
+                return
         
         if self.voice_client.is_paused():
             return
@@ -56,7 +56,6 @@ class MusicPlayer(MediaPlayerStructure):
             print("Llegada final:", addedSongs)
             if not len(addedSongs) == 0:
                 await self.Messages.AddedSongsMessage(AddMessage, addedSongs)
-                self.Queue.extend(addedSongs)
             else:
                 await self.Messages.AddSongsError(ctx)
             
@@ -117,14 +116,14 @@ class MusicPlayer(MediaPlayerStructure):
                 await self.Messages.PlayMessage(ctx, Song)
                 
             except yt_dlp.DownloadError as e:
-                await ctx.send(f"Error al descargar la canción: {str(e)}")  
-    
+                await ctx.send(f"Error al descargar la canción: {str(e)}")
+        
     async def AddSongs(self, search: str, ctx: ApplicationContext):
         result = await searchModule(ctx, search, self, ConfigMediaSearch.default())
         #! Agrega a la base de datos - TOCA CAMBIAR AL TENER LA BD
         self.Queue.extend(result)
         return result
-
+    
     async def check_inactivity(self):
         time = 0
         while True:
@@ -138,27 +137,27 @@ class MusicPlayer(MediaPlayerStructure):
                 await self.Messages.InactiveMessage(self.LastCtx)
                 self.inactivity_task = None
                 break
-
+            
     async def Stop(self, ctx: ApplicationContext):
         voice_client: discord.VoiceClient = ctx.voice_client
-        if not voice_client is None:
+        if not voice_client:
             voice_client.stop()
             await self.Messages.StopMessage(ctx)
             return
         
         await self.Messages.StopErrorMessage(ctx)
-
+        
     async def Skip(self, ctx: ApplicationContext, posicion: int = None):
         voice_client: discord.VoiceClient = ctx.voice_client
         if voice_client is None:
             await self.Messages.SkipErrorMessage(ctx)
             return
-
+        
         if len(self.Queue) == 0 and voice_client.is_playing():
             voice_client.stop()
             await self.Messages.SkipWarning(ctx)
             return
-
+        
         if posicion is None or posicion <= 1:
             voice_client.stop()
             await self.Messages.SkipSimpleMessage(ctx)
@@ -169,7 +168,7 @@ class MusicPlayer(MediaPlayerStructure):
         
         await self.Messages.SkipMessage(ctx, skipedSongs)
         voice_client.stop()
-       
+        
     async def join(self, ctx: ApplicationContext):
         # Verificar si el autor del comando está en un canal de voz
         if ctx.author.voice:
@@ -187,11 +186,11 @@ class MusicPlayer(MediaPlayerStructure):
         else:
             await self.Messages.JoinMissingChannelError(ctx)
             return None
-
+        
     async def loop(self, ctx: ApplicationContext):
         self.is_loop = not self.is_loop
         await self.Messages.LoopMessage(ctx, self.is_loop)
-
+        
     async def leave(self, ctx: ApplicationContext):
         if ctx.voice_client:
             self.setStoped(True)

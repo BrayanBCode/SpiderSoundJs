@@ -1,5 +1,5 @@
 from utils.logic.Video_handlers.MediaHandler import MediaHandler
-import re, yt_dlp, asyncio
+import re, yt_dlp
     
 class YoutubePlaylist(MediaHandler):
     ydl_opts_Playlist = {
