@@ -104,5 +104,15 @@ class Music_SlashCommands(commands.Cog):
         for guild in guilds:
             self.MusicInstances.add(MusicPlayer(self.bot, guild))
             
+    @discord.Cog.listener()
+    async def on_voice_state_update(self, member, before, after):
+        if member == self.bot.user:
+            if after.channel is None:
+                MediaPlayerIntance: MusicPlayer = self.getIntance(before.channel.guild.id)
+                MediaPlayerIntance.setStoped(True)
+                MediaPlayerIntance.voice_client = None
+                MediaPlayerIntance.Queue = []
+                
+                            
 def setup(bot):
     bot.add_cog(Music_SlashCommands(bot))

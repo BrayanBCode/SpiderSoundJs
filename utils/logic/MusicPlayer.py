@@ -28,6 +28,7 @@ class MusicPlayer(MediaPlayerStructure):
         self.is_loop = False
         self.PlayingSong = None
         self.voice_client = None
+        self.PlayingSongMsg = None
         self.inactivity_task = None
         
         print(f"Intancia de MusicPlayer creada para {self.guild.id}")
@@ -113,7 +114,7 @@ class MusicPlayer(MediaPlayerStructure):
                 
                 self.LastCtx = ctx
                 
-                await self.Messages.PlayMessage(ctx, Song)
+                self.PlayingSongMsg = await self.Messages.PlayMessage(ctx, Song)
                 
             except yt_dlp.DownloadError as e:
                 await ctx.send(f"Error al descargar la canción: {str(e)}")
@@ -179,6 +180,7 @@ class MusicPlayer(MediaPlayerStructure):
                 await self.Messages.JoinMessage(ctx)
                 return ctx.voice_client
             except discord.ClientException:
+                await self.Messages.JoinMessage(ctx)
                 return ctx.voice_client
             except Exception as e:
                 await self.Messages.JoinErrorMessage(ctx, e)

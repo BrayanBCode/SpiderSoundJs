@@ -37,7 +37,7 @@ class EmbeddedMessages():
         embed.set_image(url=video.thumbnail)
         embed.set_footer(text=f"Pedido por {video.author}", icon_url=video.avatar)
         
-        await self.SendFollowUp(ctx, embed)
+        return await self.SendFollowUp(ctx, embed)
         
     async def PauseMessage(self, ctx: ApplicationContext):
         await self.SendFollowUp(ctx, Embed(description="Cancion pausada.", color=0x120062))
@@ -121,7 +121,7 @@ class EmbeddedMessages():
         await pagination_view.send(ctx)
         
     async def JoinErrorMessage(self, ctx: ApplicationContext, e):
-        await self.SendFollowUp(ctx, Embed(description=f"¡Ocurrió un error al unirse al canal de voz: {e}"))
+        await self.SendFollowUp(ctx, Embed(description=f"¡Ocurrió un error al unirse al canal de voz: {str(e)}"))
 
     async def JoinMissingChannelError(self, ctx: ApplicationContext):
         await self.SendFollowUp(ctx, Embed(description="¡Debes estar en un canal de voz para que el bot se una!"))
@@ -146,9 +146,9 @@ def DurationFormat(seconds):
     return duration_formatted
 
 """
-                await ctx.send(f'Conectado al canal de voz: {channel.name}')
+    await ctx.send(f'Conectado al canal de voz: {channel.name}')
 
-                await ctx.send(f"¡Ocurrió un error al unirse al canal de voz: {e}")
+    await ctx.send(f"¡Ocurrió un error al unirse al canal de voz: {e}")
 
-            await ctx.send("¡Debes estar en un canal de voz para que el bot se una!")
+    wait ctx.send("¡Debes estar en un canal de voz para que el bot se una!")
 """
