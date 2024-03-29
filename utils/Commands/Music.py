@@ -113,6 +113,5 @@ class Music_SlashCommands(commands.Cog):
                 MediaPlayerIntance.voice_client = None
                 MediaPlayerIntance.Queue = []
                 
-                            
 def setup(bot):
     bot.add_cog(Music_SlashCommands(bot))
