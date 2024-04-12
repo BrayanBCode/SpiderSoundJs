@@ -1,13 +1,14 @@
 import re
-import spotipy, os, asyncio
+import os, asyncio
+# import spotipy
 
 from utils.logic.Song import SongBasic
 from utils.logic import structure
-from spotipy.oauth2 import SpotifyClientCredentials
+#from spotipy.oauth2 import SpotifyClientCredentials
 
 # Declaracion de instancia de la API de Spotify
-client_credentials_manager = SpotifyClientCredentials(client_id=os.environ.get("clientID"), client_secret=os.environ.get("clientSecret"))
-sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+# client_credentials_manager = SpotifyClientCredentials(client_id=os.environ.get("clientID"), client_secret=os.environ.get("clientSecret"))
+# sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
 class MediaHandler():
 
@@ -25,7 +26,7 @@ class MediaHandler():
         print('YoutubeSearch: ', not bool(coincidencias))
         return not bool(coincidencias)
     
-    def search():
+    def search(self):
         pass
 
     def extract(self, song, ctx):
@@ -49,10 +50,8 @@ class MediaHandler():
             author=ctx.author.nick if ctx.author.nick else ctx.author.name,
             id=song.get('id')
         )
-     
 
-
-"""          
+"""
 class SpotifySong(MediaPlayer):
     def check(self, arg):
         print('SpotifySong: ',"open.spotify.com/track/" in arg)

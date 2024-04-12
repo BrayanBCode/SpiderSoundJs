@@ -22,7 +22,7 @@ class SongBasic():
     def __init__(self, title: str, artist: str, duration, thumbnail: str, avatar: str, author: str, id: int) -> None:
         self.title = title
         self.artist = artist
-        self.duration = int(duration)
+        self.duration = float(duration)
         self.thumbnail = thumbnail
         self.avatar = avatar
         self.author = author
