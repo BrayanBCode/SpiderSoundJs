@@ -8,3 +8,4 @@ temp/
 test/
 testing/
 __pycache__/
+/.idea
