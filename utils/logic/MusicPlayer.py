@@ -60,13 +60,7 @@ class MusicPlayer(MediaPlayerStructure):
             return
 
         if search:
-            AddMessage = await self.Messages.AddSongsWaiting(ctx)
-            addedSongs = await self.AddSongs(search, ctx)
-            print("Llegada final:", addedSongs)
-            if not len(addedSongs) == 0:
-                await self.Messages.AddedSongsMessage(AddMessage, addedSongs)
-            else:
-                await self.Messages.AddSongsError(ctx)
+            await self.AddSongs(search, ctx)
 
         if self.voice_client.is_playing():
             return
@@ -126,10 +120,19 @@ class MusicPlayer(MediaPlayerStructure):
                 await ctx.send(f"Error al descargar la canción: {str(e)}")
 
     async def AddSongs(self, search: str, ctx: ApplicationContext):
+
+        message = await self.Messages.AddSongsWaiting(ctx)
         result = await searchModule(ctx, search, self, ConfigMediaSearch.default())
+
+        if len(result) == 0:
+            await self.Messages.AddSongsError(ctx)
+            return
+
+        await self.Messages.AddedSongsMessage(message, result)
+
         # ! Agrega a la base de datos - TOCA CAMBIAR AL TENER LA BD
         self.Queue.extend(result)
-        return result
+        return
 
     async def check_inactivity(self):
         try:

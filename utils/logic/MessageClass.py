@@ -18,4 +18,4 @@ class MessageClass:
 
     async def setEmoj(self, ctx: ApplicationContext, emoji: str):
         self.Emoji = emoji
-        ctx.followup.send(embed=Embed(description=emoji), ephemeral=True, delete_after=5)
+        await ctx.followup.send(embed=Embed(description=emoji), ephemeral=True, delete_after=5)
