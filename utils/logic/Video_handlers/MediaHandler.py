@@ -4,13 +4,15 @@ import os, asyncio
 
 from utils.logic.Song import SongBasic
 from utils.logic import structure
+
+
 #from spotipy.oauth2 import SpotifyClientCredentials
 
 # Declaracion de instancia de la API de Spotify
 # client_credentials_manager = SpotifyClientCredentials(client_id=os.environ.get("clientID"), client_secret=os.environ.get("clientSecret"))
 # sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
-class MediaHandler():
+class MediaHandler:
 
     async def getResult(self, search, ctx, instance):
         return self.search(search, ctx)
@@ -25,13 +27,13 @@ class MediaHandler():
         # Si se encuentra una coincidencia, es una URL, de lo contrario, es solo texto
         print('YoutubeSearch: ', not bool(coincidencias))
         return not bool(coincidencias)
-    
-    def search(self):
+
+    def search(self, search, ctx):
         pass
 
     def extract(self, song, ctx):
         defaultImg = "https://salonlfc.com/wp-content/uploads/2018/01/image-not-found-scaled-1150x647.png"
-        
+
         # Intenta obtener la miniatura directamente desde 'thumbnail'
         thumbnail = song.get('thumbnail', defaultImg)
 
@@ -40,7 +42,7 @@ class MediaHandler():
             thumbnails = song.get('thumbnails', defaultImg)
             if thumbnails:
                 thumbnail = thumbnails[0].get('url', 'Sin foto de portada')
-        
+
         return SongBasic(
             title=song.get('title', 'Canción sin título'),
             artist=song.get('uploader', 'Artista desconocido'),
@@ -50,6 +52,7 @@ class MediaHandler():
             author=ctx.author.nick if ctx.author.nick else ctx.author.name,
             id=song.get('id')
         )
+
 
 """
 class SpotifySong(MediaPlayer):

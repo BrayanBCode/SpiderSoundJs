@@ -9,16 +9,18 @@ import yt_dlp
 
 
 class YoutubePlaylist(MediaHandler):
-    ydl_opts_Playlist = {
-        'quiet': False,  # Evita la salida de log
-        'skip_download': True,  # Evita descargar los videos
-        'playlist_items': '3-25'
-    }
-
     ydl_opts_Playlist_limited = {
         'quiet': False,  # Evita la salida de log
         'skip_download': True,  # Evita descargar los videos
+        'extract_flat': True,  # Extrae solo la información básica
         'playlist_items': '1-2'
+    }
+
+    ydl_opts_Playlist = {
+        'quiet': False,  # Evita la salida de log
+        'skip_download': True,  # Evita descargar los videos
+        'extract_flat': True,  # Extrae solo la información básica
+        'playlist_items': '3-30'
     }
 
     async def getResult(self, search, ctx: ApplicationContext, instance):
@@ -31,11 +33,11 @@ class YoutubePlaylist(MediaHandler):
         limitAdded.extend(self.limitSearch(search, ctx))
         instance.Queue.extend(limitAdded)
 
-        print("getResult antes de Playsong:", instance.Queue)
-        await instance.PlaySong(ctx, None)
-        print("getResult despues de Playsong:", instance.Queue)
+        await instance.PlaySong(ctx)
+
         added.extend(self.search(search, ctx)[2:])
         added.extend(limitAdded)
+        instance.Queue.extend(added)
 
         print("getResult:", added)
         return added

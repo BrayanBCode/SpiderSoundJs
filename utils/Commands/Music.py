@@ -18,11 +18,11 @@ class MusicSlashCommands(commands.Cog):
 
     @discord.slash_command(name="play", description="Agrega y reproduce musica desde YT")
     @option('search', str, description="Nombre o url de la cancion")
-    async def playcommand(self, ctx: ApplicationContext, search: str = None):
+    async def play(self, ctx: ApplicationContext, search: str):
         await ctx.defer()
         MediaPlayerInstance: MusicPlayer = self.getintance(ctx.guild.id)
         MediaPlayerInstance.setStoped(False)
-        await MediaPlayerInstance.PlaySong(ctx, search)
+        await MediaPlayerInstance.TaskHandler(ctx, search)
 
     @discord.slash_command(name="stop", description="Detiene la reproduccion")
     async def stop(self, ctx: ApplicationContext):
@@ -111,6 +111,12 @@ class MusicSlashCommands(commands.Cog):
             if after.channel is None:
                 print(f"Protocolo de desconexión para el servidor '{before.channel.guild.name}'")
                 self.getintance(before.channel.guild.id).disconnectProtocol()
+            if after.channel is not None:
+                if before.channel is not after.channel:
+                    instance: MusicPlayer = self.getintance(after.channel.guild.id)
+                    print(f"{instance.guild.name}, Me movi del canal {before.channel} a {after.channel}")
+                    # try:
+                    # instance.PlaySong(instance.LastCtx)
 
 
 def setup(bot):
