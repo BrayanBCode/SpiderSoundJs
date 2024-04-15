@@ -10,22 +10,19 @@ class YoutubeSearch(MediaHandler):
     }
 
     async def getResult(self, search, ctx, instance):
-        Song = await self.search(search, ctx)
+        Song = self.search(search, ctx)
         instance.Queue.extend(Song)
         print("YoutubeSearch - getResult")
         await instance.PlaySong(ctx)
 
         return Song
 
-    async def search(self, search, ctx):
-        num_videos = 1
-        print("algo2")
-
+    def search(self, search, ctx, num_videos=1):
         with yt_dlp.YoutubeDL(self.ydl_opts_Search) as ydl:
             try:
                 result = ydl.extract_info(f"ytsearch{num_videos}:{search}", download=False)
-                SongsList = result['entries']
 
+                SongsList = result['entries']
                 Song = [self.extract(song, ctx) for song in SongsList]
 
                 return Song

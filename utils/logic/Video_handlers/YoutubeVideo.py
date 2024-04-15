@@ -10,7 +10,7 @@ class YoutubeVideo(MediaHandler):
     }
 
     async def getResult(self, search, ctx, instance):
-        Song = await self.search(search, ctx)
+        Song = self.search(search, ctx)
         instance.Queue.extend(Song)
         print("YoutubeVideo - getResult")
         print(Song)
@@ -30,7 +30,7 @@ class YoutubeVideo(MediaHandler):
         print('YoutubeVideo: ', bool(coincidencias))
         return bool(coincidencias)
 
-    async def search(self, search, ctx):
+    def search(self, search, ctx):
         with yt_dlp.YoutubeDL(self.ydl_opts_Video) as ydl:
             try:
                 result = ydl.extract_info(search, download=False)

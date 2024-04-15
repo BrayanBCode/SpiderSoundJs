@@ -1,15 +1,16 @@
 import asyncio
 import discord
-import os
 import yt_dlp
-from discord import FFmpegPCMAudio
+import os
+
 from discord.commands.context import ApplicationContext
+from discord import FFmpegPCMAudio
 from dotenv import load_dotenv
 
-from utils.logic.Song import SongBasic
 from utils.logic.Video_handlers.Search_handler import searchModule
-from utils.logic.config import ConfigMediaSearch
 from utils.logic.structure import MediaPlayerStructure, PlayingSong
+from utils.logic.config import ConfigMediaSearch
+from utils.logic.Song import SongBasic
 
 load_dotenv()
 api_key = os.getenv('YT_KEY')
@@ -20,8 +21,8 @@ class MusicPlayer(MediaPlayerStructure):
         super().__init__(bot=bot, guild=guild)
         self.Queue: list = []
         self.stoped: bool = True
-        self.LastCtx: ApplicationContext = None
         self.is_loop: bool = False
+        self.LastCtx: ApplicationContext = None
         self.PlayingSong: PlayingSong = None
         self.voice_client: discord.VoiceClient = None
         self.PlayingSongMsg: discord.Embed = None
@@ -29,7 +30,7 @@ class MusicPlayer(MediaPlayerStructure):
         self.CheckTaskHandler: bool = False
         self.Tasks: list = []
 
-        print(f"Intancia de MusicPlayer creada para {self.guild.id}")
+        print(f"Intancia de MusicPlayer creada para '{self.guild.name}'")
 
     def disconnectProtocol(self):
         self.setStoped(True)
@@ -104,12 +105,13 @@ class MusicPlayer(MediaPlayerStructure):
 
             audio_source = FFmpegPCMAudio(video_file_path)
             self.voice_client.play(audio_source, after=lambda e: (
-                self.Queue.append(Song.url) if self.is_loop else None,
-                self.bot.loop.create_task(
-                    self.PlaySong(self.LastCtx)),
-                os.remove(video_file_path)
+                    self.Queue.append(Song.url) if self.is_loop else None,
+                    self.bot.loop.create_task(
+                        self.PlaySong(self.LastCtx)
+                    ),
+                    os.remove(video_file_path)
+                    )
             )
-                                   )
 
             self.PlayingSong = PlayingSong(
                 title=Song.title,
@@ -124,7 +126,7 @@ class MusicPlayer(MediaPlayerStructure):
 
             self.LastCtx = ctx
 
-            self.PlayingSongMsg = await self.Messages.PlayMessage(ctx, Song)
+            self.PlayingSongMsg = await self.Messages.PlayMessage(ctx, Song, self.Queue)
 
         except yt_dlp.DownloadError as e:
             await ctx.send(f"Error al descargar la canción: {str(e)}")
@@ -142,9 +144,7 @@ class MusicPlayer(MediaPlayerStructure):
         await self.Messages.AddedSongsMessage(message, result)
 
         # ! Agrega a la base de datos - TOCA CAMBIAR AL TENER LA BD
-        self.Queue.extend(result)
         self.CheckTaskHandler = False
-        await self.TaskHandler()
         return
 
     async def TaskHandler(self, ctx: ApplicationContext = None, search: str = None):
@@ -271,8 +271,9 @@ class MusicPlayer(MediaPlayerStructure):
         self.voice_client.resume()
         await self.Messages.ResumeMessage(ctx)
 
+    # ToFix
     async def remove(self, ctx: ApplicationContext, posicion: int):
-        if posicion > self.Queue or posicion < 0:
+        if posicion > len(self.Queue) - 1 or posicion < 0:
             await self.Messages.RemoveLenghtError(ctx)
             return
 
@@ -300,4 +301,4 @@ class MusicPlayer(MediaPlayerStructure):
             return
 
         if self.voice_client:
-            await self.PlaySong(ctx, None)
+            await self.PlaySong(ctx)

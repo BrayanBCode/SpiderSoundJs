@@ -1,12 +1,13 @@
+import asyncio
 import re
-import os, asyncio
+import os
 # import spotipy
 
 from utils.logic.Song import SongBasic
 from utils.logic import structure
 
 
-#from spotipy.oauth2 import SpotifyClientCredentials
+# from spotipy.oauth2 import SpotifyClientCredentials
 
 # Declaracion de instancia de la API de Spotify
 # client_credentials_manager = SpotifyClientCredentials(client_id=os.environ.get("clientID"), client_secret=os.environ.get("clientSecret"))
@@ -31,7 +32,8 @@ class MediaHandler:
     def search(self, search, ctx):
         pass
 
-    def extract(self, song, ctx):
+    @staticmethod
+    def extract(song, ctx):
         defaultImg = "https://salonlfc.com/wp-content/uploads/2018/01/image-not-found-scaled-1150x647.png"
 
         # Intenta obtener la miniatura directamente desde 'thumbnail'

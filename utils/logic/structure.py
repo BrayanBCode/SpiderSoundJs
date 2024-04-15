@@ -1,6 +1,7 @@
 from utils.interface.SendEmbed import EmbeddedMessages
 import discord
 
+
 class MediaPlayerStructure:
     def __init__(self, bot, guild) -> None:
         self.bot = bot
@@ -16,7 +17,8 @@ class MediaPlayerStructure:
     def check(self, guild):
         return guild == self.guild.id
 
-class HelpCommandMsg():
+
+class HelpCommandMsg:
     def __init__(self, title, description) -> None:
         self.title = title
         self.description = description
@@ -24,13 +26,15 @@ class HelpCommandMsg():
     def save(self, embed):
         embed.add_field(name=self.title, value=self.description, inline=False)
 
-class SpotifyInstance():
+
+class SpotifyInstance:
     def __init__(self, title, artist) -> None:
         self.title = title
         self.artist = artist
 
     def Get(self):
-        return (self.title, self.artist)
+        return self.title, self.artist
+
 
 class PlayingSong:
     def __init__(self, title: str, artist: str, duracion: int, thumbnail: str, url: str):
@@ -39,7 +43,3 @@ class PlayingSong:
         self.duracion = duracion
         self.thumbnail = thumbnail
         self.url = url
-
-
-
-

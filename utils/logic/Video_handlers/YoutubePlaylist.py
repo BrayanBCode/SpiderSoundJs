@@ -9,43 +9,27 @@ import yt_dlp
 
 
 class YoutubePlaylist(MediaHandler):
-    ydl_opts_Playlist_limited = {
-        'quiet': False,  # Evita la salida de log
-        'skip_download': True,  # Evita descargar los videos
-        'extract_flat': True,  # Extrae solo la información básica
-        'playlist_items': '1-2'
-    }
-
     ydl_opts_Playlist = {
         'quiet': False,  # Evita la salida de log
         'skip_download': True,  # Evita descargar los videos
         'extract_flat': True,  # Extrae solo la información básica
-        'playlist_items': '3-30'
+        'playlist_items': '1-100'
     }
 
     async def getResult(self, search, ctx: ApplicationContext, instance):
-        # await ctx.send(embed=Embed(title="Las Playlist estan deshabilitadas temporalmente."))
-        # return []
 
-        added = []
-        limitAdded = []
-
-        limitAdded.extend(self.limitSearch(search, ctx))
-        instance.Queue.extend(limitAdded)
-
+        Songs = self.search(search, ctx)
+        instance.Queue.extend(Songs)
+        print("YoutubeSearch - getResult")
         await instance.PlaySong(ctx)
 
-        added.extend(self.search(search, ctx)[2:])
-        added.extend(limitAdded)
-        instance.Queue.extend(added)
-
-        print("getResult:", added)
-        return added
+        return Songs
 
     def check(self, arg):
         # Patrón regex para buscar un identificador de playlist de YouTube
         patron_playlist = re.compile(
-            r'(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:playlist(?:s)?)\/|\S*?[?&]list=)|youtu\.be\/)([a-zA-Z0-9_-]+)')
+            r'(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:playlist(?:s)?)\/|\S*?[?&]list=)|youtu\.be\/)([a-zA-Z0-9_-]+)'
+        )
 
         # Buscar el patrón en la cadena
         coincidencias = patron_playlist.search(arg)
@@ -55,13 +39,7 @@ class YoutubePlaylist(MediaHandler):
         return bool(coincidencias)
 
     def search(self, playlist_url, ctx):
-        return self._searchUtil(playlist_url, ctx, self.ydl_opts_Playlist)
-
-    def limitSearch(self, playlist_url, ctx):
-        return self._searchUtil(playlist_url, ctx, self.ydl_opts_Playlist_limited)
-
-    def _searchUtil(self, playlist_url, ctx, opt):
-        with yt_dlp.YoutubeDL(opt) as ydl:
+        with yt_dlp.YoutubeDL(self.ydl_opts_Playlist) as ydl:
             try:
                 info_dict = ydl.extract_info(playlist_url, download=False)
                 songs = info_dict['entries']
