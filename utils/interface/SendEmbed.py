@@ -90,6 +90,16 @@ class EmbeddedMessages:
 
         await self.SendFollowUp(ctx, embed)
 
+    async def RemoveErrorEmptyQueueMessage(self, ctx: ApplicationContext):
+        embed = Embed(description="❌ No hay canciones para remover.", color=0x180081)
+
+        await self.SendFollowUp(ctx, embed)
+
+    async def RemoveErrorPositionMessage(self, ctx: ApplicationContext):
+        embed = Embed(description="❌ La posicion es menor o mayor que el largo de la cola.", color=0x180081)
+
+        await self.SendFollowUp(ctx, embed)
+
     async def ClearMessage(self, ctx: ApplicationContext):
         await self.SendFollowUp(ctx, Embed(description="Cola vaciada.", color=0x120062))
 

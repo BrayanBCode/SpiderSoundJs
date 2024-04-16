@@ -83,7 +83,7 @@ class MusicSlashCommands(commands.Cog):
         await MediaPlayerInstance.clear(ctx)
 
     @discord.slash_command(name="join", description="Mueve o conecta el bot a tu canal de voz actual")
-    async def clear(self, ctx: ApplicationContext):
+    async def join(self, ctx: ApplicationContext):
         await ctx.defer()
         MediaPlayerInstance: MusicPlayer = self.getintance(ctx.guild.id)
         await MediaPlayerInstance.join(ctx)

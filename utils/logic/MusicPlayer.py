@@ -105,13 +105,13 @@ class MusicPlayer(MediaPlayerStructure):
 
             audio_source = FFmpegPCMAudio(video_file_path)
             self.voice_client.play(audio_source, after=lambda e: (
-                    self.Queue.append(Song.url) if self.is_loop else None,
-                    self.bot.loop.create_task(
-                        self.PlaySong(self.LastCtx)
-                    ),
-                    os.remove(video_file_path)
-                    )
+                self.Queue.append(Song.url) if self.is_loop else None,
+                self.bot.loop.create_task(
+                    self.PlaySong(self.LastCtx)
+                ),
+                os.remove(video_file_path)
             )
+                                   )
 
             self.PlayingSong = PlayingSong(
                 title=Song.title,
@@ -271,16 +271,19 @@ class MusicPlayer(MediaPlayerStructure):
         self.voice_client.resume()
         await self.Messages.ResumeMessage(ctx)
 
-    # ToFix
     async def remove(self, ctx: ApplicationContext, posicion: int):
-        if posicion > len(self.Queue) - 1 or posicion < 0:
-            await self.Messages.RemoveLenghtError(ctx)
+        posicion -= 1
+        if len(self.Queue) == 0:
+            await self.Messages.RemoveErrorEmptyQueueMessage(ctx)
             return
 
-        SongDeleted = self.Queue[posicion - 1]
-        self.Queue.pop(posicion - 1)
+        if posicion > len(self.Queue) or len(self.Queue) < posicion:
+            await self.Messages.RemoveErrorPositionMessage(ctx)
+            return
 
-        await self.Messages.RemoveMessage(ctx, SongDeleted)
+        rmvSong = self.Queue.pop(posicion)
+
+        await self.Messages.RemoveMessage(ctx, rmvSong)
 
     async def clear(self, ctx):
         self.Queue.clear()
@@ -302,3 +305,5 @@ class MusicPlayer(MediaPlayerStructure):
 
         if self.voice_client:
             await self.PlaySong(ctx)
+
+

@@ -48,7 +48,8 @@ class SongBasic:
     @staticmethod
     def cleanTitle(title):
         # Lista de palabras a eliminar del título
-        palabras_a_eliminar = ['official', 'lyrics', 'video', 'hd', '4k', 'clip', 'audio', 'Letra', 'Oficial']
+        palabras_a_eliminar = ['official', 'lyrics', 'Lyric', 'video', 'hd', '4k', 'clip', 'audio', 'Letra', 'Oficial', 'song',
+                               'Song']
 
         # Agrega el nombre del artista a la lista de palabras a eliminar
 

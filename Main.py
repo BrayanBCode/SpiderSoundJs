@@ -8,8 +8,6 @@ bot = discord.Bot()
 cogs_list = [  # listado de cogs
     'Music',
     'Help',
-    'LolLvl',
-    "ReaccionRol"
 ]
 
 for cog in cogs_list:
