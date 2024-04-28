@@ -15,7 +15,7 @@ from utils.logic import structure
 
 class MediaHandler:
 
-    async def getResult(self, search, ctx, instance):
+    def getResult(self, search, ctx, instance):
         return self.search(search, ctx)
 
     def check(self, arg):

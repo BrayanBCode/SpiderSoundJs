@@ -4,7 +4,7 @@ from discord.commands.context import ApplicationContext
 from discord.ext import commands
 
 from utils.logic.MusicPlayer import MusicPlayer
-
+# from testosterona.PlayTest import Test
 
 class MusicSlashCommands(commands.Cog):
     def __init__(self, bot: discord.Bot) -> None:
@@ -21,8 +21,9 @@ class MusicSlashCommands(commands.Cog):
     async def play(self, ctx: ApplicationContext, search: str):
         await ctx.defer()
         MediaPlayerInstance: MusicPlayer = self.getintance(ctx.guild.id)
-        MediaPlayerInstance.setStoped(False)
-        await MediaPlayerInstance.TaskHandler(ctx, search)
+        MediaPlayerInstance.LockPlay = False
+        await MediaPlayerInstance.PlayInput(ctx, search)
+
 
     @discord.slash_command(name="stop", description="Detiene la reproduccion")
     async def stop(self, ctx: ApplicationContext):
@@ -115,8 +116,6 @@ class MusicSlashCommands(commands.Cog):
                 if before.channel is not after.channel:
                     instance: MusicPlayer = self.getintance(after.channel.guild.id)
                     print(f"{instance.guild.name}, Me movi del canal {before.channel} a {after.channel}")
-                    # try:
-                    # instance.PlaySong(instance.LastCtx)
 
 
 def setup(bot):

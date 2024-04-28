@@ -13,15 +13,12 @@ class YoutubePlaylist(MediaHandler):
         'quiet': False,  # Evita la salida de log
         'skip_download': True,  # Evita descargar los videos
         'extract_flat': True,  # Extrae solo la información básica
-        'playlist_items': '1-100'
+        'playlist_items': '1-45'
     }
 
-    async def getResult(self, search, ctx: ApplicationContext, instance):
-
+    def getResult(self, search, ctx: ApplicationContext, instance):
         Songs = self.search(search, ctx)
-        instance.Queue.extend(Songs)
         print("YoutubeSearch - getResult")
-        await instance.PlaySong(ctx)
 
         return Songs
 

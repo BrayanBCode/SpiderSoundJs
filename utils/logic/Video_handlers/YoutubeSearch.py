@@ -9,11 +9,9 @@ class YoutubeSearch(MediaHandler):
         'extract_flat': True,  # Extrae solo la información básica
     }
 
-    async def getResult(self, search, ctx, instance):
+    def getResult(self, search, ctx, instance):
         Song = self.search(search, ctx)
-        instance.Queue.extend(Song)
         print("YoutubeSearch - getResult")
-        await instance.PlaySong(ctx)
 
         return Song
 

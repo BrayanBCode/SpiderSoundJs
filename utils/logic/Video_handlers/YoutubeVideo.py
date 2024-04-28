@@ -11,10 +11,7 @@ class YoutubeVideo(MediaHandler):
 
     async def getResult(self, search, ctx, instance):
         Song = self.search(search, ctx)
-        instance.Queue.extend(Song)
         print("YoutubeVideo - getResult")
-        print(Song)
-        await instance.PlaySong(ctx)
 
         return Song
 

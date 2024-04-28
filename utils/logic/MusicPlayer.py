@@ -20,15 +20,17 @@ class MusicPlayer(MediaPlayerStructure):
     def __init__(self, bot, guild) -> None:
         super().__init__(bot=bot, guild=guild)
         self.Queue: list = []
-        self.stoped: bool = True
         self.is_loop: bool = False
         self.LastCtx: ApplicationContext = None
         self.PlayingSong: PlayingSong = None
         self.voice_client: discord.VoiceClient = None
-        self.PlayingSongMsg: discord.Embed = None
         self.inactivity_task: asyncio.Task = None
-        self.CheckTaskHandler: bool = False
-        self.Tasks: list = []
+
+        # Variables de control
+        self.LockPlay: bool = False
+        self.download_counter = 0
+        self.contador = 0
+        self.semaphore = asyncio.Semaphore(3)  # Crear un semáforo con capacidad para 3 tareas asincrónicas
 
         print(f"Intancia de MusicPlayer creada para '{self.guild.name}'")
 
@@ -37,6 +39,8 @@ class MusicPlayer(MediaPlayerStructure):
         self.Queue.clear()
         self.is_loop = False
         self.PlayingSong = None
+        os.remove(self.NextSong.download_path)
+        self.NextSong = None
         if self.voice_client.is_connected():
             self.voice_client.disconnect()
 
@@ -55,141 +59,6 @@ class MusicPlayer(MediaPlayerStructure):
 
     def getQueue(self):
         return self.Queue
-
-    async def PlaySong(self, ctx: ApplicationContext):
-        if self.stoped:
-            return
-
-        if self.voice_client == None or not self.voice_client.is_connected():
-            self.voice_client = await self.join(ctx)
-
-            if not self.voice_client:
-                return
-
-        if self.voice_client.is_paused():
-            return
-
-        # if search:
-        #     self.Tasks.append(asyncio.create_task(self.AddSongs(search, ctx)))
-
-        if self.voice_client.is_playing():
-            return
-
-        if len(self.Queue) == 0:
-            await self.Messages.NoSongInQueueMessage(ctx)
-            return
-
-        self.PlayingSong = None
-
-        ydl_opts = {
-            'api_key': api_key,
-            'quiet': False,
-            'format': 'bestaudio/best',  # Descargar el mejor formato de audio disponible
-            'outtmpl': f'temp/%(id)s.%(ext)s',  # Nombre del archivo de salida
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',  # Especificar MP3 como el códec preferido
-            }],
-        }
-
-        Song: SongBasic = self.Queue[0]
-        self.Queue.pop(0)
-
-        try:
-            video_file_path: str
-            with (yt_dlp.YoutubeDL(ydl_opts) as ydl):
-
-                ydl.download([Song.url])  # Descargar la canción
-                video_file_path = os.path.join('temp', f"{Song.id}.mp3")
-                print(f"Se descargo: {video_file_path}")
-
-            audio_source = FFmpegPCMAudio(video_file_path)
-            self.voice_client.play(audio_source, after=lambda e: (
-                self.Queue.append(Song.url) if self.is_loop else None,
-                self.bot.loop.create_task(
-                    self.PlaySong(self.LastCtx)
-                ),
-                os.remove(video_file_path)
-            )
-                                   )
-
-            self.PlayingSong = PlayingSong(
-                title=Song.title,
-                artist=Song.artist,
-                duracion=Song.duration,
-                thumbnail=Song.thumbnail,
-                url=Song.url
-            )
-
-            if self.inactivity_task is None or self.inactivity_task.done():
-                self.inactivity_task = asyncio.create_task(self.check_inactivity())
-
-            self.LastCtx = ctx
-
-            self.PlayingSongMsg = await self.Messages.PlayMessage(ctx, Song, self.Queue)
-
-        except yt_dlp.DownloadError as e:
-            await ctx.send(f"Error al descargar la canción: {str(e)}")
-
-    async def AddSongs(self, ctx: ApplicationContext, search: str):
-
-        message = await self.Messages.AddSongsWaiting(ctx)
-        result = await searchModule(ctx, search, self, ConfigMediaSearch.default())
-
-        print(result)
-        if len(result) == 0:
-            await self.Messages.AddSongsError(ctx)
-            return
-
-        await self.Messages.AddedSongsMessage(message, result)
-
-        # ! Agrega a la base de datos - TOCA CAMBIAR AL TENER LA BD
-        self.CheckTaskHandler = False
-        return
-
-    async def TaskHandler(self, ctx: ApplicationContext = None, search: str = None):
-        try:
-            if search:
-                self.Tasks.append(asyncio.create_task(self.AddSongs(ctx, search)))
-
-            if self.CheckTaskHandler:
-                return
-
-            if len(self.Tasks) == 0:
-                return
-
-            if not self.Tasks[0].done():
-                self.CheckTaskHandler = True
-                return
-
-            if self.Tasks[0].done():
-                self.Tasks.pop(0)
-
-                if len(self.Tasks) > 0:
-                    await self.Tasks[0]
-                return
-
-        except Exception as e:
-            print(str(e))
-
-    async def check_inactivity(self):
-        try:
-            time = 0
-
-            while True:
-                await asyncio.sleep(5)
-                if self.voice_client.is_playing():
-                    time = 0
-                else:
-                    time += 5
-                if time >= 300:  # 10 minutos de inactividad
-                    await self.voice_client.disconnect()
-                    await self.Messages.InactiveMessage(self.LastCtx)
-                    self.inactivity_task = None
-                    break
-
-        except Exception as e:
-            print("Error check_inactivity - AttributeError: 'NoneType' object has no attribute 'is_playing'")
 
     async def Stop(self, ctx: ApplicationContext):
         voice_client: discord.VoiceClient = ctx.voice_client
@@ -287,6 +156,9 @@ class MusicPlayer(MediaPlayerStructure):
 
     async def clear(self, ctx):
         self.Queue.clear()
+        os.remove(self.NextSong.download_path)
+        self.NextSong = None
+
         await self.Messages.ClearMessage(ctx)
 
     async def forceplay(self, ctx: ApplicationContext, url: str):
@@ -306,4 +178,124 @@ class MusicPlayer(MediaPlayerStructure):
         if self.voice_client:
             await self.PlaySong(ctx)
 
+    async def PlayInput(self, ctx: ApplicationContext, search):
+        try:
 
+            await self.JoinVoiceChannel(ctx)
+
+            if search:
+                await self.Messages.AddSongsWaiting(ctx)
+                result = await self.AddSongs(ctx, search)
+                await self.Messages.AddedSongsMessage(ctx, result)
+
+        except Exception as e:
+            print(str(e))
+            await self.Messages.SendFollowUp(ctx, Embed(description=f"Error: {e}"))
+
+    async def PlayModule(self, ctx):
+
+        try:
+            if len(self.Queue) == 0:
+                self.Messages.QueueEmptyMessage(ctx)
+                return
+
+            if self.LockPlay:
+                return
+
+            if self.voice_client.is_playing():
+                return
+
+            if self.voice_client.is_paused():
+                return
+
+            self.LastCtx = ctx
+
+            video: SongBasic = self.Queue[0]
+            print("A reproducir:", video)
+
+            await self.PlaySound(video)
+            await self.Messages.PlayMessage(ctx, video, self.Queue)
+
+        except Exception as e:
+            print(str(e))
+            await self.Messages.SendFollowUp(ctx, Embed(description=f"Error: {e}"))
+
+    # self.bot.loop.create_task(self.PlaySong(self.LastCtx)),
+
+    async def PlaySound(self, video: SongBasic):
+
+        audio_source = FFmpegPCMAudio(video.download_path)
+        self.voice_client.play(audio_source, after=lambda e: (
+            self.bot.loop.create_task(
+                self.PlaySong(self.LastCtx)
+            )
+        )
+                               )
+
+    async def JoinVoiceChannel(self, ctx: ApplicationContext):
+        if self.voice_client is None or not self.voice_client.is_connected():
+            if ctx.author.voice:
+                self.voiceChannel = ctx.author.voice.channel
+
+                self.voice_client = await self.voiceChannel.connect()
+
+                await self.Messages.JoinMessage(ctx)
+            else:
+                await self.Messages.JoinMissingChannelError(ctx)
+                raise UsuarioNoEnCanalDeVozError("El usuario no está en un canal de voz válido al emitir el comando")
+        else:
+            if ctx.author.voice:
+                self.voiceChannel = ctx.author.voice.channel
+
+                if self.voice_client and self.voice_client.channel != self.voiceChannel:
+                    await self.voice_client.move_to(self.voiceChannel)  # Mover al canal del autor
+
+                    await self.Messages.JoinMessage(ctx)
+            else:
+                await self.Messages.JoinMissingChannelError()
+                raise UsuarioNoEnCanalDeVozError("El usuario no está en un canal de voz válido al emitir el comando")
+
+    async def DownloadModule(self, video: SongBasic):
+        ydl_opts = {
+            'api_key': api_key,
+            'quiet': False,
+            'format': 'bestaudio/best',  # Descargar el mejor formato de audio disponible
+            'outtmpl': f'temp/{self.download_counter}_{self.guild.id}_%(id)s.%(ext)s',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',  # Especificar MP3 como el códec preferido
+            }],
+        }
+
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([video.url])
+            video_file_path = os.path.join('temp', f'{self.download_counter}_{self.guild.id}_{video.id}.mp3')
+            self.download_counter += 1
+            print(f"Se descargó la canción {video.title}, ID: {video.id}")
+            video.download_path = video_file_path
+
+            return video_file_path
+
+    async def DownloadSongs(self, lista: list):
+        tasks = []
+        for item in lista:
+            # Adquirir el semáforo antes de iniciar la descarga
+            await self.semaphore.acquire()
+            task = asyncio.create_task(self.DownloadModule(item))
+            tasks.append(task)
+
+        await tasks[0]
+        print("Se ejecuto, await self.PlayModule(self.LastCtx)")
+        await self.PlayModule(self.LastCtx)
+
+        # Esperar a que todas las tareas terminen
+        await asyncio.gather(*tasks)
+
+    async def AddSongs(self, ctx: ApplicationContext, search: str):
+
+        result = searchModule(ctx, search, self, ConfigMediaSearch.default())
+
+        self.Queue.extend(result)
+        await self.DownloadSongs(result)
+
+        return result

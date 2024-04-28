@@ -111,7 +111,7 @@ class EmbeddedMessages:
         await self.SendFollowUp(ctx, Embed(description="Me desconecte.", color=0x120062))
 
     async def JoinMessage(self, ctx: ApplicationContext):
-        await self.SendFollowUp(ctx, Embed(description=f'Conectado al canal de voz: {ctx.author.voice.channel}',
+        await self.SendFollowUp(ctx, Embed(description=f'Me conecte al canal de voz: {ctx.author.voice.channel}',
                                            color=0x120062))
 
     async def SkipErrorMessage(self, ctx: ApplicationContext):
@@ -155,7 +155,7 @@ class EmbeddedMessages:
         await self.SendFollowUp(ctx, Embed(description=f"¡Ocurrió un error al unirse al canal de voz: {str(e)}"))
 
     async def JoinMissingChannelError(self, ctx: ApplicationContext):
-        await self.SendFollowUp(ctx, Embed(description="¡Debes estar en un canal de voz para que el bot se una!"))
+        await self.SendFollowUp(ctx, Embed(description="¡Debes estar en un canal de voz para que el pueda unirme!"))
 
     async def NoSongInQueueMessage(self, ctx: ApplicationContext):
         await self.SendFollowUp(ctx, Embed(description="No hay mas canciones en la cola"))
