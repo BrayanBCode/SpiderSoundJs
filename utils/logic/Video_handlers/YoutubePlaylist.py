@@ -13,7 +13,7 @@ class YoutubePlaylist(MediaHandler):
         'quiet': False,  # Evita la salida de log
         'skip_download': True,  # Evita descargar los videos
         'extract_flat': True,  # Extrae solo la información básica
-        'playlist_items': '1-45'
+        'playlist_items': '1-25'
     }
 
     def getResult(self, search, ctx: ApplicationContext, instance):

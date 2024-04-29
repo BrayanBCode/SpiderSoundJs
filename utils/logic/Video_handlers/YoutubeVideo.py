@@ -9,7 +9,7 @@ class YoutubeVideo(MediaHandler):
         'extract_flat': True,
     }
 
-    async def getResult(self, search, ctx, instance):
+    def getResult(self, search, ctx, instance):
         Song = self.search(search, ctx)
         print("YoutubeVideo - getResult")
 

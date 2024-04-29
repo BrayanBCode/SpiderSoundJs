@@ -37,7 +37,7 @@ def eliminar_archivos(carpeta="./temp"):
 
 @bot.event
 async def on_ready():
-    # eliminar_archivos()
+    eliminar_archivos()
     print(f"{bot.user} esta en linea!")
 
 
