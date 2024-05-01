@@ -34,7 +34,6 @@ class SongBasic:
         self.download_path = download_path
         self.url = f"https://www.youtube.com/watch?v={id}"
         self.id = id
-        print(self)
 
     def __str__(self):
         return (
@@ -50,24 +49,15 @@ class SongBasic:
         )
 
     @staticmethod
-    def cleanTitle(title):
-        # Lista de palabras a eliminar del título
-        palabras_a_eliminar = ['official', 'lyrics', 'Lyric', 'video', 'hd', '4k', 'clip', 'audio', 'Letra', 'Oficial',
-                               'song',
-                               'Song']
-
-        # Agrega el nombre del artista a la lista de palabras a eliminar
-
-        # Crea una expresión regular con las palabras a eliminar
-        regex = '|'.join(palabras_a_eliminar)
-
-        # Reemplaza las palabras a eliminar con una cadena vacía
-        titulo_limpio = re.sub(regex, '', title, flags=re.IGNORECASE)
-
-        # Elimina los espacios en blanco adicionales
-        titulo_limpio = ' '.join(titulo_limpio.split())
-
-        # Elimina los caracteres no deseados al principio y al final del título
-        titulo_limpio = titulo_limpio.strip('- ()')
-
-        return titulo_limpio
+    def cleanTitle(titulo):
+        # Eliminar las etiquetas entre corchetes
+        titulo = re.sub(r'\[.*?\]', '', titulo)
+        # Eliminar las etiquetas entre paréntesis
+        titulo = re.sub(r'\(.*?\)', '', titulo)
+        # Eliminar las etiquetas entre llaves
+        titulo = re.sub(r'\{.*?\}', '', titulo)
+        # Eliminar los caracteres especiales
+        titulo = re.sub(r'[^\w\s]', '', titulo)
+        # Eliminar los espacios adicionales
+        titulo = re.sub(r'\s+', ' ', titulo).strip()
+        return titulo

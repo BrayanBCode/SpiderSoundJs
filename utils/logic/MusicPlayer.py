@@ -36,24 +36,25 @@ class MusicPlayer(MediaPlayerStructure):
 
         print(f"Intancia de MusicPlayer creada para '{self.guild.name}'")
 
-    def disconnectProtocol(self):
-        self.LockPlay = True
-        self.Queue.clear()
-        self.is_loop = False
-        self.PlayingSong = None
-        self.NextSong = None
-        if self.voice_client.is_connected():
-            self.voice_client.disconnect()
-
-        if self.voice_client.is_playing() or self.voice_client.is_paused():
-            self.voice_client.stop()
-
-        if self.inactivity_task:
-            self.inactivity_task.cancel()
-
-        if len(self.Tasks) != 0:
-            for task in self.Tasks:
-                task.cancel()
+    async def disconnectProtocol(self):
+        pass
+        # self.LockPlay = True
+        # self.Queue.clear()
+        # self.is_loop = False
+        # self.PlayingSong = None
+        # self.NextSong = None
+        # if self.voice_client.is_connected():
+        #     self.voice_client.disconnect()
+        #
+        # if self.voice_client.is_playing() or self.voice_client.is_paused():
+        #     self.voice_client.stop()
+        #
+        # if self.inactivity_task:
+        #     self.inactivity_task.cancel()
+        #
+        # if len(self.tasks) != 0:
+        #     for task in self.tasks:
+        #         task.cancel()
 
     def setStoped(self, check: bool):
         self.LockPlay = check
@@ -121,7 +122,7 @@ class MusicPlayer(MediaPlayerStructure):
             self.setStoped(True)
             self.is_loop = False
 
-            await ctx.voice_client.disconnect()
+            await self.voice_client.disconnect()
             await self.Messages.LeaveMessage(ctx)
             # ctx.send(embed=Embed(description="Me desconecte con exito"))
         else:
@@ -157,8 +158,7 @@ class MusicPlayer(MediaPlayerStructure):
 
     async def clear(self, ctx):
         self.Queue.clear()
-        os.remove(self.NextSong.download_path)
-        self.NextSong = None
+
 
         await self.Messages.ClearMessage(ctx)
 
@@ -213,13 +213,9 @@ class MusicPlayer(MediaPlayerStructure):
 
         video: SongBasic = self.Queue.pop(0)
 
-        print("A reproducir:", video)
-
         await self.PlaySound(video)
         await self.Messages.PlayMessage(ctx, video, self.Queue)
         await self.DownloadSongs()
-
-
 
         # except Exception as e:
         #     print(e)
@@ -233,7 +229,8 @@ class MusicPlayer(MediaPlayerStructure):
         self.voice_client.play(audio_source, after=lambda e: (
             self.bot.loop.create_task(
                 self.PlayModule(self.LastCtx)
-            )
+            ),
+            os.remove(video.download_path)
         )
                                )
 
@@ -280,32 +277,32 @@ class MusicPlayer(MediaPlayerStructure):
         print(f"Se descargó la canción {video.title}, ID: {video.id}")
         video.download_path = video_file_path
 
-        return video_file_path
+        # return video_file_path
 
     async def DownloadSongs(self, lista: list = None):
+        print("async def DownloadSongs(self, lista: list = None)")
 
-        if lista:
-            first = lista.pop(0)
-            print(first)
+        print(self.tasks)
+        self.tasks = [item for item in self.tasks if not item.done()]
 
-            await self.DownloadModule(first)
-            await self.PlayModule(self.LastCtx)
-        else:
-            lista = self.Queue
+        if len(self.tasks) == 0:
+            if lista and not self.voice_client.is_playing():
+                first = lista[0]
 
-        tasks = []
-        count = 0
-        for item in lista:
-            # Adquirir el semáforo antes de iniciar la descarga
-            # await self.semaphore.acquire()
-            if item.download_path is None:
-                count += 1
-                if count >= 3:
-                    break
-                print("if item.download_path is None:", item.download_path)
-                asyncio.create_task(self.DownloadModule(item))
+                await self.DownloadModule(first)
+                await self.PlayModule(self.LastCtx)
+            else:
+                lista = self.Queue
 
-        # self.semaphore.release()
+            count = 0
+            for item in lista[:3]:
+                print("DownloadSongs - iteracion:", item)
+                item: SongBasic
+                print(item.title, item.download_path)
+                if item.download_path is None:
+                    print("self.tasks.append(asyncio.create_task(self.DownloadModule(item)))")
+                    item.download_path = "temp/untitled.txt"
+                    self.tasks.append(asyncio.create_task(self.DownloadModule(item)))
 
     async def AddSongs(self, ctx: ApplicationContext, search: str):
 
@@ -315,3 +312,35 @@ class MusicPlayer(MediaPlayerStructure):
         await self.DownloadSongs(result)
 
         return result
+
+    def restart(self):
+        self.voice_client.disconnect()
+        if len(self.tasks) != 0:
+            for task in self.Tasks:
+                task.cancel()
+
+        self.Queue: list = []
+        self.is_loop: bool = False
+        self.LastCtx: ApplicationContext = None
+        self.PlayingSong: PlayingSong = None
+        self.voice_client: discord.VoiceClient = None
+        self.inactivity_task: asyncio.Task = None
+
+        # Variables de control
+        self.LockPlay: bool = True
+        self.download_counter = 0
+        self.contador = 0
+        self.semaphore = asyncio.Semaphore(3)
+        self.tasks = []
+
+    def eliminar_archivos(carpeta="./temp"):
+        for nombre_archivo in os.listdir(carpeta):
+            archivo = os.path.join(carpeta, nombre_archivo)
+            try:
+                if os.path.isfile(archivo) or os.path.islink(archivo):
+                    os.unlink(archivo)
+                elif os.path.isdir(archivo):
+                    shutil.rmtree(archivo)
+                print("Archivo eliminado: %s" % archivo)
+            except Exception as e:
+                print('Error al eliminar %s. Razón: %s' % (archivo, e))

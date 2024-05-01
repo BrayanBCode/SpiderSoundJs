@@ -10,10 +10,13 @@ import yt_dlp
 
 class YoutubePlaylist(MediaHandler):
     ydl_opts_Playlist = {
-        'quiet': False,  # Evita la salida de log
-        'skip_download': True,  # Evita descargar los videos
-        'extract_flat': True,  # Extrae solo la información básica
-        'playlist_items': '1-25'
+        'quiet': False,
+        'no_warnings': True,
+        'skip_download': True,
+        'writesubtitles': False,
+        'writeautomaticsub': False,
+        'playlistend': 25,  # Solo se extraerán las primeras 25 canciones
+        'extract_flat': True,
     }
 
     def getResult(self, search, ctx: ApplicationContext, instance):
@@ -39,7 +42,10 @@ class YoutubePlaylist(MediaHandler):
         with yt_dlp.YoutubeDL(self.ydl_opts_Playlist) as ydl:
             try:
                 info_dict = ydl.extract_info(playlist_url, download=False)
-                songs = info_dict['entries']
+                if 'entries' in info_dict:
+                    songs = info_dict['entries']
+                else:
+                    raise 
 
                 return [self.extract(song, ctx) for song in songs]
 

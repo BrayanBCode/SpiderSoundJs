@@ -5,8 +5,12 @@ import re
 
 class YoutubeVideo(MediaHandler):
     ydl_opts_Video = {
-        'quiet': False,
-        'extract_flat': True,
+        'quiet': True,
+        'no_warnings': True,
+        'skip_download': True,
+        'writesubtitles': False,
+        'writeautomaticsub': False,
+        'playlistend': 25,  # Solo se extraerán las primeras 25 canciones
     }
 
     def getResult(self, search, ctx, instance):

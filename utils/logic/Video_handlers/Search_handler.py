@@ -9,3 +9,4 @@ def searchModule(ctx, search: str, instance, config) -> list:
             continue
 
         return player.getResult(search, ctx, instance)
+    

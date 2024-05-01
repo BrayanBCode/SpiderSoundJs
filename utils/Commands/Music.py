@@ -5,6 +5,7 @@ from discord.ext import commands
 
 from utils.logic.MusicPlayer import MusicPlayer
 
+
 # from testosterona.PlayTest import Test
 
 
@@ -97,6 +98,12 @@ class MusicSlashCommands(commands.Cog):
         MediaPlayerInstance.setStoped(False)
         await MediaPlayerInstance.forceplay(ctx, url)
 
+    @discord.slash_command(name="restart", description="En caso de falla este comando resetea por defecto los valores "
+                                                       "del Bot, no es una solución definitiva")
+    async def restart(self, ctx):
+        MediaPlayerInstance: MusicPlayer = self.getintance(ctx.guild.id)
+        MediaPlayerInstance.restart()
+
     @discord.Cog.listener()
     async def on_guild_join(self, guild):
         self.MusicInstances.add(MusicPlayer(self.bot, guild))
@@ -111,8 +118,8 @@ class MusicSlashCommands(commands.Cog):
     async def on_voice_state_update(self, member, before, after):
         if member == self.bot.user:
             if after.channel is None:
-                print(f"Protocolo de desconexión para el servidor '{before.channel.guild.name}'")
-                self.getintance(before.channel.guild.id).disconnectProtocol()
+                print(f"---------- Protocolo de desconexión para el servidor '{before.channel.guild.name}' ----------")
+                await self.getintance(before.channel.guild.id).disconnectProtocol()
             if after.channel is not None:
                 if before.channel is not after.channel:
                     instance: MusicPlayer = self.getintance(after.channel.guild.id)

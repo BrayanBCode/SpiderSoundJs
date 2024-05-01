@@ -4,9 +4,12 @@ import yt_dlp
 
 class YoutubeSearch(MediaHandler):
     ydl_opts_Search = {
-        'quiet': False,  # Evita la salida de log
-        'format': 'best',  # Elige el mejor formato disponible
-        'extract_flat': True,  # Extrae solo la información básica
+        'default_search': 'ytsearch',  # Usa la búsqueda de YouTube como motor de búsqueda predeterminado
+        'quiet': True,
+        'no_warnings': True,
+        'skip_download': True,
+        'writesubtitles': False,
+        'writeautomaticsub': False,
     }
 
     def getResult(self, search, ctx, instance):
