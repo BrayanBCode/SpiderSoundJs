@@ -15,7 +15,7 @@ class YoutubePlaylist(MediaHandler):
         'skip_download': True,
         'writesubtitles': False,
         'writeautomaticsub': False,
-        'playlistend': 25,  # Solo se extraerán las primeras 25 canciones
+        'playlistend': 50,  # Solo se extraerán las primeras 25 canciones
         'extract_flat': True,
     }
 

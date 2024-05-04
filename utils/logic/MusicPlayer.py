@@ -1,7 +1,9 @@
 import threading
 import asyncio
 import discord
+import youtube_dl
 import yt_dlp
+
 import os
 
 from discord.commands.context import ApplicationContext
@@ -12,6 +14,7 @@ from utils.logic.Video_handlers.Search_handler import searchModule
 from utils.logic.structure import MediaPlayerStructure, PlayingSong
 from utils.logic.config import ConfigMediaSearch
 from utils.logic.Song import SongBasic
+from utils.logic.ThrowError import Error
 
 load_dotenv()
 api_key = os.getenv('YT_KEY')
@@ -25,6 +28,7 @@ class MusicPlayer(MediaPlayerStructure):
         self.LastCtx: ApplicationContext = None
         self.PlayingSong: PlayingSong = None
         self.voice_client: discord.VoiceClient = None
+        self.voiceChannel: discord.VoiceClient = None
         self.inactivity_task: asyncio.Task = None
 
         # Variables de control
@@ -94,24 +98,28 @@ class MusicPlayer(MediaPlayerStructure):
         await self.Messages.SkipMessage(ctx, skipedSongs)
         voice_client.stop()
 
-    async def join(self, ctx: ApplicationContext):
-        # Verificar si el autor del comando está en un canal de voz
-        if ctx.author.voice:
-            try:
-                # Unirse al canal de voz del autor
-                channel = ctx.author.voice.channel
-                voice_channel = await channel.connect()
+    async def JoinVoiceChannel(self, ctx: ApplicationContext):
+        if self.voice_client is None or not self.voice_client.is_connected():
+            if ctx.author.voice:
+                self.voiceChannel = ctx.author.voice.channel
+
+                self.voice_client = await self.voiceChannel.connect()
+
                 await self.Messages.JoinMessage(ctx)
-                return ctx.voice_client
-            except discord.ClientException:
-                await self.Messages.JoinMessage(ctx)
-                return ctx.voice_client
-            except Exception as e:
-                await self.Messages.JoinErrorMessage(ctx, e)
-                return None
+            else:
+                await self.Messages.JoinMissingChannelError(ctx)
+                raise Error("El usuario no está en un canal de voz válido al emitir el comando")
         else:
-            await self.Messages.JoinMissingChannelError(ctx)
-            return None
+            if ctx.author.voice:
+                self.voiceChannel = ctx.author.voice.channel
+
+                if self.voice_client and self.voice_client.channel != self.voiceChannel:
+                    await self.voice_client.move_to(self.voiceChannel)  # Mover al canal del autor
+
+                    await self.Messages.JoinMessage(ctx)
+            else:
+                await self.Messages.JoinMissingChannelError()
+                raise Error("El usuario no está en un canal de voz válido al emitir el comando")
 
     async def loop(self, ctx: ApplicationContext):
         self.is_loop = not self.is_loop
@@ -159,7 +167,6 @@ class MusicPlayer(MediaPlayerStructure):
     async def clear(self, ctx):
         self.Queue.clear()
 
-
         await self.Messages.ClearMessage(ctx)
 
     async def forceplay(self, ctx: ApplicationContext, url: str):
@@ -190,6 +197,7 @@ class MusicPlayer(MediaPlayerStructure):
             await self.Messages.AddSongsWaiting(ctx)
             result = await self.AddSongs(ctx, search)
             await self.Messages.AddedSongsMessage(ctx, result)
+            await self.PlayModule(ctx)
 
         # except Exception as e:
         #     print(e)
@@ -215,7 +223,7 @@ class MusicPlayer(MediaPlayerStructure):
 
         await self.PlaySound(video)
         await self.Messages.PlayMessage(ctx, video, self.Queue)
-        await self.DownloadSongs()
+        # await self.DownloadSongs()
 
         # except Exception as e:
         #     print(e)
@@ -224,15 +232,20 @@ class MusicPlayer(MediaPlayerStructure):
     # self.bot.loop.create_task(self.PlaySong(self.LastCtx)),
 
     async def PlaySound(self, video: SongBasic):
-
-        audio_source = FFmpegPCMAudio(video.download_path)
-        self.voice_client.play(audio_source, after=lambda e: (
-            self.bot.loop.create_task(
-                self.PlayModule(self.LastCtx)
-            ),
-            os.remove(video.download_path)
-        )
-                               )
+        # audio_source = FFmpegPCMAudio(video.download_path)
+        ydl_opts = {'format': 'bestaudio'}
+        FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(video.url, download=False)
+            url2 = info['formats'][0]['url']
+            self.voice_client.play(
+                discord.FFmpegPCMAudio(url2, **FFMPEG_OPTIONS), 
+                after=lambda e: (
+                        self.bot.loop.create_task(
+                        self.PlayModule(self.LastCtx)
+                    )
+                )
+            )
 
     async def JoinVoiceChannel(self, ctx: ApplicationContext):
         if self.voice_client is None or not self.voice_client.is_connected():
@@ -244,7 +257,7 @@ class MusicPlayer(MediaPlayerStructure):
                 await self.Messages.JoinMessage(ctx)
             else:
                 await self.Messages.JoinMissingChannelError(ctx)
-                raise UsuarioNoEnCanalDeVozError("El usuario no está en un canal de voz válido al emitir el comando")
+                raise Error("El usuario no está en un canal de voz válido al emitir el comando")
         else:
             if ctx.author.voice:
                 self.voiceChannel = ctx.author.voice.channel
@@ -255,7 +268,7 @@ class MusicPlayer(MediaPlayerStructure):
                     await self.Messages.JoinMessage(ctx)
             else:
                 await self.Messages.JoinMissingChannelError()
-                raise UsuarioNoEnCanalDeVozError("El usuario no está en un canal de voz válido al emitir el comando")
+                raise Error("El usuario no está en un canal de voz válido al emitir el comando")
 
     async def DownloadModule(self, video: SongBasic):
         ydl_opts = {
@@ -309,7 +322,7 @@ class MusicPlayer(MediaPlayerStructure):
         result = searchModule(ctx, search, self, ConfigMediaSearch.default())
 
         self.Queue.extend(result)
-        await self.DownloadSongs(result)
+        # await self.DownloadSongs(result)
 
         return result
 
@@ -333,14 +346,3 @@ class MusicPlayer(MediaPlayerStructure):
         self.semaphore = asyncio.Semaphore(3)
         self.tasks = []
 
-    def eliminar_archivos(carpeta="./temp"):
-        for nombre_archivo in os.listdir(carpeta):
-            archivo = os.path.join(carpeta, nombre_archivo)
-            try:
-                if os.path.isfile(archivo) or os.path.islink(archivo):
-                    os.unlink(archivo)
-                elif os.path.isdir(archivo):
-                    shutil.rmtree(archivo)
-                print("Archivo eliminado: %s" % archivo)
-            except Exception as e:
-                print('Error al eliminar %s. Razón: %s' % (archivo, e))
