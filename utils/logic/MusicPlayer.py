@@ -195,6 +195,7 @@ class MusicPlayer(MediaPlayerStructure):
         if search:
             await self.Messages.AddSongsWaiting(ctx)
             result = await self.AddSongs(ctx, search)
+            self.Queue.extend(result)
             await self.Messages.AddedSongsMessage(ctx, result)
             await self.PlayModule(ctx)
 
@@ -319,8 +320,6 @@ class MusicPlayer(MediaPlayerStructure):
     async def AddSongs(self, ctx: ApplicationContext, search: str):
 
         result = searchModule(ctx, search, self, ConfigMediaSearch.default())
-
-        self.Queue.extend(result)
         # await self.DownloadSongs(result)
 
         return result
