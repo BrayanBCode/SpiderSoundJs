@@ -1,6 +1,7 @@
 import threading
 import asyncio
 import discord
+import youtube_dl
 import yt_dlp
 
 import os
@@ -195,7 +196,6 @@ class MusicPlayer(MediaPlayerStructure):
         if search:
             await self.Messages.AddSongsWaiting(ctx)
             result = await self.AddSongs(ctx, search)
-            self.Queue.extend(result)
             await self.Messages.AddedSongsMessage(ctx, result)
             await self.PlayModule(ctx)
 
@@ -235,7 +235,7 @@ class MusicPlayer(MediaPlayerStructure):
         # audio_source = FFmpegPCMAudio(video.download_path)
         ydl_opts = {'format': 'bestaudio'}
         FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(video.url, download=False)
             url2 = info['formats'][0]['url']
             self.voice_client.play(
@@ -320,6 +320,8 @@ class MusicPlayer(MediaPlayerStructure):
     async def AddSongs(self, ctx: ApplicationContext, search: str):
 
         result = searchModule(ctx, search, self, ConfigMediaSearch.default())
+
+        self.Queue.extend(result)
         # await self.DownloadSongs(result)
 
         return result
