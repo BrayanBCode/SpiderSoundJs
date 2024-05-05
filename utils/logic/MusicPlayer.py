@@ -235,7 +235,7 @@ class MusicPlayer(MediaPlayerStructure):
         # audio_source = FFmpegPCMAudio(video.download_path)
         ydl_opts = {'format': 'bestaudio'}
         FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(video.url, download=False)
             url2 = info['formats'][0]['url']
             self.voice_client.play(
