@@ -1,10 +1,11 @@
 from utils.interface.SendEmbed import EmbeddedMessages
+from discord.ext import bridge
 import discord
 
 
 class MediaPlayerStructure:
     def __init__(self, bot, guild) -> None:
-        self.bot = bot
+        self.bot: bridge.bot = bot
         self.guild: discord.guild = guild
         self.Messages = EmbeddedMessages()
 

@@ -115,16 +115,19 @@ class MusicSlashCommands(commands.Cog):
             self.MusicInstances.add(MusicPlayer(self.bot, guild))
 
     @discord.Cog.listener()
-    async def on_voice_state_update(self, member, before, after):
-        if member == self.bot.user:
-            if after.channel is None:
-                print(f"---------- Protocolo de desconexión para el servidor '{before.channel.guild.name}' ----------")
-                await self.getintance(before.channel.guild.id).disconnectProtocol()
-            if after.channel is not None:
-                if before.channel is not after.channel:
-                    instance: MusicPlayer = self.getintance(after.channel.guild.id)
-                    print(f"{instance.guild.name}, Me movi del canal {before.channel} a {after.channel}")
-
+    async def on_voice_state_update(self, member, before: discord.VoiceState, after: discord.VoiceState):
+        
+        if before.channel is None and after.channel:
+            print(f"{member} se unio al canal de voz {after.channel} en {after.channel.guild.name}")
+            
+        if before.channel and after.channel is None:
+            print(f"{member} se desconecto del canal de voz {before.channel} en {before.channel.guild.name}")
+            
+        # (member == self.bot.user and after.channel is None) or 
+        if before.channel and before.channel.members:
+            if (len(before.channel.members) == 1 and self.bot.user in before.channel.members):
+                MediaPlayerInstance: MusicPlayer = self.getintance(before.channel.guild.id)
+                self.bot.loop.create_task(MediaPlayerInstance.disconnectProtocol(before.channel))
 
 def setup(bot):
     bot.add_cog(MusicSlashCommands(bot))

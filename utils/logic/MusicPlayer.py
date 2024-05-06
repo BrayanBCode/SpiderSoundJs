@@ -33,6 +33,7 @@ class MusicPlayer(MediaPlayerStructure):
 
         # Variables de control
         self.LockPlay: bool = True
+        self.disconnect_timer = False
         self.download_counter = 0
         self.contador = 0
         self.semaphore = asyncio.Semaphore(3)
@@ -40,26 +41,39 @@ class MusicPlayer(MediaPlayerStructure):
 
         print(f"Intancia de MusicPlayer creada para '{self.guild.name}'")
 
-    async def disconnectProtocol(self):
-        pass
-        # self.LockPlay = True
-        # self.Queue.clear()
-        # self.is_loop = False
-        # self.PlayingSong = None
-        # self.NextSong = None
-        # if self.voice_client.is_connected():
-        #     self.voice_client.disconnect()
-        #
-        # if self.voice_client.is_playing() or self.voice_client.is_paused():
-        #     self.voice_client.stop()
-        #
-        # if self.inactivity_task:
-        #     self.inactivity_task.cancel()
-        #
-        # if len(self.tasks) != 0:
-        #     for task in self.tasks:
-        #         task.cancel()
-
+    async def disconnectProtocol(self, channel):
+        
+        if self.disconnect_timer:
+            return
+        
+        if len(channel.members) == 1 or not self.voice_client.is_playing():
+            self.disconnect_timer = True
+            await asyncio.sleep(120)  # Espera 2 minutos
+            if len(channel.members) == 1 or not self.voice_client.is_playing():  # Si el bot es el único en el canal de voz
+                print(f"-- Protocolo de Desconexion para el servidor {self.guild.name} --")
+                self.disconnect_timer = False
+                
+                self.LockPlay = True
+                self.Queue.clear()
+                self.is_loop = False
+                self.PlayingSong = None
+                self.NextSong = None
+                
+                if self.voice_client.is_connected():
+                    await self.voice_client.disconnect()
+                
+                if self.voice_client.is_playing() or self.voice_client.is_paused():
+                    self.voice_client.stop()
+                
+                if self.inactivity_task:
+                    self.inactivity_task.cancel()
+                
+                if len(self.tasks) != 0:
+                    for task in self.tasks:
+                        task.cancel()
+            else:
+                self.disconnect_timer = False
+        
     def setStoped(self, check: bool):
         self.LockPlay = check
 
@@ -171,7 +185,7 @@ class MusicPlayer(MediaPlayerStructure):
 
     async def forceplay(self, ctx: ApplicationContext, url: str):
         AddMessage = await self.Messages.AddSongsWaiting(ctx)
-        result = await searchModule(ctx, url, self, ConfigMediaSearch.forcePlayConfig())
+        result = searchModule(ctx, url, self, ConfigMediaSearch.forcePlayConfig())
 
         self.Queue = result + self.Queue
         await self.Messages.AddedSongsMessage(AddMessage, result)
@@ -208,6 +222,7 @@ class MusicPlayer(MediaPlayerStructure):
         # try:
         if len(self.Queue) == 0:
             await self.Messages.QueueEmptyMessage(ctx)
+            self.bot.loop.create_task(self.disconnectProtocol(self.voice_client.channel))
             return
 
         if self.LockPlay:
