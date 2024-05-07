@@ -1,3 +1,4 @@
+from utils.logic.Song import SongBasic
 from utils.logic.Video_handlers.MediaHandler import MediaHandler
 from utils.logic.Video_handlers.YoutubeVideo import YoutubeVideo
 import discord
@@ -15,7 +16,7 @@ class YoutubePlaylist(MediaHandler):
         'skip_download': True,
         'writesubtitles': False,
         'writeautomaticsub': False,
-        'playlistend': 50,  # Solo se extraerán las primeras 25 canciones
+        'playlistend': 50, 
         'extract_flat': True,
     }
 
@@ -38,6 +39,7 @@ class YoutubePlaylist(MediaHandler):
         print('YoutubePlaylist: ', bool(coincidencias))
         return bool(coincidencias)
 
+
     def search(self, playlist_url, ctx):
         with yt_dlp.YoutubeDL(self.ydl_opts_Playlist) as ydl:
             try:
@@ -47,7 +49,19 @@ class YoutubePlaylist(MediaHandler):
                 else:
                     raise 
 
-                return [self.extract(song, ctx) for song in songs]
+                song_data = []
+                for song in songs:
+                    try:
+                        song_data.append(self.extract(song, ctx))
+                    except yt_dlp.utils.ExtractorError as e:
+                        print(f"Video restringido encontrado: {e}")
+                        song_data.append(SongBasic(title="None", artist="None", duration=0, thumbnail="None", avatar="None", author="None", id=0000, Error=str(e)))
+                    except yt_dlp.DownloadError as e:
+                        print(f"Error de descarga: {e}")
+                        song_data.append(SongBasic(title="None", artist="None", duration=0, thumbnail="None", avatar="None", author="None", id=0000, Error=str(e)))
 
-            except yt_dlp.DownloadError as e:
+                return song_data
+
+            except Exception as e:
+                print(f"Error general: {e}")
                 return []

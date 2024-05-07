@@ -133,7 +133,7 @@ class EmbeddedMessages:
         embed = Embed(description="⌛ Agregando canciones...", color=0x120062)
         return await self.SendFollowUp(ctx, embed)
 
-    async def AddedSongsMessage(self, ctx: ApplicationContext, Songs: list):
+    async def AddedSongsMessage(self, ctx: ApplicationContext, Songs: list, message):
         embed = Embed(title="🎵🗃️ Canciones agregadas a la cola", color=0x180081)
         for data in Songs:
             if isinstance(data, SongBasic) and len(embed.fields) < 2:
@@ -141,7 +141,18 @@ class EmbeddedMessages:
                 embed.add_field(name=f"``{data.title}`` de ``{data.artist}``",
                                 value=f"Duracion: {DurationFormat(data.duration)} - [Ver en Youtube]({data.url})")
         embed.set_footer(text=f"Se agregaron {len(Songs[:-2])} mas.")
-        await ctx.edit(embed=embed)
+        await message.edit(embed=embed)
+        
+    async def AddedSongsErrorMessage(self, ctx: ApplicationContext, Songs: list, message):
+        embed = Embed(title="🎵⛔ Canciones no agregadas a la cola", color=0xff0000)
+        for data in Songs:
+            if isinstance(data, SongBasic) and len(embed.fields) < 2:
+                data: SongBasic = data
+                embed.add_field(name=f"``{data.title}`` de ``{data.artist}``",
+                                value=f"Duracion: {DurationFormat(data.duration)} - [Ver en Youtube]({data.url})")
+        embed.set_footer(text=f"Se agregaron {len(Songs[:-2])} mas.")
+        await ctx.send(embed=embed)
+        
 
     async def AddSongsError(self, ctx: ApplicationContext):
         await self.SendFollowUp(ctx, Embed(description="Error de busqueda contacte con el soporte"))

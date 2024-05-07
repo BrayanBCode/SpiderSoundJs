@@ -22,8 +22,7 @@ class SongData():
 
 
 class SongBasic:
-    def __init__(self, title: str, artist: str, duration, thumbnail: str, avatar: str, author: str, id: int,
-                 download_path: str = None) -> None:
+    def __init__(self, title: str, artist: str, duration, thumbnail: str, avatar: str, author: str, id: int) -> None:
 
         self.title = self.cleanTitle(title)
         self.artist = artist
@@ -31,9 +30,9 @@ class SongBasic:
         self.thumbnail = thumbnail
         self.avatar = avatar
         self.author = author
-        self.download_path = download_path
         self.url = f"https://www.youtube.com/watch?v={id}"
         self.id = id
+        self.Error = None
 
     def __str__(self):
         return (
@@ -43,7 +42,6 @@ class SongBasic:
             f"thumbnail: {self.thumbnail}\n"
             f"avatar: {self.avatar}\n"
             f"author: {self.author}\n"
-            f"download_path: {self.download_path}\n"
             f"url: {self.url}\n"
             f"id: {self.id}\n"
         )
