@@ -37,6 +37,7 @@ class YoutubeVideo(MediaHandler):
             try:
                 result = ydl.extract_info(search, download=False)
                 Song = [self.extract(result, ctx)]
+                            
                 return Song
             except yt_dlp.utils.ExtractorError as e:
                 print(f"Video restringido encontrado: {e}")

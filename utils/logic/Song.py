@@ -22,7 +22,7 @@ class SongData():
 
 
 class SongBasic:
-    def __init__(self, title: str, artist: str, duration, thumbnail: str, avatar: str, author: str, id: int) -> None:
+    def __init__(self, title: str, artist: str, duration, thumbnail: str, avatar: str, author: str, id: int, Error: str = None) -> None:
 
         self.title = self.cleanTitle(title)
         self.artist = artist
@@ -32,7 +32,7 @@ class SongBasic:
         self.author = author
         self.url = f"https://www.youtube.com/watch?v={id}"
         self.id = id
-        self.Error = None
+        self.Error = Error
 
     def __str__(self):
         return (

@@ -81,9 +81,8 @@ class MusicPlayer(MediaPlayerStructure):
         return self.Queue
 
     async def Stop(self, ctx: ApplicationContext):
-        voice_client: discord.VoiceClient = ctx.voice_client
-        if not voice_client:
-            voice_client.stop()
+        if self.voice_client.is_playing():
+            self.voice_client.stop()
             await self.Messages.StopMessage(ctx)
             return
 
@@ -211,23 +210,25 @@ class MusicPlayer(MediaPlayerStructure):
             
             msg = await self.Messages.AddSongsWaiting(ctx)
             result = await self.AddSongs(ctx, search)
+            await self.Messages.AddSongsDelete(msg)
             
             tempQueue = result.copy()
             Errors = []
             
             for error in result:
-                if error.Error:
+                if error.Error is not None:
                     print(error)
                     Errors.append(error)
                     tempQueue.remove(error)
             
             self.Queue.extend(tempQueue)
             
-            await self.Messages.AddedSongsMessage(ctx, result, msg)
             if len(Errors) > 0:
                 await self.Messages.AddedSongsErrorMessage(ctx, Errors)
             
-            await self.PlayModule(ctx)
+            if len(tempQueue) > 0:
+                await self.Messages.AddedSongsMessage(ctx, tempQueue)
+                await self.PlayModule(ctx)
 
         # except Exception as e:
         #     print(e)

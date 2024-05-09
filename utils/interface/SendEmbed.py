@@ -131,9 +131,9 @@ class EmbeddedMessages:
 
     async def AddSongsWaiting(self, ctx: ApplicationContext):
         embed = Embed(description="⌛ Agregando canciones...", color=0x120062)
-        return await self.SendFollowUp(ctx, embed)
+        return await self.SendFollowUp(ctx, embed, True)
 
-    async def AddedSongsMessage(self, ctx: ApplicationContext, Songs: list, message):
+    async def AddedSongsMessage(self, ctx: ApplicationContext, Songs: list):
         embed = Embed(title="🎵🗃️ Canciones agregadas a la cola", color=0x180081)
         for data in Songs:
             if isinstance(data, SongBasic) and len(embed.fields) < 2:
@@ -141,16 +141,16 @@ class EmbeddedMessages:
                 embed.add_field(name=f"``{data.title}`` de ``{data.artist}``",
                                 value=f"Duracion: {DurationFormat(data.duration)} - [Ver en Youtube]({data.url})")
         embed.set_footer(text=f"Se agregaron {len(Songs[:-2])} mas.")
-        await message.edit(embed=embed)
         
-    async def AddedSongsErrorMessage(self, ctx: ApplicationContext, Songs: list, message):
-        embed = Embed(title="🎵⛔ Canciones no agregadas a la cola", color=0xff0000)
-        for data in Songs:
-            if isinstance(data, SongBasic) and len(embed.fields) < 2:
-                data: SongBasic = data
-                embed.add_field(name=f"``{data.title}`` de ``{data.artist}``",
-                                value=f"Duracion: {DurationFormat(data.duration)} - [Ver en Youtube]({data.url})")
-        embed.set_footer(text=f"Se agregaron {len(Songs[:-2])} mas.")
+        await ctx.send(embed=embed)
+        
+    async def AddSongsDelete(self, msg: discord.Message):
+        await msg.delete()
+        
+        
+    async def AddedSongsErrorMessage(self, ctx: ApplicationContext, Errors: list):
+        embed = Embed(title=f"🎵⛔ No se agregaron {len(Errors)} canciones", color=0xff0000)
+        embed.add_field(name="¿Por que?", value="Las canciones o videos que se encontraron estan sujetos a derechos de autor o estan restringidos.")
         await ctx.send(embed=embed)
         
 
@@ -174,8 +174,9 @@ class EmbeddedMessages:
     async def RemoveLenghtError(self, ctx: ApplicationContext):
         await self.SendFollowUp(ctx, Embed(description="No hay canciones en esa posición"))
 
-    async def SendFollowUp(self, ctx: ApplicationContext, embed):
+    async def SendFollowUp(self, ctx: ApplicationContext, embed: discord.Embed, ephemeral: bool = False):
         try:
+            # , ephemeral=ephemeral, delete_after=15
             return await ctx.followup.send(embed=embed)
         except Exception as e:
             return await ctx.send(embed=embed)
