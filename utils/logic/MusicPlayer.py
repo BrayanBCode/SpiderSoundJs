@@ -279,8 +279,7 @@ class MusicPlayer(MediaPlayerStructure):
                     )
                 )
         except Exception as e:
-            await self.PlayModule(self.LastCtx)
-
+            pass
     async def JoinVoiceChannel(self, ctx: ApplicationContext):
         if self.voice_client is None or not self.voice_client.is_connected():
             if ctx.author.voice:
