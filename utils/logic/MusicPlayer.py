@@ -263,20 +263,23 @@ class MusicPlayer(MediaPlayerStructure):
     # self.bot.loop.create_task(self.PlaySong(self.LastCtx)),
 
     async def PlaySound(self, video: SongBasic):
-        # audio_source = FFmpegPCMAudio(video.download_path)
-        ydl_opts = {'format': 'bestaudio'}
-        FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(video.url, download=False)
-            url2 = info['formats'][0]['url']
-            self.voice_client.play(
-                discord.FFmpegPCMAudio(url2, **FFMPEG_OPTIONS), 
-                after=lambda e: (
-                        self.bot.loop.create_task(self.PlayModule(self.LastCtx)),
-                        self.Queue.append(video) if self.is_loop else None
-                        
+        try:
+            # audio_source = FFmpegPCMAudio(video.download_path)
+            ydl_opts = {'format': 'bestaudio'}
+            FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
+            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(video.url, download=False)
+                url2 = info['formats'][0]['url']
+                self.voice_client.play(
+                    discord.FFmpegPCMAudio(url2, **FFMPEG_OPTIONS), 
+                    after=lambda e: (
+                            self.bot.loop.create_task(self.PlayModule(self.LastCtx)),
+                            self.Queue.append(video) if self.is_loop else None
+                            
+                    )
                 )
-            )
+        except Exception as e:
+            await self.PlayModule(self.LastCtx)
 
     async def JoinVoiceChannel(self, ctx: ApplicationContext):
         if self.voice_client is None or not self.voice_client.is_connected():
