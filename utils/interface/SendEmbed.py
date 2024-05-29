@@ -2,9 +2,8 @@ import discord
 from discord import Embed
 from utils.logic import structure
 from discord.commands.context import ApplicationContext
-import yt_dlp as youtube_dl
 from utils.interface.QueuePagination import PaginationView as QueueView
-from utils.logic.Song import SongBasic
+from utils.logic.Song import SongInfo
 
 HelpList = [
     ('/play',
@@ -31,7 +30,7 @@ class EmbeddedMessages:
 
         self.HelpEmbed = embed
 
-    # async def PlayMessage(self, ctx: ApplicationContext, video: SongBasic, Queue: list):
+    # async def PlayMessage(self, ctx: ApplicationContext, video: SongInfo, Queue: list):
     #     embed = Embed(title="Reproduciendo🎧", color=0x120062)
     #     embed.add_field(name=f"**{video.title}**", value=f"**{video.artist}**", inline=True)
     #     embed.add_field(name="|", value="", inline=True)
@@ -43,7 +42,7 @@ class EmbeddedMessages:
     #
     #     return await self.SendFollowUp(ctx, embed)
 
-    async def PlayMessage(self, ctx: ApplicationContext, video: SongBasic, Queue: list):
+    async def PlayMessage(self, ctx: ApplicationContext, video: SongInfo, Queue: list):
 
         embed = Embed(title="Sonando 🎧", color=0x120062)
         embed.add_field(name="", value=f"**[{video.title}]({video.url})**", inline=False)
@@ -73,14 +72,14 @@ class EmbeddedMessages:
     async def SkipMessage(self, ctx: ApplicationContext, SkipedSongs: list):
         embed = Embed(title="Canciones saltadas.")
         for data in SkipedSongs:
-            if isinstance(data, SongBasic) and len(embed.fields) < 2:
-                data: SongBasic = data
+            if isinstance(data, SongInfo) and len(embed.fields) < 2:
+                data: SongInfo = data
                 embed.add_field(name=f"``{data.title}`` de ``{data.artist}``",
                                 value=f"Duracion: {DurationFormat(data.duration)} - [Ver en Youtube]({data.url})")
         embed.set_footer(text=f"Se saltaron {len(SkipedSongs[:-2])} mas.")
         await self.SendFollowUp(ctx, embed)
 
-    async def RemoveMessage(self, ctx: ApplicationContext, RemovedSong: SongBasic):
+    async def RemoveMessage(self, ctx: ApplicationContext, RemovedSong: SongInfo):
         embed = Embed(title="Cancion removida.", color=0x120062)
         embed.add_field(name=f"{RemovedSong.title}", value=f"{RemovedSong.artist}", inline=True)
         embed.add_field(name=f"Duracion: {DurationFormat(RemovedSong.duration)}",
@@ -136,8 +135,8 @@ class EmbeddedMessages:
     async def AddedSongsMessage(self, ctx: ApplicationContext, Songs: list):
         embed = Embed(title="🎵🗃️ Canciones agregadas a la cola", color=0x180081)
         for data in Songs:
-            if isinstance(data, SongBasic) and len(embed.fields) < 2:
-                data: SongBasic = data
+            if isinstance(data, SongInfo) and len(embed.fields) < 2:
+                data: SongInfo = data
                 embed.add_field(name=f"``{data.title}`` de ``{data.artist}``",
                                 value=f"Duracion: {DurationFormat(data.duration)} - [Ver en Youtube]({data.url})")
         embed.set_footer(text=f"Se agregaron {len(Songs[:-2])} mas.")

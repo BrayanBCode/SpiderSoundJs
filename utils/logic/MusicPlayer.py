@@ -1,24 +1,21 @@
-import threading
 import asyncio
 import discord
-import youtube_dl
 import yt_dlp
 
 import os
 
 from discord.commands.context import ApplicationContext
-from discord import FFmpegPCMAudio, Embed
+from discord import Embed
 from dotenv import load_dotenv
 
 from utils.logic.Video_handlers.Search_handler import searchModule
 from utils.logic.structure import MediaPlayerStructure, PlayingSong
 from utils.logic.config import ConfigMediaSearch
-from utils.logic.Song import SongBasic
+from utils.logic.Song import SongInfo
 from utils.logic.ThrowError import Error
 
 load_dotenv()
 api_key = os.getenv('YT_KEY')
-
 
 class MusicPlayer(MediaPlayerStructure):
     def __init__(self, bot, guild) -> None:
@@ -73,7 +70,7 @@ class MusicPlayer(MediaPlayerStructure):
                         task.cancel()
             else:
                 self.disconnect_timer = False
-        
+    
     def setStoped(self, check: bool):
         self.LockPlay = check
 
@@ -182,25 +179,40 @@ class MusicPlayer(MediaPlayerStructure):
 
         await self.Messages.ClearMessage(ctx)
 
-    async def forceplay(self, ctx: ApplicationContext, url: str):
-        AddMessage = await self.Messages.AddSongsWaiting(ctx)
-        result = searchModule(ctx, url, self, ConfigMediaSearch.forcePlayConfig())
-
-        self.Queue = result + self.Queue
-        await self.Messages.AddedSongsMessage(AddMessage, result)
-
-        if self.voice_client is None:
-            self.voice_client = await self.join(ctx)
-
-        if self.voice_client.is_playing():
+    async def forceplay(self, ctx: ApplicationContext, search: str):
+        
+        await self.JoinVoiceChannel(ctx)
+        
+        self.LastCtx = ctx
+        
+        msg = await self.Messages.AddSongsWaiting(ctx)
+        result = await self.AddSongs(ctx, search)
+        await self.Messages.AddSongsDelete(msg)
+        
+        tempQueue = result.copy()
+        Errors = []
+        
+        for error in result:
+            if error.Error is not None:
+                print(error)
+                Errors.append(error)
+                tempQueue.remove(error)
+                
+        self.Queue.extend(tempQueue)
+        
+        if len(Errors) > 0:
+            await self.Messages.AddedSongsErrorMessage(ctx, Errors)
+        
+        if len(tempQueue) > 0:
+            await self.Messages.AddedSongsMessage(ctx, tempQueue)
             self.voice_client.stop()
-            return
-
-        if self.voice_client:
-            await self.PlaySong(ctx)
+            await self.PlayModule(ctx)
+            self.setStoped(False)
+                
+                
+            
 
     async def PlayInput(self, ctx: ApplicationContext, search):
-        # try:
 
         await self.JoinVoiceChannel(ctx)
 
@@ -230,12 +242,7 @@ class MusicPlayer(MediaPlayerStructure):
                 await self.Messages.AddedSongsMessage(ctx, tempQueue)
                 await self.PlayModule(ctx)
 
-        # except Exception as e:
-        #     print(e)
-        #     await self.Messages.SendFollowUp(ctx, Embed(description=f"Error: {e}"))
-
     async def PlayModule(self, ctx):
-        print("PlayModule")
         try:
             if len(self.Queue) == 0:
                 await self.Messages.QueueEmptyMessage(ctx)
@@ -251,7 +258,7 @@ class MusicPlayer(MediaPlayerStructure):
             if self.voice_client.is_paused():
                 return
 
-            video: SongBasic = self.Queue.pop(0)
+            video: SongInfo = self.Queue.pop(0)
 
             await self.PlaySound(video)
             await self.Messages.PlayMessage(ctx, video, self.Queue)
@@ -262,26 +269,33 @@ class MusicPlayer(MediaPlayerStructure):
 
     # self.bot.loop.create_task(self.PlaySong(self.LastCtx)),
 
-    async def PlaySound(self, video: SongBasic):
+    async def PlaySound(self, video: SongInfo):
         try:
+            
+            url = video.webPlayer if video.webPlayer is None else video.webPlayer
+
+                
             # audio_source = FFmpegPCMAudio(video.download_path)
-            ydl_opts = {'format': 'bestaudio'}
             FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(video.url, download=False)
-                url2 = info['url']
-                    
-                self.voice_client.play(
-                    discord.FFmpegPCMAudio(url2, **FFMPEG_OPTIONS), 
-                    after=lambda e: (
-                            self.bot.loop.create_task(self.PlayModule(self.LastCtx)),
-                            self.Queue.append(video) if self.is_loop else None
-                            
-                    )
+            self.voice_client.play(
+                discord.FFmpegPCMAudio(url, **FFMPEG_OPTIONS), 
+                after=lambda e: (
+                        self.bot.loop.create_task(self.PlayModule(self.LastCtx)),
+                        self.Queue.append(video) if self.is_loop else None
                 )
+            )
         except Exception as e:
             print(e)
             await self.PlayModule(self.LastCtx)
+    
+    def extractUrlPlayer(video: SongInfo):
+        try:
+            ydl_opts = {'format': 'bestaudio'}
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(video.url, download=False)
+                return info['url']
+        except Exception as e:
+            return e
 
     async def JoinVoiceChannel(self, ctx: ApplicationContext):
         if self.voice_client is None or not self.voice_client.is_connected():
@@ -306,7 +320,35 @@ class MusicPlayer(MediaPlayerStructure):
                 await self.Messages.JoinMissingChannelError()
                 raise Error("El usuario no está en un canal de voz válido al emitir el comando")
 
-    # async def DownloadModule(self, video: SongBasic):
+    async def AddSongs(self, ctx: ApplicationContext, search: str) -> list:
+
+        result = searchModule(ctx, search, self, ConfigMediaSearch.default())
+
+        # await self.DownloadSongs(result)
+
+        return result
+
+    def restart(self):
+        self.voice_client.disconnect()
+        if len(self.tasks) != 0:
+            for task in self.Tasks:
+                task.cancel()
+
+        self.Queue: list = []
+        self.is_loop: bool = False
+        self.LastCtx: ApplicationContext = None
+        self.PlayingSong: PlayingSong = None
+        self.voice_client: discord.VoiceClient = None
+        self.inactivity_task: asyncio.Task = None
+
+        # Variables de control
+        self.LockPlay: bool = True
+        self.download_counter = 0
+        self.contador = 0
+        self.semaphore = asyncio.Semaphore(3)
+        self.tasks = []
+
+    # async def DownloadModule(self, video: SongInfo):
     #     ydl_opts = {
     #         'api_key': api_key,
     #         'quiet': False,
@@ -346,39 +388,9 @@ class MusicPlayer(MediaPlayerStructure):
     #         count = 0
     #         for item in lista[:3]:
     #             print("DownloadSongs - iteracion:", item)
-    #             item: SongBasic
+    #             item: SongInfo
     #             print(item.title, item.download_path)
     #             if item.download_path is None:
     #                 print("self.tasks.append(asyncio.create_task(self.DownloadModule(item)))")
     #                 item.download_path = "temp/untitled.txt"
     #                 self.tasks.append(asyncio.create_task(self.DownloadModule(item)))
-
-    async def AddSongs(self, ctx: ApplicationContext, search: str):
-
-        result = searchModule(ctx, search, self, ConfigMediaSearch.default())
-
-        
-        # await self.DownloadSongs(result)
-
-        return result
-
-    def restart(self):
-        self.voice_client.disconnect()
-        if len(self.tasks) != 0:
-            for task in self.Tasks:
-                task.cancel()
-
-        self.Queue: list = []
-        self.is_loop: bool = False
-        self.LastCtx: ApplicationContext = None
-        self.PlayingSong: PlayingSong = None
-        self.voice_client: discord.VoiceClient = None
-        self.inactivity_task: asyncio.Task = None
-
-        # Variables de control
-        self.LockPlay: bool = True
-        self.download_counter = 0
-        self.contador = 0
-        self.semaphore = asyncio.Semaphore(3)
-        self.tasks = []
-

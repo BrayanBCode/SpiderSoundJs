@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import math
 from discord.commands.context import ApplicationContext
-from utils.logic.Song import SongBasic
+from utils.logic.Song import SongInfo
 
 
 class PaginationView(discord.ui.View):
@@ -19,7 +19,7 @@ class PaginationView(discord.ui.View):
         total_pages = math.ceil(len(self.data) / self.sep)
         embed = discord.Embed(title=f"Cola de reproduccion - Pagina {self.current_page} / {total_pages}", color=0x120062)
         for i, item in enumerate(data, start=(self.current_page - 1) * self.sep + 1):
-            item : SongBasic
+            item : SongInfo
             embed.add_field(name=f"{i}. {item.title}", value=f"{item.artist} - {DurationFormat(item.duration)}", inline=False)
         return embed
 

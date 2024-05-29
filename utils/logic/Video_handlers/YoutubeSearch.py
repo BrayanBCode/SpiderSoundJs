@@ -1,5 +1,5 @@
 from utils.logic.Video_handlers.MediaHandler import MediaHandler
-from utils.logic.Song import SongBasic
+from utils.logic.Song import SongInfo
 
 import yt_dlp
 
@@ -31,10 +31,10 @@ class YoutubeSearch(MediaHandler):
                         Song.append(self.extract(song, ctx))
                     except yt_dlp.utils.ExtractorError as e:
                         print(f"Video restringido encontrado: {e}")
-                        Song.append(SongBasic(title="None", artist="None", duration=0, thumbnail="None", avatar="None", author="None", id=0000, Error=str(e)))
+                        Song.append(SongInfo(title="None", artist="None", duration=0, thumbnail="None", avatar="None", author="None", id=0000, Error=str(e)))
                     except yt_dlp.DownloadError as e:
                         print(f"Error de descarga: {e}")
-                        Song.append(SongBasic(title="None", artist="None", duration=0, thumbnail="None", avatar="None", author="None", id=0000, Error=str(e)))
+                        Song.append(SongInfo(title="None", artist="None", duration=0, thumbnail="None", avatar="None", author="None", id=0000, Error=str(e)))
                 return Song
             except Exception as e:
                 print(f"Error general: {e}")

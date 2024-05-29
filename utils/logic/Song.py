@@ -1,28 +1,7 @@
-import yt_dlp
 import re
 
-
-class SongData():
-    def __init__(self, video_url) -> None:
-        ydl_opts = {
-            'quiet': True,
-            'no_warnings': True,
-            'forcedescription': True,
-            'forcejson': True,
-            'nocheckcertificate': True,
-        }
-
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            self.info = ydl.extract_info(video_url, download=False)
-
-            self.title = self.info.get('title', 'Canción sin título')
-            self.artist = self.info.get('artist', 'Artista desconocido')
-            self.duration = self.info.get('duration', 'Duración desconocida')
-            self.thumbnail = self.info.get('thumbnail', 'Sin foto de portada')
-
-
-class SongBasic:
-    def __init__(self, title: str, artist: str, duration, thumbnail: str, avatar: str, author: str, id: int, Error: str = None) -> None:
+class SongInfo:
+    def __init__(self, title: str, artist: str, duration, thumbnail: str, avatar: str, author: str, id: int, webPlayer: str = None, Error: str = None) -> None:
 
         self.title = self.cleanTitle(title)
         self.artist = artist
@@ -32,6 +11,7 @@ class SongBasic:
         self.author = author
         self.url = f"https://www.youtube.com/watch?v={id}"
         self.id = id
+        self.webPlayer = webPlayer
         self.Error = Error
 
     def __str__(self):
@@ -44,6 +24,8 @@ class SongBasic:
             f"author: {self.author}\n"
             f"url: {self.url}\n"
             f"id: {self.id}\n"
+            f"webPlayer: {self.webPlayer}\n"
+            f"Error: {self.Error}\n"
         )
 
     @staticmethod

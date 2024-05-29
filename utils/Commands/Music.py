@@ -21,7 +21,7 @@ class MusicSlashCommands(commands.Cog):
 
     @discord.slash_command(name="play", description="Agrega y reproduce musica desde YT")
     @option('search', str, description="Nombre o url de la cancion")
-    async def play(self, ctx: ApplicationContext, search: str):
+    async def play(self, ctx: ApplicationContext, search: str = None):
         await ctx.defer()
         MediaPlayerInstance: MusicPlayer = self.getintance(ctx.guild.id)
         MediaPlayerInstance.setStoped(False)
@@ -89,13 +89,13 @@ class MusicSlashCommands(commands.Cog):
     async def join(self, ctx: ApplicationContext):
         await ctx.defer()
         MediaPlayerInstance: MusicPlayer = self.getintance(ctx.guild.id)
-        await MediaPlayerInstance.join(ctx)
+        await MediaPlayerInstance.JoinVoiceChannel(ctx)
 
     @discord.slash_command(name="forceplay", description="salta una o mas canciones")
     async def forceplay(self, ctx: ApplicationContext, url: str):
         await ctx.defer()
         MediaPlayerInstance: MusicPlayer = self.getintance(ctx.guild.id)
-        MediaPlayerInstance.setStoped(False)
+        MediaPlayerInstance.setStoped(True)
         await MediaPlayerInstance.forceplay(ctx, url)
 
     @discord.slash_command(name="restart", description="En caso de falla este comando resetea por defecto los valores "

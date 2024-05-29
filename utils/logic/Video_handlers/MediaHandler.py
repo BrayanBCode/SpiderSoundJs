@@ -3,7 +3,7 @@ import re
 import os
 # import spotipy
 
-from utils.logic.Song import SongBasic
+from utils.logic.Song import SongInfo
 from utils.logic import structure
 
 
@@ -34,6 +34,11 @@ class MediaHandler:
 
     @staticmethod
     def extract(song, ctx):
+        
+        # with open("output.txt", "w", encoding="utf-8") as file:
+        #     file.write(str(song))
+        #     print("Se escribio wacho")
+        
         defaultImg = "https://salonlfc.com/wp-content/uploads/2018/01/image-not-found-scaled-1150x647.png"
 
         # Intenta obtener la miniatura directamente desde 'thumbnail'
@@ -45,13 +50,14 @@ class MediaHandler:
             if thumbnails:
                 thumbnail = thumbnails[0].get('url', 'Sin foto de portada')
 
-        return SongBasic(
+        return SongInfo(
             title=song.get('title', 'Canción sin título'),
             artist=song.get('uploader', 'Artista desconocido'),
             duration=song.get('duration', 0),
             thumbnail=thumbnail,
-            avatar=ctx.author.avatar,
-            author=ctx.author.nick if ctx.author.nick else ctx.author.name,
+            avatar="ctx.author.avatar",
+            author="ctx.author.nick if ctx.author.nick else ctx.author.name",
+            webPlayer=song['requested_formats'][1].get('url', 'Not Found') if 'requested_formats' in song else None,
             id=song.get('id')
         )
 
