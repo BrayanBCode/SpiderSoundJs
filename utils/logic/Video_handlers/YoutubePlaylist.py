@@ -1,10 +1,6 @@
 from utils.logic.Song import SongInfo
 from utils.logic.Video_handlers.MediaHandler import MediaHandler
-from utils.logic.Video_handlers.YoutubeVideo import YoutubeVideo
-import discord
-from discord import Embed
 from discord.commands.context import ApplicationContext
-from discord import Embed
 import re
 import yt_dlp
 
@@ -15,7 +11,7 @@ class YoutubePlaylist(MediaHandler):
         'skip_download': True,
         'writesubtitles': False,
         'writeautomaticsub': False,
-        'playlistend': 3, 
+        'playlistend': 50, 
         'extract_flat': True,
     }
 

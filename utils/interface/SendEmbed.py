@@ -7,7 +7,8 @@ from utils.logic.Song import SongInfo
 
 HelpList = [
     ('/play',
-     'Reporducir musica, escribe el nombre de la canción, el artista o la URL de la canción que desees escuchar, se admiten playlist de Spotify.'),
+     'Reporducir musica, escribe el nombre de la canción, el artista o la URL de la canción que desees escuchar, se admiten playlist y mix de YT.'),
+    ('/forceplay', 'Lo mismo que play pero reproduce de manera inmediata la cancion o playlist agragada'),
     ('/pause', 'Pausa la reproduccion de la musica'),
     ('/resume', 'Reanuda la reproduccion de la musica'),
     ('/stop', 'Detiene la reproduccion de la musica'),
@@ -139,7 +140,8 @@ class EmbeddedMessages:
                 data: SongInfo = data
                 embed.add_field(name=f"``{data.title}`` de ``{data.artist}``",
                                 value=f"Duracion: {DurationFormat(data.duration)} - [Ver en Youtube]({data.url})")
-        embed.set_footer(text=f"Se agregaron {len(Songs[:-2])} mas.")
+        print(len(Songs[:-2]))
+        embed.set_footer(text=f"Y se agregaron {len(Songs[:-2])} mas.")
         
         await ctx.send(embed=embed)
         
@@ -173,7 +175,7 @@ class EmbeddedMessages:
     async def RemoveLenghtError(self, ctx: ApplicationContext):
         await self.SendFollowUp(ctx, Embed(description="No hay canciones en esa posición"))
 
-    async def SendFollowUp(self, ctx: ApplicationContext, embed: discord.Embed, ephemeral: bool = False):
+    async def SendFollowUp(self, ctx: ApplicationContext, embed: discord.Embed, ephemeral: bool = False) -> discord.Message:
         try:
             # , ephemeral=ephemeral, delete_after=15
             return await ctx.followup.send(embed=embed)

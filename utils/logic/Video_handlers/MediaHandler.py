@@ -55,8 +55,8 @@ class MediaHandler:
             artist=song.get('uploader', 'Artista desconocido'),
             duration=song.get('duration', 0),
             thumbnail=thumbnail,
-            avatar="ctx.author.avatar",
-            author="ctx.author.nick if ctx.author.nick else ctx.author.name",
+            avatar=ctx.author.avatar,
+            author=ctx.author.nick if ctx.author.nick else ctx.author.name,
             webPlayer=song['requested_formats'][1].get('url', 'Not Found') if 'requested_formats' in song else None,
             id=song.get('id')
         )

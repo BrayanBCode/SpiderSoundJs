@@ -1,5 +1,3 @@
-import discord
-from utils.logic import structure
 from discord.ext import bridge, commands
 from utils.interface.SendEmbed import EmbeddedMessages
 

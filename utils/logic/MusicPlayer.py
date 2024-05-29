@@ -1,11 +1,12 @@
 import asyncio
 import discord
 import yt_dlp
+import json
 
 import os
 
 from discord.commands.context import ApplicationContext
-from discord import Embed
+from discord import FFmpegPCMAudio, Embed
 from dotenv import load_dotenv
 
 from utils.logic.Video_handlers.Search_handler import searchModule
@@ -198,7 +199,7 @@ class MusicPlayer(MediaPlayerStructure):
                 Errors.append(error)
                 tempQueue.remove(error)
                 
-        self.Queue.extend(tempQueue)
+        self.Queue[0:0] = tempQueue
         
         if len(Errors) > 0:
             await self.Messages.AddedSongsErrorMessage(ctx, Errors)
@@ -243,42 +244,39 @@ class MusicPlayer(MediaPlayerStructure):
                 await self.PlayModule(ctx)
 
     async def PlayModule(self, ctx):
-        try:
-            if len(self.Queue) == 0:
-                await self.Messages.QueueEmptyMessage(ctx)
-                self.bot.loop.create_task(self.disconnectProtocol(self.voice_client.channel))
-                return
+        # try:
+        if len(self.Queue) == 0:
+            await self.Messages.QueueEmptyMessage(ctx)
+            self.bot.loop.create_task(self.disconnectProtocol(self.voice_client.channel))
+            return
 
-            if self.LockPlay:
-                return
+        if self.LockPlay:
+            return
 
-            if self.voice_client.is_playing():
-                return
+        if self.voice_client.is_playing():
+            return
 
-            if self.voice_client.is_paused():
-                return
+        if self.voice_client.is_paused():
+            return
 
-            video: SongInfo = self.Queue.pop(0)
+        video: SongInfo = self.Queue.pop(0)
 
-            await self.PlaySound(video)
-            await self.Messages.PlayMessage(ctx, video, self.Queue)
+        await self.PlaySound(video)
+        await self.Messages.PlayMessage(ctx, video, self.Queue)
         
-        except Exception as e:
-            print(e)
-            await self.Messages.SendFollowUp(ctx, Embed(description=f"Error: {e}"))
+        # except Exception as e:
+        #     print(e)
+        #     await self.Messages.SendFollowUp(ctx, Embed(description=f"Error: {e}"))
 
     # self.bot.loop.create_task(self.PlaySong(self.LastCtx)),
 
     async def PlaySound(self, video: SongInfo):
         try:
             
-            url = video.webPlayer if video.webPlayer is None else video.webPlayer
-
-                
-            # audio_source = FFmpegPCMAudio(video.download_path)
+            video.webPlayer = video.webPlayer if video.webPlayer is not None else await self.extractUrlPlayer(video)
             FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
             self.voice_client.play(
-                discord.FFmpegPCMAudio(url, **FFMPEG_OPTIONS), 
+                discord.FFmpegPCMAudio(video.webPlayer, **FFMPEG_OPTIONS), 
                 after=lambda e: (
                         self.bot.loop.create_task(self.PlayModule(self.LastCtx)),
                         self.Queue.append(video) if self.is_loop else None
@@ -288,14 +286,15 @@ class MusicPlayer(MediaPlayerStructure):
             print(e)
             await self.PlayModule(self.LastCtx)
     
-    def extractUrlPlayer(video: SongInfo):
+    async def extractUrlPlayer(self, video: SongInfo):
         try:
-            ydl_opts = {'format': 'bestaudio'}
+            ydl_opts = {'format': 'bestaudio', 'quiet': True}
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(video.url, download=False)
                 return info['url']
         except Exception as e:
-            return e
+            print(f"An error occurred: {e}")
+            return None  # Retorna None en caso de excepción
 
     async def JoinVoiceChannel(self, ctx: ApplicationContext):
         if self.voice_client is None or not self.voice_client.is_connected():
