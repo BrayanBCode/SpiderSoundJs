@@ -4,6 +4,11 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+py-cord = "*"
+ffmpeg-python = "*"
+yt-dlp = "*"
+pynacl = "*"
+python-dotenv = "*"
 
 [dev-packages]
 

@@ -168,6 +168,7 @@ class MusicPlayer(PlayerStructure):
 
         await self.Messages.SkipMessage(ctx, skipedSongs)  # Enviar mensaje de las canciones saltadas.
         voice_client.stop()
+        
     async def JoinVoiceChannel(self, ctx: ApplicationContext):
         """
         Conecta el bot a un canal de voz.
