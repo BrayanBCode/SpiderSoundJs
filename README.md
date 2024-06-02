@@ -1,6 +1,9 @@
 # Araña Sound Development
 ![logo](https://github.com/BrayanBCode/SpiderBot/assets/134159765/527b4a22-a501-4ba1-b2bf-d7eefd0e9fa4)
 
+### Warning Lib FFMPEG
+La libreria solo srive para windows si se quiere utilizar en linux borre este archivo o ignorelo ya que no interfiere, Requierements.txt ya incluye una libreria compatible con linux 
+
 ### Implementaciones y por implementar - To Do List
 
 Implementado:
@@ -21,12 +24,9 @@ Por implementar:
 	+ Manejo de errores en el código
 	+ Dashboard interactiva para usuarios y para Dev's (prioridad a Dev)
 
- + Actualizaciones - Updates:
-	 + 
-
 ## Bot de pruebas: 
 
-https://discord.com/oauth2/authorize?client_id=1114600638043660288&permissions=8&scope=bot+applications.commands
+[https://discord.com/oauth2/authorize?client_id=1114600638043660288&permissions=8&scope=bot+applications.commands](Invita al bot ArañaBot a tu Servidor - Este es un utilizado para la prueba de codigo)
 
 ## Código utilizado para el testeo
 
