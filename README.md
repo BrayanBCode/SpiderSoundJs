@@ -26,7 +26,7 @@ Por implementar:
 
 ## Bot de pruebas: 
 
-[https://discord.com/oauth2/authorize?client_id=1114600638043660288&permissions=8&scope=bot+applications.commands](Invita al bot ArañaBot a tu Servidor - Este es un utilizado para la prueba de codigo)
+[Invita al bot ArañaBot a tu Servidor - Este es un utilizado para la prueba de codigo](https://discord.com/oauth2/authorize?client_id=1114600638043660288&permissions=8&scope=bot+applications.commands)
 
 ## Código utilizado para el testeo
 
