@@ -1,6 +1,8 @@
 # Araña Sound Development
 ![logo](https://github.com/BrayanBCode/SpiderBot/assets/134159765/527b4a22-a501-4ba1-b2bf-d7eefd0e9fa4)
 
+### Implementaciones y por implementar - To Do List
+
 Implementado:
 + Sección de Musica
 	+ Slash Commands para sección de Musica.
@@ -18,6 +20,9 @@ Por implementar:
 	+ Panel de control de reproducción - Botones en el ultimo mensaje ejemplo: Botón de Siguiente canción, pausar canción, parar reproducción, mostrar listado de canciones
 	+ Manejo de errores en el código
 	+ Dashboard interactiva para usuarios y para Dev's (prioridad a Dev)
+
+ + Actualizaciones - Updates:
+	 + 
 
 ## Bot de pruebas: 
 
