@@ -1,8 +1,14 @@
 import discord
-import os  # default module
+import os, sys  # default module
 
 from dotenv import load_dotenv
 from discord.ext import bridge
+
+# Añadir la carpeta raíz del proyecto a sys.path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+root_dir = os.path.abspath(os.path.join(current_dir, '..'))
+sys.path.insert(0, root_dir)
+
 
 load_dotenv()  # load all the variables from the env file
 
@@ -18,7 +24,7 @@ cogs_list = [  # listado de cogs
 ]
 
 for cog in cogs_list:
-    bot.load_extension(f'utils.Commands.{cog}')
+    bot.load_extension(f'src.utils.Commands.{cog}')
 
 # Deprecated
 # def eliminar_archivos(carpeta="./temp"):

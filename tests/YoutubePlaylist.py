@@ -1,12 +1,13 @@
-from utils.logic.Song import SongInfo
-from utils.logic.Video_handlers.MediaHandler import MediaHandler
+from utils.music_control.Song import SongBasic
+from testing.MediaHandler import MediaHandler
 from discord.commands.context import ApplicationContext
 import re
 import yt_dlp
 
+
 class YoutubePlaylist(MediaHandler):
     ydl_opts_Playlist = {
-        'quiet': True,
+        'quiet': False,
         'no_warnings': True,
         'skip_download': True,
         'writesubtitles': False,
@@ -34,32 +35,29 @@ class YoutubePlaylist(MediaHandler):
         print('YoutubePlaylist: ', bool(coincidencias))
         return bool(coincidencias)
 
-    def search(self, url, ctx):
+
+    def search(self, playlist_url, ctx):
         with yt_dlp.YoutubeDL(self.ydl_opts_Playlist) as ydl:
             try:
-                info_dict = ydl.extract_info(url, download=False)
+                info_dict = ydl.extract_info(playlist_url, download=False)
                 if 'entries' in info_dict:
-                    # Es una lista de reproducción
                     songs = info_dict['entries']
                 else:
-                    # Es un video individual
-                    return self.search(info_dict['url'], ctx)
+                    raise 
 
                 song_data = []
-                for song in songs:  
+                for song in songs:
                     try:
                         song_data.append(self.extract(song, ctx))
                     except yt_dlp.utils.ExtractorError as e:
                         print(f"Video restringido encontrado: {e}")
-                        song_data.append(SongInfo(title="None", artist="None", duration=0, thumbnail="None", avatar="None", author="None", id=0000, Error=str(e)))
+                        song_data.append(SongBasic(title="None", artist="None", duration=0, thumbnail="None", avatar="None", author="None", id=0000, Error=str(e)))
                     except yt_dlp.DownloadError as e:
                         print(f"Error de descarga: {e}")
-                        song_data.append(SongInfo(title="None", artist="None", duration=0, thumbnail="None", avatar="None", author="None", id=0000, Error=str(e)))
+                        song_data.append(SongBasic(title="None", artist="None", duration=0, thumbnail="None", avatar="None", author="None", id=0000, Error=str(e)))
 
                 return song_data
 
             except Exception as e:
                 print(f"Error general: {e}")
-                with open("Errorlog.txt", "w", encoding="utf-8") as file:
-                    file.write(str(info_dict))
                 return []

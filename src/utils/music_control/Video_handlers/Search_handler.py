@@ -1,4 +1,4 @@
-from utils.logic.Video_handlers.MediaHandler import MediaHandler
+from src.utils.music_control.Video_handlers.MediaHandler import MediaHandler
 
 
 def searchModule(ctx, search: str, instance, config) -> list:

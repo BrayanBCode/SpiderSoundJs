@@ -1,5 +1,5 @@
-from utils.logic.Song import SongInfo
-from utils.logic.Video_handlers.MediaHandler import MediaHandler
+from src.utils.music_control.Song import SongInfo
+from src.utils.music_control.Video_handlers.MediaHandler import MediaHandler
 import yt_dlp
 import re
 
@@ -29,7 +29,7 @@ class YoutubeVideo(MediaHandler):
         coincidencias = patron_youtube.findall(arg)
 
         # Devolver True si se encontró al menos una coincidencia, de lo contrario, False
-        print('YoutubeVideo: ', bool(coincidencias))
+        # print('YoutubeVideo: ', bool(coincidencias))
         return bool(coincidencias)
 
     def search(self, search, ctx):

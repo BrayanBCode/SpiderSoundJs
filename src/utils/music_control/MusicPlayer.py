@@ -10,11 +10,11 @@ from discord.commands.context import ApplicationContext
 from discord import FFmpegPCMAudio, Embed
 from dotenv import load_dotenv
 
-from utils.logic.Video_handlers.Search_handler import searchModule
-from utils.logic.structure import PlayerStructure, PlayingSong
-from utils.logic.config import ConfigMediaSearch
-from utils.logic.Song import SongInfo
-from utils.logic.ThrowError import Error
+from src.utils.music_control.Video_handlers.Search_handler import searchModule
+from src.utils.music_control.structure import PlayerStructure, PlayingSong
+from src.utils.music_control.Song import SongInfo
+from src.utils.music_control.ThrowError import Error
+from src.utils.SearchConfig import ConfigMediaSearch
 
 load_dotenv()
 api_key = os.getenv('YT_KEY')
@@ -168,174 +168,255 @@ class MusicPlayer(PlayerStructure):
 
         await self.Messages.SkipMessage(ctx, skipedSongs)  # Enviar mensaje de las canciones saltadas.
         voice_client.stop()
-
     async def JoinVoiceChannel(self, ctx: ApplicationContext):
+        """
+        Conecta el bot a un canal de voz.
+
+        Si el bot no está ya conectado a un canal de voz, se conectará al canal de voz del autor del comando.
+        Si el bot ya está conectado, se moverá al canal de voz del autor del comando si es diferente.
+
+        Args:
+            ctx (ApplicationContext): El contexto de la aplicación desde el cual se llamó este método.
+        
+        Raises:
+            Error: Si el autor del comando no está en un canal de voz válido.
+        """
+        # Verificar si el bot no está conectado a un canal de voz.
         if self.voice_client is None or not self.voice_client.is_connected():
             if ctx.author.voice:
-                self.voiceChannel = ctx.author.voice.channel
+                self.voiceChannel = ctx.author.voice.channel  # Obtener el canal de voz del autor.
 
+                # Conectar al canal de voz del autor.
                 self.voice_client = await self.voiceChannel.connect()
 
-                await self.Messages.JoinMessage(ctx)
+                await self.Messages.JoinMessage(ctx)  # Enviar mensaje de confirmación de conexión.
             else:
-                await self.Messages.JoinMissingChannelError(ctx)
+                await self.Messages.JoinMissingChannelError(ctx)  # Enviar mensaje de error si el autor no está en un canal de voz.
                 raise Error("El usuario no está en un canal de voz válido al emitir el comando")
         else:
             if ctx.author.voice:
-                self.voiceChannel = ctx.author.voice.channel
+                self.voiceChannel = ctx.author.voice.channel  # Obtener el canal de voz del autor.
 
+                # Mover al canal de voz del autor si es diferente al actual.
                 if self.voice_client and self.voice_client.channel != self.voiceChannel:
-                    await self.voice_client.move_to(self.voiceChannel)  # Mover al canal del autor
+                    await self.voice_client.move_to(self.voiceChannel)
 
-                    await self.Messages.JoinMessage(ctx)
+                    await self.Messages.JoinMessage(ctx)  # Enviar mensaje de confirmación de movimiento.
             else:
-                await self.Messages.JoinMissingChannelError()
+                await self.Messages.JoinMissingChannelError()  # Enviar mensaje de error si el autor no está en un canal de voz.
                 raise Error("El usuario no está en un canal de voz válido al emitir el comando")
 
     async def loop(self, ctx: ApplicationContext):
-        self.is_loop = not self.is_loop
-        await self.Messages.LoopMessage(ctx, self.is_loop)
+        """
+        Activa o desactiva el modo bucle para la reproducción de música.
+
+        Alterna el estado de `is_loop` y envía un mensaje indicando el nuevo estado.
+
+        Args:
+            ctx (ApplicationContext): El contexto de la aplicación desde el cual se llamó este método.
+        """
+        self.is_loop = not self.is_loop  # Alternar el estado del modo bucle.
+        await self.Messages.LoopMessage(ctx, self.is_loop)  # Enviar mensaje indicando el nuevo estado del modo bucle.
 
     async def leave(self, ctx: ApplicationContext):
-        if ctx.voice_client:
-            self.setStoped(True)
-            self.is_loop = False
+        """
+        Desconecta el bot del canal de voz.
 
-            await self.voice_client.disconnect()
-            await self.Messages.LeaveMessage(ctx)
-            # ctx.send(embed=Embed(description="Me desconecte con exito"))
+        Si el bot está conectado a un canal de voz, se desconecta y envía un mensaje de confirmación.
+        Si no está conectado, envía un mensaje indicando que no está en un canal de voz.
+
+        Args:
+            ctx (ApplicationContext): El contexto de la aplicación desde el cual se llamó este método.
+        """
+        if ctx.voice_client:
+            self.setStoped(True)  # Bloquear la reproducción.
+            self.is_loop = False  # Desactivar el modo bucle.
+
+            await self.voice_client.disconnect()  # Desconectar del canal de voz.
+            await self.Messages.LeaveMessage(ctx)  # Enviar mensaje de confirmación de desconexión.
         else:
-            await self.Messages.LeaveMessage(ctx)
-            # ctx.send(embed=Embed(description="No estoy en un canal de voz"))
+            await self.Messages.LeaveMessage(ctx)  # Enviar mensaje indicando que no está en un canal de voz.
 
     async def queue(self, ctx: ApplicationContext):
-        await self.Messages.QueueList(ctx=ctx, queue=self.Queue)
+        """
+        Muestra la lista de canciones en la cola.
+
+        Args:
+            ctx (ApplicationContext): El contexto de la aplicación desde el cual se llamó este método.
+        """
+        await self.Messages.QueueList(ctx=ctx, queue=self.Queue)  # Enviar mensaje con la lista de canciones en la cola.
 
     async def pause(self, ctx: ApplicationContext):
-        self.setStoped(True)
-        self.voice_client.pause()
-        await self.Messages.PauseMessage(ctx)
+        """
+        Pausa la reproducción de música.
+
+        Args:
+            ctx (ApplicationContext): El contexto de la aplicación desde el cual se llamó este método.
+        """
+        self.setStoped(True)  # Bloquear la reproducción.
+        self.voice_client.pause()  # Pausar la reproducción de música.
+        await self.Messages.PauseMessage(ctx)  # Enviar mensaje de confirmación de pausa.
 
     async def resume(self, ctx: ApplicationContext):
-        self.setStoped(False)
-        self.voice_client.resume()
-        await self.Messages.ResumeMessage(ctx)
+        """
+        Reanuda la reproducción de música pausada.
+
+        Args:
+            ctx (ApplicationContext): El contexto de la aplicación desde el cual se llamó este método.
+        """
+        self.setStoped(False)  # Desbloquear la reproducción.
+        self.voice_client.resume()  # Reanudar la reproducción de música.
+        await self.Messages.ResumeMessage(ctx)  # Enviar mensaje de confirmación de reanudación.
 
     async def remove(self, ctx: ApplicationContext, posicion: int):
-        posicion -= 1
+        """
+        Elimina una canción de la cola en la posición especificada.
+
+        Args:
+            ctx (ApplicationContext): El contexto de la aplicación desde el cual se llamó este método.
+            posicion (int): La posición de la canción en la cola a eliminar.
+        """
+        posicion -= 1  # Ajustar la posición a índice de lista (base 0).
         if len(self.Queue) == 0:
-            await self.Messages.RemoveErrorEmptyQueueMessage(ctx)
+            await self.Messages.RemoveErrorEmptyQueueMessage(ctx)  # Enviar mensaje de error si la cola está vacía.
             return
 
-        if posicion > len(self.Queue) or len(self.Queue) < posicion:
-            await self.Messages.RemoveErrorPositionMessage(ctx)
+        if posicion >= len(self.Queue):
+            await self.Messages.RemoveErrorPositionMessage(ctx)  # Enviar mensaje de error si la posición es inválida.
             return
 
-        rmvSong = self.Queue.pop(posicion)
+        rmvSong = self.Queue.pop(posicion)  # Eliminar la canción de la cola.
+        await self.Messages.RemoveMessage(ctx, rmvSong)  # Enviar mensaje de confirmación de eliminación.
 
-        await self.Messages.RemoveMessage(ctx, rmvSong)
+    async def clear(self, ctx: ApplicationContext):
+        """
+        Limpia todas las canciones de la cola.
 
-    async def clear(self, ctx):
-        self.Queue.clear()
-
-        await self.Messages.ClearMessage(ctx)
+        Args:
+            ctx (ApplicationContext): El contexto de la aplicación desde el cual se llamó este método.
+        """
+        self.Queue.clear()  # Vaciar la cola de canciones.
+        await self.Messages.ClearMessage(ctx)  # Enviar mensaje de confirmación de limpieza.
 
     async def forceplay(self, ctx: ApplicationContext, search: str):
-        
-        await self.JoinVoiceChannel(ctx)
-        
-        self.LastCtx = ctx
-        
-        msg = await self.Messages.AddSongsWaiting(ctx)
-        result = await self.AddSongs(ctx, search)
-        await self.Messages.AddSongsDelete(msg)
-        
-        tempQueue = result.copy()
+        """
+        Fuerza la reproducción de una nueva canción, interrumpiendo la actual si es necesario.
+
+        Args:
+            ctx (ApplicationContext): El contexto de la aplicación desde el cual se llamó este método.
+            search (str): La búsqueda de la canción a reproducir.
+        """
+        await self.JoinVoiceChannel(ctx)  # Conectar al canal de voz.
+        self.LastCtx = ctx  # Actualizar el último contexto.
+
+        msg = await self.Messages.AddSongsWaiting(ctx)  # Enviar mensaje de espera.
+        result = await self.AddSongs(ctx, search)  # Añadir canciones según la búsqueda.
+        await self.Messages.AddSongsDelete(msg)  # Eliminar mensaje de espera.
+
+        tempQueue = result.copy()  # Copiar el resultado para manipular.
         Errors = []
-        
+
+        # Procesar errores y limpiar resultados.
         for error in result:
             if error.Error is not None:
                 print(error)
                 Errors.append(error)
                 tempQueue.remove(error)
-                
-        self.Queue[0:0] = tempQueue
-        
+
+        self.Queue[0:0] = tempQueue  # Añadir canciones al principio de la cola.
+
         if len(Errors) > 0:
-            await self.Messages.AddedSongsErrorMessage(ctx, Errors)
-        
+            await self.Messages.AddedSongsErrorMessage(ctx, Errors)  # Enviar mensaje de error si hubo errores.
+
         if len(tempQueue) > 0:
-            await self.Messages.AddedSongsMessage(ctx, tempQueue)
-            self.voice_client.stop()
-            await self.PlayModule(ctx)
-            self.setStoped(False)
+            await self.Messages.AddedSongsMessage(ctx, tempQueue)  # Enviar mensaje de confirmación de canciones añadidas.
+            self.voice_client.stop()  # Detener la reproducción actual.
+            await self.PlayModule(ctx)  # Iniciar el módulo de reproducción.
+            self.setStoped(False)  # Desbloquear la reproducción.
         else:
-            await self.PlayModule(ctx)
-            
+            await self.PlayModule(ctx)  # Iniciar el módulo de reproducción si no hay nuevas canciones.
+
     async def playnext(self, ctx: ApplicationContext, search: str):
-        
-        await self.JoinVoiceChannel(ctx)
-        
-        self.LastCtx = ctx
-        
-        msg = await self.Messages.AddSongsWaiting(ctx)
-        result = await self.AddSongs(ctx, search)
-        await self.Messages.AddSongsDelete(msg)
-        
-        tempQueue = result.copy()
+        """
+        Añade una nueva canción al principio de la cola para que se reproduzca a continuación.
+
+        Args:
+            ctx (ApplicationContext): El contexto de la aplicación desde el cual se llamó este método.
+            search (str): La búsqueda de la canción a añadir.
+        """
+        await self.JoinVoiceChannel(ctx)  # Conectar al canal de voz.
+        self.LastCtx = ctx  # Actualizar el último contexto.
+
+        msg = await self.Messages.AddSongsWaiting(ctx)  # Enviar mensaje de espera.
+        result = await self.AddSongs(ctx, search)  # Añadir canciones según la búsqueda.
+        await self.Messages.AddSongsDelete(msg)  # Eliminar mensaje de espera.
+
+        tempQueue = result.copy()  # Copiar el resultado para manipular.
         Errors = []
-        
+
+        # Procesar errores y limpiar resultados.
         for error in result:
             if error.Error is not None:
                 print(error)
                 Errors.append(error)
                 tempQueue.remove(error)
-                
-        self.Queue[0:0] = tempQueue
-        
+
+        self.Queue[0:0] = tempQueue  # Añadir canciones al principio de la cola.
+
         if len(Errors) > 0:
-            await self.Messages.AddedSongsErrorMessage(ctx, Errors)
-        
+            await self.Messages.AddedSongsErrorMessage(ctx, Errors)  # Enviar mensaje de error si hubo errores.
+
         if len(tempQueue) > 0:
-            await self.Messages.AddedSongsMessage(ctx, tempQueue)
+            await self.Messages.AddedSongsMessage(ctx, tempQueue)  # Enviar mensaje de confirmación de canciones añadidas.
         else:
-            await self.PlayModule(ctx)
+            await self.PlayModule(ctx)  # Iniciar el módulo de reproducción si no hay nuevas canciones.
 
     async def PlayInput(self, ctx: ApplicationContext, search):
+        """
+        Reproduce una canción o añade canciones a la cola de reproducción.
 
-        await self.JoinVoiceChannel(ctx)
+        Args:
+            ctx (ApplicationContext): El contexto de la aplicación desde el cual se llamó este método.
+            search (str): La búsqueda de la canción o lista de canciones a reproducir.
+        """
+        await self.JoinVoiceChannel(ctx)  # Conectar al canal de voz.
 
-        self.LastCtx = ctx
+        self.LastCtx = ctx  # Actualizar el último contexto.
 
         if search:
-            
-            msg = await self.Messages.AddSongsWaiting(ctx)
-            result = await self.AddSongs(ctx, search)
-            await self.Messages.AddSongsDelete(msg)
-            
-            tempQueue = result.copy()
+            msg = await self.Messages.AddSongsWaiting(ctx)  # Enviar mensaje de espera.
+            result = await self.AddSongs(ctx, search)  # Añadir canciones según la búsqueda.
+            await self.Messages.AddSongsDelete(msg)  # Eliminar mensaje de espera.
+
+            tempQueue = result.copy()  # Copiar el resultado para manipular.
             Errors = []
-            
+
+            # Procesar errores y limpiar resultados.
             for error in result:
                 if error.Error is not None:
                     print(error)
                     Errors.append(error)
                     tempQueue.remove(error)
-            
-            self.Queue.extend(tempQueue)
-            
+
+            self.Queue.extend(tempQueue)  # Añadir canciones al final de la cola.
+
             if len(Errors) > 0:
-                await self.Messages.AddedSongsErrorMessage(ctx, Errors)
-            
+                await self.Messages.AddedSongsErrorMessage(ctx, Errors)  # Enviar mensaje de error si hubo errores.
+
             if len(tempQueue) > 0:
-                await self.Messages.AddedSongsMessage(ctx, tempQueue)
-                await self.PlayModule(ctx)
+                await self.Messages.AddedSongsMessage(ctx, tempQueue)  # Enviar mensaje de confirmación de canciones añadidas.
+                await self.PlayModule(ctx)  # Iniciar el módulo de reproducción.
 
-    async def PlayModule(self, ctx):
+    async def PlayModule(self, ctx: ApplicationContext):
+        """
+        Gestiona la reproducción de la siguiente canción en la cola.
 
+        Args:
+            ctx (ApplicationContext): El contexto de la aplicación desde el cual se llamó este método.
+        """
         if len(self.Queue) == 0:
-            await self.Messages.QueueEmptyMessage(ctx)
-            self.bot.loop.create_task(self.disconnectProtocol(self.voice_client.channel))
+            await self.Messages.QueueEmptyMessage(ctx)  # Enviar mensaje si la cola está vacía.
+            self.bot.loop.create_task(self.disconnectProtocol(self.voice_client.channel))  # Desconectar si la cola está vacía.
             return
 
         if self.LockPlay:
@@ -350,90 +431,120 @@ class MusicPlayer(PlayerStructure):
         if self.voice_client.is_paused():
             return
 
-        video: SongInfo = self.Queue.pop(0)
+        video: SongInfo = self.Queue.pop(0)  # Obtener la siguiente canción de la cola.
 
-        await self.PlaySound(video)
-        await self.Messages.PlayMessage(ctx, video, self.Queue)
+        await self.PlaySound(video)  # Reproducir la canción.
+        await self.Messages.PlayMessage(ctx, video, self.Queue)  # Enviar mensaje de confirmación de reproducción.
 
     async def PlaySound(self, video: SongInfo):
+        """
+        Reproduce una canción específica utilizando FFmpeg.
+
+        Args:
+            video (SongInfo): La información de la canción a reproducir.
+        """
         try:
-            
             video.webPlayer = video.webPlayer if video.webPlayer is not None else await self.extractUrlPlayer(video)
             FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
             self.voice_client.play(
-                discord.FFmpegPCMAudio(video.webPlayer, **FFMPEG_OPTIONS), 
+                discord.FFmpegPCMAudio(video.webPlayer, **FFMPEG_OPTIONS),
                 after=lambda e: (
-                        self.bot.loop.create_task(self.PlayModule(self.LastCtx)),
-                        self.Queue.append(video) if self.is_loop else None
+                    self.bot.loop.create_task(self.PlayModule(self.LastCtx)),
+                    self.Queue.append(video) if self.is_loop else None
                 )
             )
+        except yt_dlp.DownloadError as e:
+            video.webPlayer = None
+            await self.PlaySound(video)  # Intentar reproducir de nuevo si hay un error de descarga.
+            print(e)
         except Exception as e:
             print(e)
-            await self.PlayModule(self.LastCtx)
-    
+            await self.PlayModule(self.LastCtx)  # Continuar con el módulo de reproducción en caso de error.
+
     async def extractUrlPlayer(self, video: SongInfo):
+        """
+        Extrae la URL del reproductor de un video utilizando yt-dlp.
+
+        Args:
+            video (SongInfo): La información de la canción para extraer la URL.
+
+        Returns:
+            str: La URL del reproductor del video.
+        """
         try:
             ydl_opts = {
-                    'format': 'bestaudio', 
-                    'quiet': True
-                }
+                'format': 'bestaudio',
+                'quiet': True
+            }
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(video.url, download=False)
                 return info['url']
         except Exception as e:
             print(f"An error occurred: {e}")
-            return None  # Retorna None en caso de excepción
+            return None  # Retorna None en caso de excepción.
 
     async def JoinVoiceChannel(self, ctx: ApplicationContext):
+        """
+        Conecta el bot al canal de voz del autor del comando.
+
+        Args:
+            ctx (ApplicationContext): El contexto de la aplicación desde el cual se llamó este método.
+        """
         if self.voice_client is None or not self.voice_client.is_connected():
             if ctx.author.voice:
                 self.voiceChannel = ctx.author.voice.channel
-
-                self.voice_client = await self.voiceChannel.connect()
-
-                await self.Messages.JoinMessage(ctx)
+                self.voice_client = await self.voiceChannel.connect()  # Conectar al canal de voz del autor.
+                await self.Messages.JoinMessage(ctx)  # Enviar mensaje de confirmación de conexión.
             else:
-                await self.Messages.JoinMissingChannelError(ctx)
+                await self.Messages.JoinMissingChannelError(ctx)  # Enviar mensaje de error si el autor no está en un canal de voz.
                 raise Error("El usuario no está en un canal de voz válido al emitir el comando")
         else:
             if ctx.author.voice:
                 self.voiceChannel = ctx.author.voice.channel
-
                 if self.voice_client and self.voice_client.channel != self.voiceChannel:
-                    await self.voice_client.move_to(self.voiceChannel)  # Mover al canal del autor
-
-                    await self.Messages.JoinMessage(ctx)
+                    await self.voice_client.move_to(self.voiceChannel)  # Mover al canal de voz del autor.
+                    await self.Messages.JoinMessage(ctx)  # Enviar mensaje de confirmación de conexión.
             else:
                 await self.Messages.JoinMissingChannelError()
                 raise Error("El usuario no está en un canal de voz válido al emitir el comando")
 
     async def AddSongs(self, ctx: ApplicationContext, search: str) -> list:
+        """
+        Añade canciones a la cola de reproducción basándose en una búsqueda.
 
+        Args:
+            ctx (ApplicationContext): El contexto de la aplicación desde el cual se llamó este método.
+            search (str): La búsqueda de canciones a añadir.
+
+        Returns:
+            list: La lista de canciones añadidas.
+        """
         result = searchModule(ctx, search, self, ConfigMediaSearch.default())
-
         # await self.DownloadSongs(result)
-
         return result
 
     def restart(self):
-        self.voice_client.disconnect()
+        """
+        Reinicia el estado del reproductor de música, desconectando y limpiando la cola y tareas.
+        """
+        self.voice_client.disconnect()  # Desconectar del canal de voz.
         if len(self.tasks) != 0:
-            for task in self.Tasks:
-                task.cancel()
+            for task in self.tasks:
+                task.cancel()  # Cancelar tareas pendientes.
 
-        self.Queue: list = []
-        self.is_loop: bool = False
-        self.LastCtx: ApplicationContext = None
-        self.PlayingSong: PlayingSong = None
-        self.voice_client: discord.VoiceClient = None
-        self.inactivity_task: asyncio.Task = None
+        self.Queue: list = []  # Reiniciar la cola.
+        self.is_loop: bool = False  # Reiniciar el estado de bucle.
+        self.LastCtx: ApplicationContext = None  # Reiniciar el último contexto.
+        self.PlayingSong: PlayingSong = None  # Reiniciar la canción en reproducción.
+        self.voice_client: discord.VoiceClient = None  # Reiniciar el cliente de voz.
+        self.inactivity_task: asyncio.Task = None  # Reiniciar la tarea de inactividad.
 
         # Variables de control
-        self.LockPlay: bool = True
-        self.download_counter = 0
-        self.contador = 0
-        self.semaphore = asyncio.Semaphore(3)
-        self.tasks = []
+        self.LockPlay: bool = True  # Bloquear la reproducción.
+        self.download_counter = 0  # Reiniciar el contador de descargas.
+        self.contador = 0  # Reiniciar el contador.
+        self.semaphore = asyncio.Semaphore(3)  # Reiniciar el semáforo.
+        self.tasks = []  # Reiniciar las tareas.
 
     # async def DownloadModule(self, video: SongInfo):
     #     ydl_opts = {

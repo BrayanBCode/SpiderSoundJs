@@ -3,8 +3,8 @@ import re
 import os
 # import spotipy
 
-from utils.logic.Song import SongInfo
-from utils.logic import structure
+from src.utils.music_control.Song import SongInfo
+from src.utils.music_control import structure
 
 
 # from spotipy.oauth2 import SpotifyClientCredentials
@@ -26,7 +26,7 @@ class MediaHandler:
         coincidencias = patron_url.search(arg)
 
         # Si se encuentra una coincidencia, es una URL, de lo contrario, es solo texto
-        print('YoutubeSearch: ', not bool(coincidencias))
+        # print('YoutubeSearch: ', not bool(coincidencias))
         return not bool(coincidencias)
 
     def search(self, search, ctx):

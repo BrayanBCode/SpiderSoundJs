@@ -1,8 +1,11 @@
-from utils.interface.SendEmbed import EmbeddedMessages
+from src.utils.interface.SendEmbed import EmbeddedMessages
 from discord.ext import bridge
+from datetime import datetime
 import discord
-import datetime
+import pytz
 import json
+
+uruguay_timezone = pytz.timezone('America/Montevideo')
 
 class PlayerStructure:
     def __init__(self, bot, guild) -> None:
@@ -45,6 +48,7 @@ class CommandStructure:
         
     @staticmethod
     def actualDate():
-        current_datetime = datetime.datetime.now()
-        formatted_datetime = current_datetime.strftime("%H:%M - %d/%m/%Y")
+        
+        uruguay_time = datetime.now(uruguay_timezone)
+        formatted_datetime = uruguay_time.strftime('%H:%M - %d/%m/%Y')
         return formatted_datetime

@@ -1,9 +1,9 @@
 import discord
 from discord import Embed
-from utils.logic import structure
 from discord.commands.context import ApplicationContext
-from utils.interface.QueuePagination import PaginationView as QueueView
-from utils.logic.Song import SongInfo
+from src.utils.music_control import structure
+from src.utils.interface.QueuePagination import PaginationView as QueueView
+from src.utils.music_control.Song import SongInfo
 
 HelpList = [
     ('/play',

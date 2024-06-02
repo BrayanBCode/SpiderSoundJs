@@ -3,7 +3,6 @@ from discord.ext import commands
 from discord import option, Embed
 from discord.commands.context import ApplicationContext
 
-from utils.logic.MessageClass import MessageClass
 class ReaccionRols_SlashCommands(commands.Cog):
     def __init__(self, bot) -> None:
         self.bot = bot

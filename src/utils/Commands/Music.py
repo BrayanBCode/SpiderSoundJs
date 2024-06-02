@@ -3,8 +3,8 @@ import discord
 from discord import option
 from discord.ext import commands
 from discord.commands.context import ApplicationContext
-from utils.logic.structure import CommandStructure
-from utils.logic.MusicPlayer import MusicPlayer
+from src.utils.music_control.structure import CommandStructure
+from src.utils.music_control.MusicPlayer import MusicPlayer
 
 
 class MusicCommands(commands.Cog):

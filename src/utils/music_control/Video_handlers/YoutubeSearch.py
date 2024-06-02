@@ -1,5 +1,5 @@
-from utils.logic.Video_handlers.MediaHandler import MediaHandler
-from utils.logic.Song import SongInfo
+from src.utils.music_control.Video_handlers.MediaHandler import MediaHandler
+from src.utils.music_control.Song import SongInfo
 
 import yt_dlp
 

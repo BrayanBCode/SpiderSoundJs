@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from discord.commands.context import ApplicationContext
 from discord import option, Embed
-from testosterona.test import SummonerClass
+from tests.test import SummonerClass
 class GetLvl(commands.Cog):
     
     def __init__(self,bot):

@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import math
 from discord.commands.context import ApplicationContext
-from utils.logic.Song import SongInfo
+from src.utils.music_control.Song import SongInfo
 
 
 class PaginationView(discord.ui.View):

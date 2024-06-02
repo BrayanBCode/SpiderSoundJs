@@ -1,5 +1,5 @@
 from discord.ext import bridge, commands
-from utils.interface.SendEmbed import EmbeddedMessages
+from src.utils.interface.SendEmbed import EmbeddedMessages
 
 
 class Help_Cog(commands.Cog):
