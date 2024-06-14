@@ -1,10 +1,35 @@
-test
-testing
+# Ignorar archivos de configuración que pueden contener información sensible
 .env
-.cache
-__pycache__
-temp/
-test/
-testing/
-__pycache__/
-/.idea
+*.env.local
+*.env.*.local
+config.json
+secret.json
+
+# Ignorar directorios que pueden contener archivos sensibles
+secrets/
+config/
+
+# Ignorar archivos específicos que pueden contener tokens o IDs
+*.key
+*.pem
+*.cert
+
+# Ignorar archivos de base de datos locales que pueden contener información sensible
+*.sqlite
+*.db
+
+# Ignorar archivos de registro que pueden contener información sensible
+*.log
+
+# Ignorar directorios de dependencias
+node_modules/
+vendor/
+
+# Ignorar archivos de compilación/distribución
+/dist
+/build
+
+# Ignorar archivos de IDE y editores de texto
+.idea/
+*.code-workspace
+.vscode/

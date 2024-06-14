@@ -1,0 +1,23 @@
+{
+  "name": "spiderbot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "clean": "del /s /q build",
+    "build": "tsc --build",
+    "start": "npm run clean && npm run build && node build/index.js",
+    "startNoClean": "npm run build && node run build/index.js",
+    "devStart": "npm run clean && npm run build && node build/index.js --dev",
+    "devStartNoClean": "npm run build && node run build/index.js --dev"
+
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "discord.js": "^14.15.3",
+    "dotenv": "^16.4.5",
+    "glob": "^10.4.1"
+  }
+}
