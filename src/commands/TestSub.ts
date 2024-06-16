@@ -15,7 +15,7 @@ export default class TestSub extends Command {
             dev: true,
             options: [
                 {
-                    name: "uno",
+                    name: "1",
                     description: "Test option 1",
                     type: ApplicationCommandOptionType.Subcommand,
                 },

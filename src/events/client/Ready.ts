@@ -17,7 +17,8 @@ export default class Ready extends Event {
         console.log(`Estoy conectado como ${this.client.user?.tag}`);
 
         const clientId = this.client.developmentMode ? this.client.config.devClientID : this.client.config.ClientID;
-        const rest = new REST().setToken(this.client.config.token);
+        const token = this.client.developmentMode ? this.client.config.devToken : this.client.config.token;
+        const rest = new REST().setToken(token);
 
         if (!this.client.developmentMode) {
             const globalCommands: any = await rest.put(Routes.applicationCommands(clientId),
@@ -25,7 +26,7 @@ export default class Ready extends Event {
                     body: this.GetJson(this.client.commands.filter(command => !command.dev))
                 });
 
-            console.log(`Comandos globales cargados con exito ${globalCommands.length}`);
+            console.log(`Comandos (/) globales cargados con exito ${globalCommands.length}`);
 
         }
 
@@ -34,19 +35,15 @@ export default class Ready extends Event {
                 body: this.GetJson(this.client.commands.filter(command => command.dev))
             });
 
-        console.log(`Comandos de desarrollador cargados con exito ${devCommands.length}`);
-        // const commands = this.GetJson(this.client.commands);
+        console.log(`Comandos (/) de desarrollador cargados con exito ${devCommands.length}`);
 
+        const Commands = this.client.commands.filter(command => !command.dev);
 
-
+        Commands.forEach((command: any) => console.log(`- Comando (global) cargado: ${command.name}`))
+        devCommands.forEach((command: any) => console.log(`- Comando (dev) cargado: ${command.name}`))
 
         // console.log(`Comandos cargados con exito ${setCommands.length}`);
 
-
-        // console.log("Servidores:");
-        // this.client.guilds.cache.forEach(guild => {
-        //     console.log(`- Nombre: ${guild.name}, ID: ${guild.id}`);
-        // });
     }
 
     private GetJson(commands: Collection<string, Command>): Object[] {

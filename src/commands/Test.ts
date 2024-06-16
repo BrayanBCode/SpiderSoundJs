@@ -19,6 +19,8 @@ export default class Test extends Command {
 
     Execute(interaction: ChatInputCommandInteraction<CacheType>): void {
         interaction.reply({ content: "Test command", ephemeral: true })
+        console.log(interaction.guild?.iconURL({ size: 64 }));
+
     }
 
 

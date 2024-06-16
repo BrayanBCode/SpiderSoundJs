@@ -16,7 +16,7 @@ export default class Handler implements IHandler {
 
 
     async LoadEvents() {
-        const files = (await glob(`build/events/**/*.js`)).map(filePath => path.resolve(filePath));
+        const files = (await glob(`build/events/**/**/*.js`)).map(filePath => path.resolve(filePath));
         files.map(async (file: string) => {
             const event: Event = new (await import(file)).default(this.client);
 

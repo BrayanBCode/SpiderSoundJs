@@ -20,6 +20,14 @@ export default class CommandHandler extends Event {
         //@ts-ignore
         if (!command) return interaccion.reply({ content: "El comando no existe", ephemeral: true }) && this.client.commands.delete(interaccion.commandName);
 
+        if (command.dev && !this.client.config.developerUserIDs.includes(interaccion.user.id))
+            return interaccion.reply({
+                embeds: [new EmbedBuilder()
+                    .setColor("Red")
+                    .setDescription("❌ No tienes permisos para usar este comando")
+                ], ephemeral: true
+            })
+
         const { cooldowns } = this.client;
 
         if (!cooldowns.has(command.name)) cooldowns.set(command.name, new Collection());

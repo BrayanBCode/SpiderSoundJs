@@ -5,7 +5,7 @@ import SubCommand from "../../base/classes/SubCommand";
 export default class TestSub1 extends SubCommand {
     constructor(client: CustomClient) {
         super(client, {
-            name: "testsub.uno",
+            name: "testsub.1",
         });
     }
 
