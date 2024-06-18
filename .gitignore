@@ -33,3 +33,4 @@ vendor/
 .idea/
 *.code-workspace
 .vscode/
+*.pyc
