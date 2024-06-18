@@ -13,6 +13,7 @@ export default class Emit extends Command {
             default_member_permissions: PermissionsBitField.Flags.Administrator,
             dm_permissions: false,
             cooldown: 1,
+            deprecated: false,
             options: [
                 {
                     name: 'event',

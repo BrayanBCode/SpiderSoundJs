@@ -5,6 +5,8 @@ import Handler from "./Handler";
 import Command from "./Command";
 import SubCommand from "./SubCommand";
 import { connect } from "mongoose";
+import { Poru } from "poru";
+
 
 export default class CustomClient extends Client implements ICustomClient {
     config: IConfig;
@@ -14,13 +16,20 @@ export default class CustomClient extends Client implements ICustomClient {
     cooldowns: Collection<string, Collection<string, number>>;
     developmentMode: boolean;
     developerUserIDs: string[];
+    poru: Poru | null;
 
     constructor() {
         super({
             intents: [
-                GatewayIntentBits.Guilds
+                GatewayIntentBits.Guilds,
+                GatewayIntentBits.GuildVoiceStates,
+                GatewayIntentBits.GuildMessages,
+                GatewayIntentBits.GuildMessageReactions,
+                GatewayIntentBits.DirectMessages,
+                GatewayIntentBits.DirectMessageReactions,
             ]
         })
+
 
         this.config = require(`${process.cwd()}/data/config.json`)
         this.handler = new Handler(this)
@@ -29,25 +38,33 @@ export default class CustomClient extends Client implements ICustomClient {
         this.cooldowns = new Collection()
         this.developmentMode = process.argv.includes("--dev");
         this.developerUserIDs = this.config.developerUserIDs
+        this.poru = null
+
     }
 
-    Init(): void {
-        console.log(`-- Iniciando bot en ${this.developmentMode ? "modo desarrollo" : "modo producción"}`)
-        this.LoadHandlers()
+    async Init() {
 
-        this.login(this.developmentMode ? this.config.devToken : this.config.token)
-            .catch((err) => console.log(`Error al conectar: ${err}`))
+        console.log(`-- Iniciando bot en ${this.developmentMode ? "modo desarrollo" : "modo producción"}`)
+        await this.LoadHandlers()
+        
+        
+        await this.login(this.developmentMode ? this.config.devToken : this.config.token)
+        .catch((err) => console.log(`Error al conectar: ${err}`))
+        
+        await this.poru!.init().then(() => console.log("Poru iniciado!")).catch((err) => console.log(`Error al iniciar Poru: ${err}`))
 
         connect(this.developmentMode ? this.config.devMongoURL : this.config.mongoURL)
             .then(() => console.log("Conectado a la base de datos"))
             .catch((err) => console.log(`Error al conectar a la base de datos: ${err}`))
+
     }
 
 
-    LoadHandlers(): void {
+    async LoadHandlers(): Promise<void> {
         console.log("Cargando handlers...")
         this.handler.LoadEvents()
         this.handler.LoadCommands()
+        await this.handler.LoadPoru()
     }
 
 }

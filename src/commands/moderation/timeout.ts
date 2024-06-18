@@ -10,6 +10,7 @@ export default class Timeout extends Command {
             description: "Gestiona los timeouts de los miembros del servidor",
             category: Category.Moderation,
             default_member_permissions: PermissionsBitField.Flags.MuteMembers,
+            deprecated: false,
             options: [
                 {
                     name: "add",

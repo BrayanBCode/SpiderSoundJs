@@ -14,6 +14,7 @@ export default class Command implements ICommand {
     dm_permissions: boolean;
     cooldown: number;
     dev: boolean;
+    deprecated: boolean;
 
     constructor(client: CustomClient, options: ICommandOptions) {
         this.client = client;
@@ -25,6 +26,7 @@ export default class Command implements ICommand {
         this.dm_permissions = options.dm_permissions;
         this.cooldown = options.cooldown;
         this.dev = options.dev;
+        this.deprecated = options.deprecated;
     }
 
     Execute(interaction: ChatInputCommandInteraction<CacheType>): void { 

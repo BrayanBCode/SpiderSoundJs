@@ -13,6 +13,7 @@ export default class Logs extends Command {
             dm_permissions: false,
             cooldown: 3,
             dev: false,
+            deprecated: false,
             options: [
                 {
                     name: "toggle",

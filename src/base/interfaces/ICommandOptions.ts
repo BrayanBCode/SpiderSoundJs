@@ -9,4 +9,5 @@ export default interface ICommandOptions {
     dm_permissions: boolean;
     cooldown: number;
     dev: boolean;
+    deprecated: boolean;
 }

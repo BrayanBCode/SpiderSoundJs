@@ -12,6 +12,8 @@ export default interface ICommand {
     dm_permissions: boolean;
     cooldown: number;
     dev: boolean;
+    deprecated: boolean;
+
 
     Execute(interaction: ChatInputCommandInteraction): void;
     AutoComplete(interaction: AutocompleteInteraction): void;

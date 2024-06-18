@@ -5,6 +5,7 @@ import CustomClient from "./CustomClient";
 import Event from "./Event";
 import Command from "./Command";
 import SubCommand from "./SubCommand";
+import { Poru } from "poru";
 
 
 export default class Handler implements IHandler {
@@ -17,11 +18,14 @@ export default class Handler implements IHandler {
 
     async LoadEvents() {
         const files = (await glob(`build/events/**/**/*.js`)).map(filePath => path.resolve(filePath));
-        files.map(async (file: string) => {
+        await Promise.all(files.map(async (file: string) => {
             const event: Event = new (await import(file)).default(this.client);
 
-            if (!event.name)
-                return delete require.cache[require.resolve(file)] && console.log(`${file.split("/").pop()} no tiene un nombre`);
+            if (!event.name) {
+                delete require.cache[require.resolve(file)];
+                console.log(`${file.split("/").pop()} no tiene un nombre`);
+                return;
+            }
 
             const execute = (...args: any) => event.Execute(...args);
 
@@ -32,28 +36,43 @@ export default class Handler implements IHandler {
                 //@ts-ignore
                 this.client.on(event.name, execute);
 
-            return delete require.cache[require.resolve(file)]
-        });
-        console.log("Eventos cargados!")
+            delete require.cache[require.resolve(file)];
+            console.log(`Evento ${event.name} cargado!`);
+        }));
+        console.log("Eventos cargados!");
 
     }
 
     async LoadCommands() {
         const files = (await glob(`build/commands/**/**/*.js`)).map(filePath => path.resolve(filePath));
-        files.map(async (file: string) => {
+        await Promise.all(files.map(async (file: string) => {
             const command: Command | SubCommand = new (await import(file)).default(this.client);
 
-            if (!command.name)
-                return delete require.cache[require.resolve(file)] && console.log(`${file.split("/").pop()} no tiene un nombre`);
+            if (!command.name) {
+                delete require.cache[require.resolve(file)];
+                console.log(`${file.split("/").pop()} no tiene un nombre`);
+                return;
+            }
 
-            if (file.split("/").pop()?.split(".")[2])
-                return this.client.subCommands.set(command.name, command);
+            if (file.split("/").pop()?.split(".")[2]) {
+                this.client.subCommands.set(command.name, command);
+            } else {
+                this.client.commands.set(command.name, command as Command);
+            }
 
-            this.client.commands.set(command.name, command as Command)
-
-            return delete require.cache[require.resolve(file)]
-        });
-        console.log("Comandos cargados!")
+            delete require.cache[require.resolve(file)];
+        }));
+        console.log("Comandos cargados!");
     }
 
+    async LoadPoru() {
+        this.client.poru = new Poru(this.client, this.client.config.nodes, {
+            library: "discord.js",
+            defaultPlatform: "ytsearch",
+            autoResume: true,
+            reconnectTimeout: 10000,
+            reconnectTries: 10,
+
+        });
+    }
 }

@@ -14,6 +14,7 @@ export default class Kick extends Command {
             dm_permissions: false,
             cooldown: 3,
             dev: false,
+            deprecated: false,
             options: [
                 {
                     name: "target",

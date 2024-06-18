@@ -1,7 +1,7 @@
 import { ApplicationCommandOptionType, CacheType, ChatInputCommandInteraction, PermissionsBitField } from "discord.js";
-import Command from "../base/classes/Command";
-import CustomClient from "../base/classes/CustomClient";
-import Category from "../base/enums/Category";
+import Command from "../../base/classes/Command";
+import CustomClient from "../../base/classes/CustomClient";
+import Category from "../../base/enums/Category";
 
 export default class TestSub extends Command {
     constructor(client: CustomClient) {
@@ -13,6 +13,7 @@ export default class TestSub extends Command {
             dm_permissions: false,
             cooldown: 3,
             dev: true,
+            deprecated: false,
             options: [
                 {
                     name: "1",

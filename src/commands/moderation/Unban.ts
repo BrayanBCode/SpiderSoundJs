@@ -14,6 +14,7 @@ export default class Unban extends Command {
             default_member_permissions: PermissionsBitField.Flags.BanMembers,
             dm_permissions: false,
             cooldown: 3,
+            deprecated: false,
             options: [
                 {
                     name: "target",

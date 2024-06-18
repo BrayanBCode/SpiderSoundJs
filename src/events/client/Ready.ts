@@ -23,7 +23,7 @@ export default class Ready extends Event {
         if (!this.client.developmentMode) {
             const globalCommands: any = await rest.put(Routes.applicationCommands(clientId),
                 {
-                    body: this.GetJson(this.client.commands.filter(command => !command.dev))
+                    body: this.GetJson(this.client.commands.filter(command => !command.dev && !command.deprecated))
                 });
 
             console.log(`Comandos (/) globales cargados con exito ${globalCommands.length}`);
@@ -32,7 +32,7 @@ export default class Ready extends Event {
 
         const devCommands: any = await rest.put(Routes.applicationGuildCommands(clientId, this.client.config.devGuildID),
             {
-                body: this.GetJson(this.client.commands.filter(command => command.dev))
+                body: this.GetJson(this.client.commands.filter(command => command.dev && !command.deprecated))
             });
 
         console.log(`Comandos (/) de desarrollador cargados con exito ${devCommands.length}`);
@@ -41,8 +41,6 @@ export default class Ready extends Event {
 
         Commands.forEach((command: any) => console.log(`- Comando (global) cargado: ${command.name}`))
         devCommands.forEach((command: any) => console.log(`- Comando (dev) cargado: ${command.name}`))
-
-        // console.log(`Comandos cargados con exito ${setCommands.length}`);
 
     }
 

@@ -14,6 +14,7 @@ export default class move extends Command {
             default_member_permissions: PermissionsBitField.Flags.MoveMembers,
             dm_permissions: false,
             cooldown: 3,
+            deprecated: false,
             options: [
                 {
                     name: "from",
@@ -36,7 +37,7 @@ export default class move extends Command {
     async Execute(interaction: ChatInputCommandInteraction<CacheType>) {
         let from = interaction.options.getChannel("from") as VoiceChannel;
         let to = interaction.options.getChannel("to") as VoiceChannel;
-        console.log(from.id, to.id);
+
         from = await interaction.guild?.channels.fetch(from.id) as VoiceChannel;
         to = await interaction.guild?.channels.fetch(to.id) as VoiceChannel;
         
