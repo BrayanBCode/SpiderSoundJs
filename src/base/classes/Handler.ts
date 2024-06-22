@@ -5,7 +5,6 @@ import CustomClient from "./CustomClient";
 import Event from "./Event";
 import Command from "./Command";
 import SubCommand from "./SubCommand";
-import { Poru } from "poru";
 
 
 export default class Handler implements IHandler {
@@ -65,14 +64,5 @@ export default class Handler implements IHandler {
         console.log("Comandos cargados!");
     }
 
-    async LoadPoru() {
-        this.client.poru = new Poru(this.client, this.client.config.nodes, {
-            library: "discord.js",
-            defaultPlatform: "ytsearch",
-            autoResume: true,
-            reconnectTimeout: 10000,
-            reconnectTries: 10,
 
-        });
-    }
 }

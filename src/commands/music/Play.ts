@@ -1,61 +1,97 @@
-import { PermissionsBitField, ApplicationCommandOptionType, CacheType, ChatInputCommandInteraction, GuildMember, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } from "discord.js";
+import { ApplicationCommandOptionType, CacheType, ChatInputCommandInteraction, GuildMember, InteractionResponse, PermissionsBitField } from "discord.js";
 import Command from "../../base/classes/Command";
 import CustomClient from "../../base/classes/CustomClient";
 import Category from "../../base/enums/Category";
-import { Player, Poru, Response } from "poru";
-import { joinVoiceChannel, createAudioPlayer, createAudioResource } from '@discordjs/voice';
-import { Buffer } from 'buffer';
+import YoutubeHelper from "../../base/classes/SpiderPlayer/YoutubeHelper";
+import Song from "../../base/classes/SpiderPlayer/Song";
 
 export default class Play extends Command {
     constructor(client: CustomClient) {
         super(client, {
             name: "play",
-            description: "Reproduce una canción",
+            description: "Play a song",
             category: Category.Music,
-            dev: true,
-            default_member_permissions: PermissionsBitField.Flags.Connect,
+            default_member_permissions: PermissionsBitField.Flags.SendMessages,
             dm_permissions: false,
-            cooldown: 3,
+            dev: true,
             deprecated: false,
+            cooldown: 3,
             options: [
                 {
                     name: "query",
-                    description: "Nombre de la canción o URL de YouTube",
+                    description: "The song you want to play",
                     type: ApplicationCommandOptionType.String,
-                    required: true
+                    required: false
                 }
             ]
         })
     }
 
     async Execute(interaction: ChatInputCommandInteraction<CacheType>) {
-        await interaction.deferReply();
+        interaction.deferReply();
+        const query = interaction.options.getString("query");
 
-        const query = interaction.options.getString("query") as string;
-        const member = await interaction.guild?.members.fetch(interaction.user.id)
-
-        const voiceChannel = member?.voice.channel;
-
-        if (!(interaction.member as GuildMember).voice.channelId) {
-            return interaction.followUp({
-                embeds: [new EmbedBuilder()
-                    .setTitle("Error")
-                    .setDescription("Debes estar en un canal de voz para usar este comando")
-                    .setColor("Red")
-                ], ephemeral: true
-            });
+        if (!query) {
+            interaction.reply("You need to provide a query to search for a song.");
+            return;
         }
 
-        const player = this.client.poru?.createConnection({
-            guildId: interaction.guild?.id!,
-            voiceChannel: voiceChannel?.id!,
-            textChannel: interaction.channel?.id!,
+        const player = this.client.player.create_player(interaction.guildId!, {
+            client: this.client,
+            loop: false,
             deaf: true
-        })
+        });
 
-        interaction.followUp({embeds: [new EmbedBuilder()
-            .setDescription("Testing...")
-        ]})
+        let video: Song | Song[] | null;
+        const type = YoutubeHelper.identifySearchType(query);
+        switch (type) {
+            case "video":
+                video = await YoutubeHelper.getVideoInfo(query);
+                if (!video) {
+                    interaction.reply("No videos found.");
+                    return;
+                }
+                break
+
+            case "playlist":
+                video = await YoutubeHelper.getPlaylistInfo(query);
+                if (!video) {
+                    interaction.reply("No videos found.");
+                    return;
+                }
+                break
+
+            case "search":
+                video = await YoutubeHelper.searchVideos(query);
+                if (!video) {
+                    interaction.reply("No videos found.");
+                    return;
+                }
+                break
+
+            case "mix":
+                video = await YoutubeHelper.getMixInfo(query);
+                if (!video) {
+                    interaction.reply("No videos found.");
+                    return;
+                }
+                break
+
+            default:
+                this.client.player.destroy_player(interaction.guildId!);
+                interaction.reply("tipo de busqueda no soportado.");
+                return;
+        }
+
+        console.log("process status: \n", video)
+
+        player.joinVoiceChannel((interaction.member as GuildMember).voice.channelId!);
+
+        player.addSong(video);
+
+        await player.play()
+
+        interaction.followUp(`Esta sonando ${player.queue[0].title} en el canal de voz.`)
 
     }
 }

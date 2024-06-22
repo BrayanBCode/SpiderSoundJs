@@ -8,20 +8,5 @@ export interface IConfig {
     devGuildID: string;
     devMongoURL: string;
 
-    nodes: [
-        {
-            name: string;
-            host: string;
-            port: number;
-            password: string;
-            secure: boolean;
-        },
-    ]
-    SPOTIFY: {
-        CLIENT_ID: string;
-        CLIENT_SECRET: string;
-
-    };
-
     developerUserIDs: Array<string>;
 }
