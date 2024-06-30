@@ -10,6 +10,7 @@ yt-dlp = "*"
 requests = "*"
 pycparser = "*"
 "discord.py" = "*"
+colorama = "*"
 
 [dev-packages]
 

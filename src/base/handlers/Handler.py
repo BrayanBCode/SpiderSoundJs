@@ -4,7 +4,7 @@ from pathlib import Path
 class Handler:
 
     @staticmethod
-    def loadHandlers():
+    def getHandlers():
         print("Loading handlers...")
         events = Handler.loadEvents()
         commands = Handler.loadCommands()
@@ -12,24 +12,36 @@ class Handler:
 
     @staticmethod
     def loadEvents():
-        events = []
-        print("Loading events...")
+        event_paths = []
+        print("-- Loading events...")
         paths = Path("src/events")
-        for filepath in paths.rglob("*.py"):
-            if filepath.is_file():
-                relative_path = filepath.relative_to(paths)
-                event = f"events.{relative_path.with_suffix('').stem}".replace("\\", ".")
-                events.append(event)
-        return events
-
+        try:
+            for filepath in paths.rglob("**/*.py"):
+                if filepath.is_file():
+                    # Obtener la ruta alternativa
+                    alternative_path = str(filepath.relative_to(paths)).replace("\\", ".")
+                    alternative_path = alternative_path.replace(".py", "")
+                    alternative_path = "events." + alternative_path
+                    event_paths.append(alternative_path)
+            return event_paths
+        except Exception as e:
+            print(e)
+            return
+    
     @staticmethod
     def loadCommands():
-        commands = []
-        print("Loading commands...")
-        commands_path = Path("src/commands")
-        for filepath in commands_path.rglob("*.py"):
-            if filepath.is_file():
-                relative_path = filepath.relative_to(commands_path)
-                command = f"commands.{relative_path.with_suffix('').stem}".replace("\\", ".")
-                commands.append(command)
-        return commands
+        event_paths = []
+        print("-- Loading commands...")
+        paths = Path("src/commands")
+        try:
+            for filepath in paths.rglob("**/*.py"):
+                if filepath.is_file():
+                    # Obtener la ruta alternativa
+                    alternative_path = str(filepath.relative_to(paths)).replace("\\", ".")
+                    alternative_path = alternative_path.replace(".py", "")
+                    alternative_path = "commands." + alternative_path
+                    event_paths.append(alternative_path)
+            return event_paths        
+        except Exception as e:
+                print(e)
+                return

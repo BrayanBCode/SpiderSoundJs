@@ -1,41 +1,35 @@
+import asyncio
 import discord
+
 from discord.ext import commands
-import os
-
+from base.classes.SpiderPlayer.SpiderPlayer import SpiderPlayer
 from base.handlers.Handler import Handler
-from base.interfaces.IConfig import IConfig
+from colorama import init
 
-class CustomBot():
-    def __init__(self):
-        self.bot = commands.Bot(command_prefix="=", intents=discord.Intents.all())
-        self.tree = self.bot.tree
+init(autoreset=True)
+
+class CustomBot(commands.Bot):
+    def __init__(self, command_prefix, intents, application_id):
+        super().__init__(command_prefix=command_prefix, intents=intents, application_id=application_id)
         self.synced = False
+        self.players = SpiderPlayer(self)
+        
 
-        self.config = IConfig(
-            token=os.getenv("token"),
-            clientID=os.getenv("clientID"),
-            devGuildID=os.getenv("devGuildID")
-        )
+    async def load_handlers(self):
+        """
+        Carga los controladores de eventos y comandos en el bot.
+        """
+        handlers = Handler.getHandlers()  # Asegúrate de que Handler.getHandlers() esté definido correctamente
+        for event in handlers[0]:
+            await self.load_extension(event)
 
-    async def loadhandlers(self):
-        events, commands = Handler.loadHandlers()  # Asumiendo que esta función es sincrónica
-        extensions = events + commands
+        for command in handlers[1]:
+            await self.load_extension(command)
 
-        for extension in extensions:
-            print(f"--- Cargando extensión {extension}")
-            try:
-                await self.bot.load_extension(extension)
-                print(f"Extensión {extension} cargada correctamente")
-            except Exception as e:
-                print(f"Error al cargar la extensión {extension}: {e}")
-
-    def run(self):
-        @self.bot.event
-        async def on_ready():
-            guild = discord.Object(id="1149753197573968024")  # Reemplaza ID_DEL_SERVIDOR con el ID de tu servidor
-            await self.bot.tree.sync(guild=guild)
-            print(f"{self.bot.user} ha iniciado sesión.")
-            await self.loadhandlers()
-
-        self.bot.run(self.config.token)
-
+    def init(self):
+        """
+        Configura los controladores de eventos y comandos y ejecuta el bot.
+        """
+        print("--- Inicializando bot ---")
+        asyncio.run(self.load_handlers())
+        

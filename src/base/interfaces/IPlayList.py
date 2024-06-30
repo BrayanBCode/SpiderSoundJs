@@ -1,10 +1,10 @@
 from dataclasses import dataclass
+from base.interfaces.ISong import ISong
 
 @dataclass
-class IVideo_Info:
+class IPlayList:
     title: str
-    duration: float | int
+    url: str
     uploader: str
-    webpage_url: str
     thumbnail: str
-
+    entries: list[ISong]
