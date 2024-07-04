@@ -1,9 +1,11 @@
 
 import asyncio
+import os
 
 import discord
 from base.classes.Bot import CustomBot
-
+import dotenv
+dotenv.load_dotenv()
 
 if __name__ == "__main__":
     intents = discord.Intents.default()
@@ -16,4 +18,4 @@ if __name__ == "__main__":
     bot = CustomBot(command_prefix="=", intents=intents, application_id='1256395249417457775')
     bot.init()
     
-    bot.run('MTI1NjM5NTI0OTQxNzQ1Nzc3NQ.Gnpnmc.ZV6d3VA3gjtvP9GNji2V3fTcOllKmDDc2GsKAU')
+    bot.run(os.getenv("token"))

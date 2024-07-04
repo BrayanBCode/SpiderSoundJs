@@ -4,10 +4,11 @@ import discord
 
 from base.classes.Youtube import Youtube
 from base.interfaces.ISong import ISong
+from base.utils.colors import Colours
 
 yt = Youtube()
 
-class player():
+class Player():
     """
     Clase que representa a un reproductor en el bot SpiderBot.
 
@@ -30,10 +31,14 @@ class player():
         self.bot = bot
         self.guild = guild
         self.queue: List[ISong] = []
-        self.volume = 50
+        self.volume = 25
+        self.sourceVolume = 100
         self.current_song = None
         self.voiceChannel = None
         self.textChannel = None
+        self.stoped = False
+        self.loop = False
+        self.playingMsg = None
 
     async def joinVoiceChannel(self, voiceChannel: discord.VoiceChannel):
         """
@@ -62,8 +67,13 @@ class player():
         if self.voiceChannel is not None:
             await self.voiceChannel.disconnect()
             self.voiceChannel = None
+            return "disconnected"
+        
+        return "not_connected"
 
     async def play(self, interaction: discord.Interaction):
+        from buttons.playerMenu import playerMenu
+
         if self.voiceChannel is None:
             return
         
@@ -77,22 +87,39 @@ class player():
             self.voiceChannel.resume()
             return "resumed"
         
+        if self.stoped:
+            self.stoped = False
+            return "stoped"
+        
         video = self.queue.pop(0)
         
         stream = await yt.get_audio_stream(video.url)
-        self.voiceChannel.play(stream[1], after=lambda e: (self.bot.loop.create_task(self.play(interaction)), print(f"{Fore.GREEN}[Info] Canción finalizada.")))
 
-        await interaction.channel.send(embed=discord.Embed(
-            title=f"Reproduciendo - **{video.title}**", 
-            description=f"Duración: {video.duration}",
-            color=discord.Color.green())
-            .add_field(name="Canal", value=video.uploader)
-            .add_field(name='Cola:', value=len(self.queue))
-            )
+        self.voiceChannel.play(stream[0], 
+            after=lambda e: (
+                print(f"{Fore.BLUE}[Info] Canción '{video.title}' finalizada en '{interaction.guild.name}'."),
+                self.bot.loop.create_task(self.play(interaction)),
+                (self.add_song(video), print(f"{Fore.BLUE}[Info] loop activado")) if self.loop else None                
+                )  
+            ) 
 
+        self.voiceChannel.source = discord.PCMVolumeTransformer(self.voiceChannel.source, volume=self.sourceVolume / 100)
+        self.voiceChannel.source.volume = self.volume / 100
 
+        if self.playingMsg is not None:
+            await self.playingMsg.edit(view=None)
+
+        self.playingMsg = await playerMenu(interaction, self, video, stream[1]).Send()
         
+    async def resume(self):
+        self.voiceChannel.resume()
 
+    async def stop(self):
+        self.voiceChannel.stop()
+        self.stoped = True
+
+    async def pause(self):
+        self.voiceChannel.pause()
 
     def add_song(self, song):
         """
@@ -111,6 +138,25 @@ class player():
         - songs: list: La lista de canciones a agregar.
         """
         self.queue.extend(songs)
+
+    def add_song_at(self, song, index = 0):
+        """
+        Agrega una canción a la cola de reproducción del reproductor en una posición específica.
+
+        Parámetros:
+        - song: any: La canción a agregar.
+        - index: int: La posición en la que se agregará la canción.
+        """
+        self.queue.insert(index, song)
+
+    def add_songs_at_start(self, songs):
+        """
+        Agrega una lista de canciones al inicio de la cola de reproducción del reproductor.
+
+        Parámetros:
+        - songs: list: La lista de canciones a agregar.
+        """
+        self.queue = songs + self.queue
 
     def remove_song(self, index):
         """
@@ -216,3 +262,34 @@ class player():
         - discord.Guild: El servidor al que pertenece el reproductor.
         """
         return self.guild
+    
+    def setDuration(self, duration):
+        hours, remainder = divmod(duration, 3600)
+        minutes, seconds = divmod(remainder, 60)
+
+        # Redondear minutos si los segundos son 30 o más
+        if seconds >= 30:
+            minutes += 1
+        if minutes >= 60:
+            minutes = 0
+            hours += 1
+
+        # Ajustar para que los segundos se muestren siempre
+        # Convierte minutes, hours y seconds a enteros antes de formatear
+        hours = int(hours)
+        minutes = int(minutes)
+        seconds = int(seconds) % 60  # Asegurar que los segundos sean correctos después de redondear minutos
+
+        # Construir el string de duración basado en las condiciones de horas, minutos y segundos
+        duration_parts = []
+        if hours > 0:
+            duration_parts.append(f"{hours:02d}")
+        if minutes > 0 or hours > 0:
+            duration_parts.append(f"{minutes:02d}")
+        duration_parts.append(f"{seconds:02d}")  # Incluir siempre los segundos
+
+        return ":".join(duration_parts)
+    
+    def destroy(self):
+        self.bot.players.destroy_player(self.guild.id)
+        return "destroyed"

@@ -82,6 +82,8 @@ class play(commands.Cog):
                     description=f"Se han añadido {search.results[0].title} a la cola.", 
                     color=discord.Color.green()
                 ))
+
+            player.stoped = False
                 
             await player.play(interaction)
         else:

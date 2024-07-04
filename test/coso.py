@@ -1,0 +1,8 @@
+print(int("42"))
+print(float("3.14"))
+print(bool("True"))
+print(bool("False"))
+print(str(42))
+print(str(3.14))
+print(str(True))
+print(str(False))

@@ -1,3 +1,4 @@
+import re
 from discord import VoiceChannel, FFmpegPCMAudio
 import discord
 from discord.ext import commands
@@ -21,8 +22,9 @@ class Youtube():
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
             audio_url = info['url']
+            thumbnail = info['thumbnail']
             ffmpg_audio = FFmpegPCMAudio(audio_url, before_options="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5")
-        return audio_url, ffmpg_audio
+        return ffmpg_audio, thumbnail
     
     async def get_video_info(self, url) -> ISong:
         ydl_opts = {
@@ -35,7 +37,7 @@ class Youtube():
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
             return ISong(
-                title=info.get('title'),
+                title=self.cleanTitle(info.get('title')),
                 url=f"https://www.youtube.com/watch?v={info.get('id')}",
                 duration=info.get('duration'),
                 uploader=info.get('uploader'),
@@ -55,7 +57,7 @@ class Youtube():
             
             videos = [
                 ISong(
-                    title=video.get('title'),
+                    title=self.cleanTitle(video.get('title')),
                     url=f"https://www.youtube.com/watch?v={video.get('id')}",
                     duration=video.get('duration'),
                     uploader=video.get('uploader')
@@ -75,16 +77,20 @@ class Youtube():
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
+
+            if 'entries' not in info:
+                return await self.get_playlist_info(info['url'])
+            
             videos = [
                 ISong(
-                    title=video.get('title'),
+                    title=self.cleanTitle(video.get('title')),
                     url=f"https://www.youtube.com/watch?v={video.get('id')}",
                     duration=video.get('duration'),
                     uploader=video.get('uploader')
                     ) for video in info['entries']
             ]
             return IPlayList(
-                title=info.get('title'),
+                title=self.cleanTitle(info.get('title')),
                 url=info.get('original_url'),
                 uploader=info.get('uploader'),
                 thumbnail=info.get('thumbnail'),
@@ -102,3 +108,17 @@ class Youtube():
             return "spotify", None 
         else:
             return "search", await self.get_search(url)
+
+    @staticmethod
+    def cleanTitle(titulo):
+        # Eliminar las etiquetas entre corchetes
+        titulo = re.sub(r'\[.*?\]', '', titulo)
+        # Eliminar las etiquetas entre paréntesis
+        titulo = re.sub(r'\(.*?\)', '', titulo)
+        # Eliminar las etiquetas entre llaves
+        titulo = re.sub(r'\{.*?\}', '', titulo)
+        # Eliminar los caracteres especiales
+        titulo = re.sub(r'[^\w\s]', '', titulo)
+        # Eliminar los espacios adicionales
+        titulo = re.sub(r'\s+', ' ', titulo).strip()
+        return titulo
