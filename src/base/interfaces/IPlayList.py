@@ -6,5 +6,5 @@ class IPlayList:
     title: str
     url: str
     uploader: str
-    thumbnail: str
     entries: list[ISong]
+    removed: list[ISong]

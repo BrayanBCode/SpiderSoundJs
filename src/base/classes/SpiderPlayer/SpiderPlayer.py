@@ -6,6 +6,7 @@ from base.classes.SpiderPlayer.player import Player
 class SpiderPlayer():
     def __init__(self, bot):
         self.bot = bot
+        self.should_reconnect = True
         # Inicializa correctamente Collection
         self.guilds = {}
 

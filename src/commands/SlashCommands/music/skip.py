@@ -17,6 +17,13 @@ class skip(commands.Cog):
     @app_commands.command(name="skip", description="Salta una o varias canciones de la cola de reproducción.")
     @app_commands.describe(posicion="Posición de la canción a saltar.")
     async def skip(self, interaction: discord.Interaction, posicion: int | None = 0):
+        user_voice_state = interaction.user.voice
+        bot_voice_channel = interaction.guild.voice_client.channel if interaction.guild.voice_client else None
+
+        if not user_voice_state or user_voice_state.channel != bot_voice_channel:
+            await interaction.response.send_message(embed=discord.Embed(title="Debes estar en el mismo canal de voz que el bot.", color=Color.red()), ephemeral=True)
+            return
+        
         player: Player = self.bot.players.get_player(interaction.guild_id)
 
         if posicion == 1:

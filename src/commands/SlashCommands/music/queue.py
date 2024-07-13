@@ -1,5 +1,5 @@
 import discord
-import button_paginator as pg 
+from buttons import button_paginator as pg
 
 from discord.ext import commands
 from discord import app_commands
@@ -22,9 +22,9 @@ class queue(commands.Cog):
     
         if player:
             if len(player.queue) == 0:
-                await interaction.response.send_message(embed=discord.Embed(title="No hay canciones en la cola.", color=discord.Color.red()))
+                await interaction.response.send_message(embed=discord.Embed(title="No hay canciones en la cola.", color=discord.Color.red()), ephemeral=True)
                 return
-    
+            
             pages = []
             for i in range(0, len(player.queue), 7):
                 embed = discord.Embed(title="Canciones en la cola", color=Colours.default())
@@ -32,12 +32,8 @@ class queue(commands.Cog):
                 embed.timestamp = interaction.created_at
 
                 for index, song in enumerate(player.queue[i:i+7], start=i+1):
-                    hours, remainder = divmod(song.duration, 3600)
-                    minutes, seconds = divmod(remainder, 60)
-                    
-                    duration_str = f"{hours:02}:{minutes:02}:{seconds:02}" if hours else f"{minutes:02}:{seconds:02}"
-    
-                    embed.add_field(name=f"{index}. {song.title}", value=f"Duración: {duration_str}", inline=False)
+                    embed.add_field(name=f"{index}. {song.title}", value=f"Duración: {self.setDuration(song.duration)}", inline=False)
+                
                 pages.append(embed)
     
             pag = pg.Paginator(self.bot, pages, interaction)
@@ -52,5 +48,32 @@ class queue(commands.Cog):
     
         await interaction.response.send_message(embed=discord.Embed(title="No hay canciones en la cola.", color=discord.Color.red()))
         
+    def setDuration(self, duration):
+        hours, remainder = divmod(duration, 3600)
+        minutes, seconds = divmod(remainder, 60)
+
+        # Redondear minutos si los segundos son 30 o más
+        if seconds >= 30:
+            minutes += 1
+        if minutes >= 60:
+            minutes = 0
+            hours += 1
+
+        # Ajustar para que los segundos se muestren siempre
+        # Convierte minutes, hours y seconds a enteros antes de formatear
+        hours = int(hours)
+        minutes = int(minutes)
+        seconds = int(seconds) % 60  # Asegurar que los segundos sean correctos después de redondear minutos
+
+        # Construir el string de duración basado en las condiciones de horas, minutos y segundos
+        duration_parts = []
+        if hours > 0:
+            duration_parts.append(f"{hours:02d}")
+        if minutes > 0 or hours > 0:
+            duration_parts.append(f"{minutes:02d}")
+        duration_parts.append(f"{seconds:02d}")  # Incluir siempre los segundos
+
+        return ":".join(duration_parts)
+    
 async def setup(bot):
     await bot.add_cog(queue(bot))

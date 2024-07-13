@@ -14,6 +14,13 @@ class loop(commands.Cog):
 
     @app_commands.command(name="loop", description="Reproduce una canción")
     async def loop(self, interaction: discord.Interaction):
+        user_voice_state = interaction.user.voice
+        bot_voice_channel = interaction.guild.voice_client.channel if interaction.guild.voice_client else None
+
+        if not user_voice_state or user_voice_state.channel != bot_voice_channel:
+            await interaction.response.send_message(embed=discord.Embed(title="Debes estar en el mismo canal de voz que el bot.", color=Color.red()), ephemeral=True)
+            return
+        
         player: Player = self.bot.players.get_player(interaction.guild_id)
 
         if player:

@@ -1,4 +1,5 @@
 import re
+from colorama import Fore
 from discord import VoiceChannel, FFmpegPCMAudio
 import discord
 from discord.ext import commands
@@ -11,22 +12,24 @@ from base.interfaces.ISong import ISong
 
 class Youtube():
     async def get_audio_stream(self, url):
+        print(f"{Fore.YELLOW}[Debug] obteniendo stream de {url}")
         ydl_opts = {
             'format': 'bestaudio',
             'quiet': True,
             'no_warnings': True,
             'default_search': 'auto',
-            'source_address': '0.0.0.0'
         }
     
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
             audio_url = info['url']
             thumbnail = info['thumbnail']
-            ffmpg_audio = FFmpegPCMAudio(audio_url, before_options="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5")
+            ffmpg = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
+            ffmpg_audio = FFmpegPCMAudio(audio_url, **ffmpg)
         return ffmpg_audio, thumbnail
     
     async def get_video_info(self, url) -> ISong:
+        print(f"{Fore.YELLOW}[Debug] - [Video] obteniendo información de {url}")
         ydl_opts = {
             'quiet': True,
             'no_warnings': True,
@@ -41,10 +44,10 @@ class Youtube():
                 url=f"https://www.youtube.com/watch?v={info.get('id')}",
                 duration=info.get('duration'),
                 uploader=info.get('uploader'),
-                thumbnail=info.get('thumbnail')
                 )
     
     async def get_search(self, query) -> ISearchResults:
+        print(f"{Fore.YELLOW}[Debug] - [Search] buscando {query}")
         ydl_opts = {
             'quiet': True,
             'no_warnings': True,
@@ -53,20 +56,33 @@ class Youtube():
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            result = ydl.extract_info(f"ytsearch1:{query}", download=False)
-            
-            videos = [
-                ISong(
-                    title=self.cleanTitle(video.get('title')),
-                    url=f"https://www.youtube.com/watch?v={video.get('id')}",
-                    duration=video.get('duration'),
-                    uploader=video.get('uploader')
-                    ) for video in result['entries']
-            ]
+            try:
+                result = ydl.extract_info(f"ytsearch1:{query}", download=False)
+                
+                videos = [
+                    ISong(
+                        title=self.cleanTitle(video.get('title', 'private')),
+                        url=f"https://www.youtube.com/watch?v={video.get('id')}",
+                        duration=video.get('duration', 0),
+                        uploader=video.get('uploader', 'Desconocido')
+                        ) for video in result['entries'] if video.get('title') and video.get('title') != 'private'
+                ]
 
-            return ISearchResults(search=query, results=videos)
+                return ISearchResults(search=query, results=videos)
+            except yt_dlp.utils.DownloadError as e:
+                print(f'{Fore.RED}[ERROR] Error al descargar la canción {query}.\n {e}')
+                return 'Error al buscar la canción.'
+            
+            except yt_dlp.utils.ExtractorError as e:
+                print(f'{Fore.RED}[ERROR] Error al extraer la canción {query}.\n {e}')
+                return 'Error al buscar la canción.'
+            
+            except Exception as e:
+                print(f'{Fore.RED}[ERROR] Error al buscar la canción {query}.\n {e}')
+                return 'Error al buscar la canción.'
         
     async def get_playlist_info(self, url) -> IPlayList:
+        print(f"{Fore.YELLOW}[Debug] - [Playlist] obteniendo información de {url}")
         ydl_opts = {
             'quiet': True,
             'no_warnings': True,
@@ -77,24 +93,37 @@ class Youtube():
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
-
+            
             if 'entries' not in info:
                 return await self.get_playlist_info(info['url'])
             
-            videos = [
-                ISong(
-                    title=self.cleanTitle(video.get('title')),
-                    url=f"https://www.youtube.com/watch?v={video.get('id')}",
-                    duration=video.get('duration'),
-                    uploader=video.get('uploader')
-                    ) for video in info['entries']
-            ]
+            videos = []
+            removed = []
+            for video in info['entries']:
+                title = video.get('title')
+                if title != '[Private video]':
+                    videos.append(ISong(
+                        title=self.cleanTitle(title),
+                        url=f"https://www.youtube.com/watch?v={video.get('id')}",
+                        duration=video.get('duration', 0),
+                        uploader=video.get('uploader', 'desconocido')
+                    ))
+                else:
+                    song = ISong(
+                        title=title,
+                        url=f"https://www.youtube.com/watch?v={video.get('id')}",
+                        duration=0,
+                        uploader='Desconocido'
+                    )
+                    print(f"{Fore.YELLOW}[Debug] Descartado: {song}")  # Impresión de depuración para videos descartados
+                    removed.append(song)
+            
             return IPlayList(
-                title=self.cleanTitle(info.get('title')),
+                title=self.cleanTitle(info.get('title', 'private')),
                 url=info.get('original_url'),
-                uploader=info.get('uploader'),
-                thumbnail=info.get('thumbnail'),
-                entries=videos
+                uploader=info.get('uploader', 'Desconocido'),
+                entries=videos,
+                removed=removed
             )
         
     async def Search(self, url):

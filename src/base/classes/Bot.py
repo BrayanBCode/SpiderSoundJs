@@ -19,7 +19,7 @@ class CustomBot(commands.Bot):
         """
         Carga los controladores de eventos y comandos en el bot.
         """
-        handlers = Handler.getHandlers()  # Asegúrate de que Handler.getHandlers() esté definido correctamente
+        handlers = Handler.getHandlers()
         for event in handlers[0]:
             await self.load_extension(event)
 

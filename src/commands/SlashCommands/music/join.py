@@ -16,16 +16,16 @@ class join(commands.Cog):
 
     @app_commands.command(name="join", description="Reproduce una canción")
     async def join(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         player: Player = self.bot.players.get_player(interaction.guild_id) if self.bot.players.get_player(interaction.guild_id) else self.bot.players.create_player(interaction.guild_id)
 
-        if player:
-            player.joinVoiceChannel(interaction.user.voice.channel)
-            await interaction.response.send_message(embed=discord.Embed(title="Me he unido al canal de voz.", color=discord.Color.green()))
+        if interaction.user.voice is None:
+            await interaction.followup.send(embed=discord.Embed(title="Debes estar en un canal de voz para usar este comando.", color=discord.Color.red()))
             return
-        else:
-            await interaction.response.send_message(embed=discord.Embed(title="No se ha podido unir al canal de voz.", color=discord.Color.red()))
-            return
-
+        
+        await player.joinVoiceChannel(interaction.user.voice.channel)
+        await interaction.followup.send(embed=discord.Embed(title="Me he unido al canal de voz.", color=discord.Color.green()))
+        return
 
 async def setup(bot):
     await bot.add_cog(join(bot))

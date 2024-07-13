@@ -1,11 +1,13 @@
 
 import asyncio
-import os
+import sys, os
 
 import discord
 from base.classes.Bot import CustomBot
 import dotenv
 dotenv.load_dotenv()
+
+sys.path.append("..")
 
 if __name__ == "__main__":
     intents = discord.Intents.default()
@@ -15,7 +17,18 @@ if __name__ == "__main__":
     intents.messages = True
     intents.guilds = True
 
-    bot = CustomBot(command_prefix="=", intents=intents, application_id='1256395249417457775')
-    bot.init()
-    
-    bot.run(os.getenv("token"))
+    debug = False
+
+    if debug == True:
+        bot = CustomBot(command_prefix="==", intents=intents, application_id=int(os.getenv("devClientID")))
+
+        bot.init()
+        
+        bot.run(os.getenv("devToken"))
+
+    else:
+        bot = CustomBot(command_prefix="=", intents=intents, application_id=os.getenv("ClientID"))
+
+        bot.init()
+        
+        bot.run(os.getenv("token"))

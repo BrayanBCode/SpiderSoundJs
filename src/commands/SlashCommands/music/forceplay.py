@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from discord import app_commands
+from discord import Color, app_commands
 from colorama import Fore
 
 from base.classes.SpiderPlayer.player import Player
@@ -22,6 +22,13 @@ class forceplay(commands.Cog):
     @app_commands.command(name="forceplay", description="Reproduce una canción")
     @app_commands.describe(url="URL de la canción a reproducir")
     async def forceplay(self, interaction: discord.Interaction, url: str):
+        user_voice_state = interaction.user.voice
+        bot_voice_channel = interaction.guild.voice_client.channel if interaction.guild.voice_client else None
+
+        if not user_voice_state or user_voice_state.channel != bot_voice_channel:
+            await interaction.response.send_message(embed=discord.Embed(title="Debes estar en el mismo canal de voz que el bot.", color=Color.red()), ephemeral=True)
+            return
+
         await interaction.response.defer()
 
         player: Player = self.bot.players.get_player(interaction.guild_id) if self.bot.players.get_player(interaction.guild_id) else self.bot.players.create_player(interaction.guild_id)
@@ -39,6 +46,7 @@ class forceplay(commands.Cog):
                     description=f"Se han añadido {len(playlist.entries)} canciones a la cola.", 
                     color=discord.Color.green()
                     ))
+                
             if result[0] == 'radio':
                 playlist: IPlayList = result[1]
 

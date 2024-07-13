@@ -205,11 +205,11 @@
         },
         "certifi": {
             "hashes": [
-                "sha256:3cd43f1c6fa7dedc5899d69d3ad0398fd018ad1a17fba83ddaf78aa46c747516",
-                "sha256:ddc6c8ce995e6987e7faf5e3f1b02b302836a0e5d98ece18392cb1a36c72ad56"
+                "sha256:5a1e7645bc0ec61a09e26c36f6106dd4cf40c6db3a1fb6352b0244e7fb057c7b",
+                "sha256:c198e21b1289c2ab85ee4e67bb4b4ef3ead0892059901a8d5b622f24a1101e90"
             ],
             "markers": "python_version >= '3.6'",
-            "version": "==2024.6.2"
+            "version": "==2024.7.4"
         },
         "cffi": {
             "hashes": [
@@ -843,12 +843,12 @@
         },
         "yt-dlp": {
             "hashes": [
-                "sha256:3566c0de240d0cd3d1c2285ce655f72ca38dfc618d634d46818b00d89d5288be",
-                "sha256:5dbedb7610ae9440cc44e744f528e078828142bbe09af950cf7e99ce69c866d9"
+                "sha256:2b0c86b579d4a044eaf3c4b00e3d7b24d82e6e26869fa11c288ea4395b387f41",
+                "sha256:4f76b48244c783e6ac06e8d7627bcf62cbeb4f6d79ba7e3cfc8249e680d4e691"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.8'",
-            "version": "==2024.5.27"
+            "version": "==2024.7.2"
         }
     },
     "develop": {}

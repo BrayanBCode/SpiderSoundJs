@@ -1,6 +1,8 @@
+import asyncio
 from typing import List
 from colorama import Fore
 import discord
+from discord.ext import commands
 
 from base.classes.Youtube import Youtube
 from base.interfaces.ISong import ISong
@@ -19,6 +21,13 @@ class Player():
     - current_song: any: La canción actual que se está reproduciendo.
     - voiceChannel: discord.VoiceChannel: El canal de voz al que está conectado el reproductor.
     - textChannel: discord.TextChannel: El canal de texto asociado al reproductor.
+    - stoped: bool: Indica si el reproductor está detenido.
+    - loop: bool: Indica si el reproductor está en modo bucle.
+    - playingMsg: discord.Message: El mensaje que muestra la información de la canción que se está reproduciendo.
+    - should_reconnect: bool: Indica si el reproductor debe reconectarse al canal de voz anterior.
+    - last_voice_channel: discord.VoiceChannel: El último canal de voz al que estaba conectado el reproductor.
+    - bot: commands.Bot: El bot de discord.py al que pertenece el reproductor.
+    - sourceVolume: int: El volumen de la fuente de audio del reproductor.
     """
 
     def __init__(self, guild, bot) -> None:
@@ -39,26 +48,42 @@ class Player():
         self.stoped = False
         self.loop = False
         self.playingMsg = None
+        self.should_reconnect = True
+        self.last_voice_channel = None
+        self.inactivity_timer = None
+        self.last_Interaction = None
 
     async def joinVoiceChannel(self, voiceChannel: discord.VoiceChannel):
-        """
-        Conecta al reproductor a un canal de voz.
+            """
+            Conecta al bot al canal de voz especificado.
 
-        Parámetros:
-        - voiceChannel: discord.VoiceChannel: El canal de voz al que se conectará el reproductor.
-        """
-        if self.voiceChannel is not None and self.voiceChannel.channel == voiceChannel:
-            return "connected"
-            
-        try:
-            self.voiceChannel = voiceChannel
-            self.voiceChannel = await voiceChannel.connect()
-            return "connected"
-        except discord.ClientException as e:
-            print(f"{Fore.RED}[Error] cliente:\n", e)
+            Parámetros:
+            - voiceChannel (discord.VoiceChannel): El canal de voz al que se desea conectar.
 
-        except Exception as e:
-            print(f"{Fore.RED}[Error] general:\n", e)
+            Retorna:
+            - str: Un mensaje indicando si se ha conectado correctamente al canal de voz.
+            """
+
+            self.should_reconnect = True
+
+            if self.voiceChannel is not None and self.voiceChannel.channel == voiceChannel:
+                print(f"{Fore.YELLOW}[Debug] Bot ya está conectado a '{voiceChannel.name}'.")
+                return "connected"
+                
+            try:
+                if self.voiceChannel is not None and self.voiceChannel.is_connected():
+                    await self.voiceChannel.move_to(voiceChannel)
+                    print(f"{Fore.YELLOW}[Debug] Bot movido a '{voiceChannel.name}'.")
+                    return "connected"
+                self.voiceChannel = voiceChannel
+                self.voiceChannel = await voiceChannel.connect()
+                print(f"{Fore.YELLOW}[Debug] Bot conectado a '{voiceChannel.name}'.")
+                return "connected"
+            except discord.ClientException as e:
+                print(f"{Fore.RED}[Error] cliente:\n", e)
+
+            except Exception as e:
+                print(f"{Fore.RED}[Error] general:\n", e)
 
     async def leaveVoiceChannel(self):
         """
@@ -71,13 +96,22 @@ class Player():
         
         return "not_connected"
 
-    async def play(self, interaction: discord.Interaction):
+    async def play(self, interaction: discord.Interaction = None):
         from buttons.playerMenu import playerMenu
+
+        print(f"{Fore.BLUE}[Info] Reproduciendo en '{interaction.guild.name}'.")
+
+        if interaction is None:
+            interaction = self.last_Interaction  
+
+        self.textChannel = interaction.channel
+        self.last_Interaction = interaction
 
         if self.voiceChannel is None:
             return
         
         if len(self.queue) == 0:
+            self.reset_inactivity_timer(interaction.guild_id)
             return
 
         if self.voiceChannel.is_playing():
@@ -87,21 +121,29 @@ class Player():
             self.voiceChannel.resume()
             return "resumed"
         
+        if not self.voiceChannel.is_connected():
+            return "not connected"
+        
         if self.stoped:
             self.stoped = False
             return "stoped"
         
         video = self.queue.pop(0)
-        
-        stream = await yt.get_audio_stream(video.url)
+        try:
+            stream = await yt.get_audio_stream(video.url)
 
-        self.voiceChannel.play(stream[0], 
-            after=lambda e: (
-                print(f"{Fore.BLUE}[Info] Canción '{video.title}' finalizada en '{interaction.guild.name}'."),
-                self.bot.loop.create_task(self.play(interaction)),
-                (self.add_song(video), print(f"{Fore.BLUE}[Info] loop activado")) if self.loop else None                
-                )  
-            ) 
+            self.voiceChannel.play(stream[0], 
+                after=lambda e: (
+                    print(f"{Fore.BLUE}[Info] Canción '{video.title}' finalizada en '{interaction.guild.name}'."),
+                    self.bot.loop.create_task(self.play(interaction)),
+                    (self.add_song(video), print(f"{Fore.BLUE}[Info] loop activado")) if self.loop else None                
+                    )  
+                )
+
+        except Exception as e:
+            print(f"{Fore.RED}[Error] No se pudo reproducir la canción '{video.title}' en '{interaction.guild.name}'.")
+            print(f"{Fore.RED}[Error] {e}")
+            await self.play(interaction)
 
         self.voiceChannel.source = discord.PCMVolumeTransformer(self.voiceChannel.source, volume=self.sourceVolume / 100)
         self.voiceChannel.source.volume = self.volume / 100
@@ -290,6 +332,40 @@ class Player():
 
         return ":".join(duration_parts)
     
-    def destroy(self):
-        self.bot.players.destroy_player(self.guild.id)
+    async def destroy(self):
+        if self.voiceChannel is not None:
+            self.voiceChannel.stop()
+            await self.voiceChannel.disconnect()
+
+        if self.playingMsg is not None:
+            await self.playingMsg.edit(view=None)
+
+        self.queue.clear()
+        self.volume = 25
+        self.current_song = None
+        self.voiceChannel = None
+        self.textChannel = None
+        self.stoped = False
+        self.loop = False
+        self.playingMsg = None
+        self.should_reconnect
         return "destroyed"
+    
+    async def disconnect_for_inactivity(self, guild_id):
+        await asyncio.sleep(60)
+        guild = self.bot.get_guild(guild_id)
+        if guild.voice_client and not self.voiceChannel.is_playing():
+            await guild.voice_client.disconnect()
+            await self.playingMsg.edit(view=None)
+            await self.textChannel.send(embed=discord.Embed(
+                title="Desconexión por inactividad", 
+                description="Me he desconectado por inactividad.", 
+                color=Colours.default()
+                ))
+            await self.destroy()
+            print(f"{Fore.BLUE}[Voice] Bot desconectado de '{guild.name}' por inactividad.")
+
+    def reset_inactivity_timer(self, guild_id):
+        if self.inactivity_timer:
+            self.inactivity_timer.cancel()
+        self.inactivity_timer = asyncio.create_task(self.disconnect_for_inactivity(guild_id))
