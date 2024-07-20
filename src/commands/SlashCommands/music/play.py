@@ -29,20 +29,19 @@ class play(commands.Cog):
 
         player = self.bot.players.get_player(interaction.guild_id) if self.bot.players.get_player(interaction.guild_id) else self.bot.players.create_player(interaction.guild_id)
 
-        if url is None:
-            await player.joinVoiceChannel(interaction.user.voice.channel)
-            if player.voiceChannel is not None and not player.voiceChannel.is_playing() and player.queue > 0:
-                await player.play(interaction)
+        if hasattr(interaction.user.voice, 'channel') and await player.joinVoiceChannel(interaction.user.voice.channel) == 'connected':
+            if url is None:
+                await player.joinVoiceChannel(interaction.user.voice.channel)
+                if player.voiceChannel is not None and not player.voiceChannel.is_playing() and len(player.queue) > 0:
+                    await player.play(interaction)
+                    await interaction.followup.send(
+                        embed=discord.Embed(title="Reproducción reanudada.", description="Agrega mas canciones a la cola proprocionando una URL.", color=Colours.default())
+                    )
+                    return
                 await interaction.followup.send(
-                    embed=discord.Embed(title="Reproducción reanudada.", description="Se ha reanudado la reproducción.", color=Colours.default())
-                )
+                    embed=discord.Embed(title="Me he unido al canal de voz.", description="Necesitas proporcionar una URL para reproducir.", color=Colours.default())
+                    )
                 return
-            await interaction.followup.send(
-                embed=discord.Embed(title="Me he unido al canal de voz.", description="Necesitas proporcionar una URL para reproducir.", color=Colours.default())
-                )
-            return
-
-        if await player.joinVoiceChannel(interaction.user.voice.channel) == 'connected':
 
             result = await yt.Search(url)
 

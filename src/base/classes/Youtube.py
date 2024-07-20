@@ -12,7 +12,7 @@ from base.interfaces.ISong import ISong
 
 class Youtube():
     async def get_audio_stream(self, url):
-        print(f"{Fore.YELLOW}[Debug] obteniendo stream de {url}")
+        # print(f"{Fore.YELLOW}[Debug] obteniendo stream de {url}")
         ydl_opts = {
             'format': 'bestaudio',
             'quiet': True,
@@ -29,7 +29,7 @@ class Youtube():
         return ffmpg_audio, thumbnail
     
     async def get_video_info(self, url) -> ISong:
-        print(f"{Fore.YELLOW}[Debug] - [Video] obteniendo información de {url}")
+        # print(f"{Fore.YELLOW}[Debug] - [Video] obteniendo información de {url}")
         ydl_opts = {
             'quiet': True,
             'no_warnings': True,
@@ -47,7 +47,7 @@ class Youtube():
                 )
     
     async def get_search(self, query) -> ISearchResults:
-        print(f"{Fore.YELLOW}[Debug] - [Search] buscando {query}")
+        # print(f"{Fore.YELLOW}[Debug] - [Search] buscando {query}")
         ydl_opts = {
             'quiet': True,
             'no_warnings': True,
@@ -82,7 +82,7 @@ class Youtube():
                 return 'Error al buscar la canción.'
         
     async def get_playlist_info(self, url) -> IPlayList:
-        print(f"{Fore.YELLOW}[Debug] - [Playlist] obteniendo información de {url}")
+        # print(f"{Fore.YELLOW}[Debug] - [Playlist] obteniendo información de {url}")
         ydl_opts = {
             'quiet': True,
             'no_warnings': True,
@@ -115,7 +115,7 @@ class Youtube():
                         duration=0,
                         uploader='Desconocido'
                     )
-                    print(f"{Fore.YELLOW}[Debug] Descartado: {song}")  # Impresión de depuración para videos descartados
+                    # print(f"{Fore.YELLOW}[Debug] Descartado: {song}")  # Impresión de depuración para videos descartados
                     removed.append(song)
             
             return IPlayList(
@@ -131,7 +131,7 @@ class Youtube():
             return "playlist", await self.get_playlist_info(url)
         elif "start_radio=" in url:
             return "radio", await self.get_playlist_info(url)
-        elif "youtube.com/watch" in url:
+        elif "youtube.com/watch" in url or "youtu.be" in url:
             return "video", await self.get_video_info(url)
         elif "open.spotify.com" in url:
             return "spotify", None 

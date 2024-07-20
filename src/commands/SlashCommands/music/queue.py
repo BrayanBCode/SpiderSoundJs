@@ -28,7 +28,7 @@ class queue(commands.Cog):
             pages = []
             for i in range(0, len(player.queue), 7):
                 embed = discord.Embed(title="Canciones en la cola", color=Colours.default())
-                embed.set_footer(text=f"Pedido por {interaction.user.display_name}", icon_url=interaction.user.avatar.url)
+                embed.set_footer(text=f"por {interaction.user.display_name}", icon_url=interaction.user.avatar.url)
                 embed.timestamp = interaction.created_at
 
                 for index, song in enumerate(player.queue[i:i+7], start=i+1):
