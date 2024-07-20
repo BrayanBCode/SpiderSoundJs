@@ -24,13 +24,13 @@ class playerMenu(discord.ui.View):
             color=Colours.default()
             )
             .add_field(name="Artista", value=f"`{self.video.uploader}`", inline=True)
-            .add_field(name="Duración", value=f"`{self.player.setDuration(self.video.duration)}`", inline=True)
+            .add_field(name="Duración", value=f"`{self.player.setDuration(self.video.duration) if not isinstance(self.video.duration, str) else self.video.duration}`", inline=True)
             .add_field(name="Volumen", value=f"`{self.player.volume}%`", inline=True)
             .add_field(name="Loop", value=f"`{'🔁' if self.player.loop else '❌'}`", inline=True)
             .add_field(name="En cola", value=f"`{len(self.player.queue)} canciones`", inline=True)
             .add_field(name="Duracion estimada", value=f"`{self.player.setDuration(sum(vid.duration for vid in self.player.queue if vid.duration is not None))}`", inline=True)
             .set_image(url=self.img)
-            .set_footer(icon_url=self.interaction.user.avatar, text=f"Pedido por {self.interaction.user.display_name}")
+            .set_footer(icon_url=self.interaction.user.avatar, text=f"Por {self.interaction.user.display_name}")
             , view=self
             )
         return self.msg
@@ -54,7 +54,7 @@ class playerMenu(discord.ui.View):
             pages = []
             for i in range(0, len(player.queue), 7):
                 embed = discord.Embed(title="Canciones en la cola", color=Colours.default())
-                embed.set_footer(text=f"Pedido por {interaction.user.display_name}", icon_url=interaction.user.avatar.url)
+                embed.set_footer(text=f"Por {interaction.user.display_name}", icon_url=interaction.user.avatar.url)
                 embed.timestamp = interaction.created_at
 
                 for index, song in enumerate(player.queue[i:i+7], start=i+1):
@@ -91,7 +91,7 @@ class playerMenu(discord.ui.View):
 
         await self.player.stop()
         await interaction.response.send_message(embed=discord.Embed(title="Se ha detenido la reproducción.", color=discord.Color.green()
-                                                                    ).set_footer(text=f"Pedido por {interaction.user.display_name}", icon_url=interaction.user.avatar.url))
+                                                                    ).set_footer(text=f"Por {interaction.user.display_name}", icon_url=interaction.user.avatar.url))
         return
 
     @discord.ui.button(emoji="⏯️", style=discord.ButtonStyle.primary)
@@ -101,17 +101,17 @@ class playerMenu(discord.ui.View):
 
         if not user_voice_state or user_voice_state.channel != bot_voice_channel:
             await interaction.response.send_message(embed=discord.Embed(title="Debes estar en el mismo canal de voz que el bot.", color=discord.Color.red()
-                                                                        ).set_footer(text=f"Pedido por {interaction.user.display_name}", icon_url=interaction.user.avatar.url))
+                                                                        ).set_footer(text=f"Por {interaction.user.display_name}", icon_url=interaction.user.avatar.url))
             return 
         
         if self.player.voiceChannel.is_paused():
             await self.player.resume()
             await interaction.response.send_message(embeds=[discord.Embed(title="Reanudado ▶️", color=discord.Color.green())
-            .set_footer(text=f"Pedido por {interaction.user.display_name}", icon_url=interaction.user.avatar.url)])
+            .set_footer(text=f"Por {interaction.user.display_name}", icon_url=interaction.user.avatar.url)])
         else:
             await self.player.pause()
             await interaction.response.send_message(embeds=[discord.Embed(title="Pausado ⏸️", color=discord.Color.green())
-            .set_footer(text=f"Pedido por {interaction.user.display_name}", icon_url=interaction.user.avatar.url)])
+            .set_footer(text=f"{interaction.user.display_name}", icon_url=interaction.user.avatar.url)])
 
     @discord.ui.button(emoji="⏩", style=discord.ButtonStyle.primary)
     async def skip(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -123,7 +123,7 @@ class playerMenu(discord.ui.View):
 
         if not user_voice_state or user_voice_state.channel != bot_voice_channel:
             await interaction.followup.send(embed=discord.Embed(title="Debes estar en el mismo canal de voz que el bot.", color=discord.Color.red()
-                                                                ).set_footer(text=f"Pedido por {interaction.user.display_name}", icon_url=interaction.user.avatar.url))
+                                                                ).set_footer(text=f"Por {interaction.user.display_name}", icon_url=interaction.user.avatar.url))
             return 
         
         player: Player = self.bot.players.get_player(interaction.guild_id)
@@ -140,8 +140,4 @@ class playerMenu(discord.ui.View):
             return
 
         await self.msg.edit(view=None)
-        await self.interaction.followup.send("skiped", ephemeral=True)
-
-
-
-
+        await self.interaction.followup.send(embed=discord.Embed(title="Canción saltada.", color=discord.Color.green()), ephemeral=True)
