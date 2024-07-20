@@ -4,11 +4,13 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-py-cord = "*"
-ffmpeg-python = "*"
-yt-dlp = "*"
 pynacl = "*"
 python-dotenv = "*"
+yt-dlp = "*"
+requests = "*"
+pycparser = "*"
+"discord.py" = "*"
+colorama = "*"
 
 [dev-packages]
 
