@@ -42,7 +42,8 @@ class voiceDisconnect(commands.Cog):
 			print(f"{Fore.BLUE}[Voice] Bot desconectado de '{before.channel.guild.name}'.")
 	
 			player: Player = self.bot.players.get_player(member.guild.id)
-			await player.destroy()
+			if player:
+				await player.destroy()
 			
 			# Intenta reconectar si should_reconnect es True
 			if player.last_voice_channel and player.should_reconnect:

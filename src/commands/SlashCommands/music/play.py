@@ -1,3 +1,4 @@
+import re
 import discord
 from discord.ext import commands
 from discord import app_commands
@@ -46,37 +47,53 @@ class play(commands.Cog):
             result = await yt.Search(url)
 
             if result[0] == 'playlist':
+                if result[1] is None:
+                    await interaction.followup.send(embed=discord.Embed(
+                        title="Playlist inaccesible",
+                        description="No se pudo acceder a la playlist.",
+                        color=discord.Color.red()
+                    ))
+                    return
+                    
                 playlist: IPlayList = result[1]
                 for song in playlist.entries:
                     player.add_song(song)
 
                 await interaction.followup.send(embed=discord.Embed(
-                    title=f"Playlist - **{playlist.title}**", 
+                    title=f"Playlist - **{self.clean_title(playlist.title)}**", 
                     description=f"Se han añadido {len(playlist.entries)} canciones a la cola.", 
                     color=discord.Color.green()
                     ))
                 
             if result[0] == 'radio':
+                if result[1] is None:
+                    await interaction.followup.send(embed=discord.Embed(
+                        title="Mix inaccesible",
+                        description="No se pudo acceder al mix.",
+                        color=discord.Color.red()
+                    ))
+                    return
+                    
                 playlist: IPlayList = result[1]
                 for song in playlist.entries:
                     player.add_song(song)
                     
                 await interaction.followup.send(embed=discord.Embed(
-                    title=f"Mix - **{playlist.title}**", 
+                    title=f"Mix - **{self.clean_title(playlist.title)}**", 
                     description=f"Se han añadido {len(playlist.entries)} canciones a la cola.", 
                     color=discord.Color.green()
                     ))
                 
             if result[0] == 'video':
-                video: ISong = result[1]
-
-                if video.title == 'private':
+                if result[1] is None:
                     await interaction.followup.send(embed=discord.Embed(
-                        title="Video privado",
-                        description="No se puede reproducir contenido privado.",
+                        title="Video inaccesible",
+                        description="No se pudo acceder al video.",
                         color=discord.Color.red()
                     ))
                     return
+                
+                video: ISong = result[1]
                 
                 player.add_song(video)
                 
@@ -118,13 +135,17 @@ class play(commands.Cog):
 
             player.stoped = False
             if len(player.queue) > 0:
-                print(f"{Fore.BLUE}[Debug] Canción '{player.queue[0].title}' añadida a la cola en '{interaction.guild.name}'.")
+                print(f"{Fore.BLUE}[Debug] Canción '{self.clean_title(player.queue[0].title)}' añadida a la cola en '{interaction.guild.name}'.")
             await player.play(interaction)
         else:
             await interaction.followup.send(
                 embed=discord.Embed(description="No estás conectado a un canal de voz.", color=discord.Color.red())
                 )
-
+            
+    @staticmethod
+    def clean_title(title):
+        return re.sub(r'^(playlist|mix)\s*', '', title, flags=re.IGNORECASE)
+        
 
 async def setup(bot):
     await bot.add_cog(play(bot))

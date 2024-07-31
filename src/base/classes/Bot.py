@@ -1,14 +1,11 @@
 import asyncio
 import discord
-import dotenv
 import os
 
 from discord.ext import commands
 from base.classes.SpiderPlayer.SpiderPlayer import SpiderPlayer
 from base.handlers.Handler import Handler
 import colorama
-
-dotenv.load_dotenv()
 
 colorama.init(autoreset=True)
 

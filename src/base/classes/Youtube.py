@@ -28,7 +28,7 @@ class Youtube():
             ffmpg_audio = FFmpegPCMAudio(audio_url, **ffmpg)
         return ffmpg_audio, thumbnail
     
-    async def get_video_info(self, url) -> ISong:
+    async def get_video_info(self, url) -> ISong | None:
         # print(f"{Fore.YELLOW}[Debug] - [Video] obteniendo información de {url}")
         ydl_opts = {
             'quiet': True,
@@ -37,16 +37,21 @@ class Youtube():
             'extract_flat': True,
         }                                   
     
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
-            return ISong(
-                title=self.cleanTitle(info.get('title')),
-                url=f"https://www.youtube.com/watch?v={info.get('id')}",
-                duration=info.get('duration'),
-                uploader=info.get('uploader'),
-                )
-    
-    async def get_search(self, query) -> ISearchResults:
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=False)
+                return ISong(
+                    title=self.cleanTitle(info.get('title')),
+                    url=f"https://www.youtube.com/watch?v={info.get('id')}",
+                    duration=info.get('duration'),
+                    uploader=info.get('uploader'),
+                    )
+        except Exception as e:
+            print(f'{Fore.RED}[ERROR] Error al obtener la información del video {url}.\n {e}')
+            return None  
+
+    # Arreglar el manejo de errores - si hay error se debe retornar None
+    async def get_search(self, query) -> ISearchResults | None:
         # print(f"{Fore.YELLOW}[Debug] - [Search] buscando {query}")
         ydl_opts = {
             'quiet': True,
@@ -69,17 +74,10 @@ class Youtube():
                 ]
 
                 return ISearchResults(search=query, results=videos)
-            except yt_dlp.utils.DownloadError as e:
-                print(f'{Fore.RED}[ERROR] Error al descargar la canción {query}.\n {e}')
-                return 'Error al buscar la canción.'
-            
-            except yt_dlp.utils.ExtractorError as e:
-                print(f'{Fore.RED}[ERROR] Error al extraer la canción {query}.\n {e}')
-                return 'Error al buscar la canción.'
             
             except Exception as e:
                 print(f'{Fore.RED}[ERROR] Error al buscar la canción {query}.\n {e}')
-                return 'Error al buscar la canción.'
+                return None
         
     async def get_playlist_info(self, url) -> IPlayList:
         # print(f"{Fore.YELLOW}[Debug] - [Playlist] obteniendo información de {url}")
@@ -92,41 +90,46 @@ class Youtube():
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
-            
-            if 'entries' not in info:
-                return await self.get_playlist_info(info['url'])
-            
-            videos = []
-            removed = []
-            for video in info['entries']:
-                title = video.get('title')
-                if title != '[Private video]':
+            try:
+                info = ydl.extract_info(url, download=False)
+                
+                if 'entries' not in info:
+                    return await self.get_playlist_info(info['url'])
+                
+                videos = []
+                removed = []
+                for video in info['entries']:
+                    duration = video.get('duration', 0)
+                    if duration is None:
+                        song = ISong(
+                            title=video.get('title'),
+                            url=f"https://www.youtube.com/watch?v={video.get('id')}",
+                            duration=0,
+                            uploader='Desconocido'
+                        )
+                        print(f"{Fore.YELLOW}[Debug] Descartado: {song}")  # Impresión de depuración para videos descartados
+                        removed.append(song)
+                        continue
+                    
                     videos.append(ISong(
-                        title=self.cleanTitle(title),
+                        title=self.cleanTitle(video.get('title')),
                         url=f"https://www.youtube.com/watch?v={video.get('id')}",
                         duration=video.get('duration', 0),
                         uploader=video.get('uploader', 'desconocido')
                     ))
-                else:
-                    song = ISong(
-                        title=title,
-                        url=f"https://www.youtube.com/watch?v={video.get('id')}",
-                        duration=0,
-                        uploader='Desconocido'
-                    )
-                    # print(f"{Fore.YELLOW}[Debug] Descartado: {song}")  # Impresión de depuración para videos descartados
-                    removed.append(song)
-            
-            return IPlayList(
-                title=self.cleanTitle(info.get('title', 'private')),
-                url=info.get('original_url'),
-                uploader=info.get('uploader', 'Desconocido'),
-                entries=videos,
-                removed=removed
-            )
-        
-    async def Search(self, url):
+                
+                return IPlayList(
+                    title=self.cleanTitle(info.get('title', 'private')),
+                    url=info.get('original_url'),
+                    uploader=info.get('uploader', 'Desconocido'),
+                    entries=videos,
+                    removed=removed
+                )
+            except Exception as e:
+                print(f'{Fore.RED}[ERROR] Error al obtener la información de la playlist {url}.\n {e}')
+                return None
+
+    async def Search(self, url: str):
         if "youtube.com/playlist" in url or "list=PL" in url:
             return "playlist", await self.get_playlist_info(url)
         elif "start_radio=" in url:
