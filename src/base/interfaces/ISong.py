@@ -6,6 +6,7 @@ class ISong:
     url: str
     duration: float | int | str
     uploader: str
+    thumbnail: str = None
 
     def __str__(self):
         return f"{self.title} - {self.uploader}"
