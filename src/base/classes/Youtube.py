@@ -87,7 +87,7 @@ class Youtube():
             'default_search': 'auto',
             'extract_flat': True,  # Importante para playlists, evita descargar los videos.
             'playlistend': 100,
-        }
+        }  
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             try:
@@ -130,7 +130,7 @@ class Youtube():
                 return None
 
     async def Search(self, url: str):
-        if "youtube.com/playlist" in url or "list=PL" in url:
+        if "youtube.com/playlist" in url or "list=PL" in url or "index=" in url:
             return "playlist", await self.get_playlist_info(url)
         elif "start_radio=" in url:
             return "radio", await self.get_playlist_info(url)
