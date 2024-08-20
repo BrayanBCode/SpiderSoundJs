@@ -39,6 +39,7 @@ class playnex(commands.Cog):
                     description=f"Se han añadido {len(playlist.entries)} canciones a la cola.", 
                     color=discord.Color.green()
                     ))
+                    
             if result[0] == 'radio':
                 playlist: IPlayList = result[1]
 

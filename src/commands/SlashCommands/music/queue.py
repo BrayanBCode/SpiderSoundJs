@@ -26,12 +26,15 @@ class queue(commands.Cog):
                 return
             
             pages = []
-            for i in range(0, len(player.queue), 7):
-                embed = discord.Embed(title="Canciones en la cola", color=Colours.default())
-                embed.set_footer(text=f"por {interaction.user.display_name}", icon_url=interaction.user.avatar.url)
+
+            max_pages = 6
+
+            for i in range(0, len(player.queue), max_pages):
+                embed = discord.Embed(title="Lista de reproducción", color=Colours.default())
+                embed.set_footer(text=f"por {interaction.user.display_name} - {len(player.queue)} canciones", icon_url=interaction.user.avatar.url)
                 embed.timestamp = interaction.created_at
 
-                for index, song in enumerate(player.queue[i:i+7], start=i+1):
+                for index, song in enumerate(player.queue[i:i+max_pages], start=i+1):
                     embed.add_field(name=f"{index}. {song.title}", value=f"Duración: {self.setDuration(song.duration)}", inline=False)
                 
                 pages.append(embed)

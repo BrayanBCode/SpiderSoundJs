@@ -12,7 +12,7 @@ class loop(commands.Cog):
     async def on_ready(self):
         print(f"{Fore.GREEN}[Slash Command] loop cargado.")
 
-    @app_commands.command(name="loop", description="Reproduce una canción")
+    @app_commands.command(name="loop", description="Activa o desactiva el bucle de la cola de reproducción.")
     async def loop(self, interaction: discord.Interaction):
         user_voice_state = interaction.user.voice
         bot_voice_channel = interaction.guild.voice_client.channel if interaction.guild.voice_client else None

@@ -21,7 +21,7 @@ class play(commands.Cog):
     async def on_ready(self):
         print(f"{Fore.GREEN}[Slash Command] play cargado.")
 
-    @app_commands.command(name="play", description="Reproduce una canción")
+    @app_commands.command(name="play", description="Reproduce una canción o agrega a la cola.")
     @app_commands.describe(url="URL de la canción a reproducir | agregar a la cola.")
     async def play(self, interaction: discord.Interaction, url: str = None):
         await interaction.response.defer()
@@ -61,7 +61,7 @@ class play(commands.Cog):
 
                 await interaction.followup.send(embed=discord.Embed(
                     title=f"Playlist - **{self.clean_title(playlist.title)}**", 
-                    description=f"Se han añadido {len(playlist.entries)} canciones a la cola.", 
+                    description=f"Se han añadido ``{len(playlist.entries)}`` canciones a la cola.", 
                     color=discord.Color.green()
                     ))
                 
@@ -80,7 +80,7 @@ class play(commands.Cog):
                     
                 await interaction.followup.send(embed=discord.Embed(
                     title=f"Mix - **{self.clean_title(playlist.title)}**", 
-                    description=f"Se han añadido {len(playlist.entries)} canciones a la cola.", 
+                    description=f"Se han añadido ``{len(playlist.entries)}`` canciones a la cola.", 
                     color=discord.Color.green()
                     ))
                 
@@ -129,7 +129,7 @@ class play(commands.Cog):
 
                 await interaction.followup.send(embed=discord.Embed(
                     title=f"Busqueda - **{search.search}**", 
-                    description=f"Se han añadido {search.results[0].title} a la cola.", 
+                    description=f"Se han añadido ``{search.results[0].title}`` a la cola.", 
                     color=discord.Color.green()
                 ))
 

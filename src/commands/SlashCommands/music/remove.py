@@ -13,7 +13,7 @@ class remove(commands.Cog):
     async def on_ready(self):
         print(f"{Fore.GREEN}[Slash Command] remove cargado.")
 
-    @app_commands.command(name="remove", description="Reproduce una canción")
+    @app_commands.command(name="remove", description="Remueve una canción de la cola.")
     @app_commands.describe(posicion="Posición de la canción a remover.")
     async def remove(self, interaction: discord.Interaction, posicion: int):
         user_voice_state = interaction.user.voice

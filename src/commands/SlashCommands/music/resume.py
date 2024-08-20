@@ -13,7 +13,7 @@ class resume(commands.Cog):
     async def on_ready(self):
         print(f"{Fore.GREEN}[Slash Command] resume cargado.")
 
-    @app_commands.command(name="resume", description="Reproduce una canción")
+    @app_commands.command(name="resume", description="Reanuda la canción actual.")
     async def resume(self, interaction: discord.Interaction):
         user_voice_state = interaction.user.voice
         bot_voice_channel = interaction.guild.voice_client.channel if interaction.guild.voice_client else None

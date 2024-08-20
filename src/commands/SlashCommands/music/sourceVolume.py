@@ -14,7 +14,7 @@ class sourceVolume(commands.Cog):
     async def on_ready(self):
         print(f"{Fore.GREEN}[Slash Command] sourceVolume cargado.")
 
-    @app_commands.command(name="sourcevolume", description="Ajusta el volumen de la fuente de audio")
+    @app_commands.command(name="sourcevolume", description="Ajusta el volumen de la fuente de audio (0-100).")
     async def sourceVolume(self, interaction: discord.Interaction, volume: int):
 
         if volume < 0 or volume > 100:
@@ -24,7 +24,7 @@ class sourceVolume(commands.Cog):
         player: Player = self.bot.players.get_player(interaction.guild_id)
 
         if player:
-            await player.sourceVolume(volume)
+            player.sourceVolume = volume
             await interaction.response.send_message(embed=discord.Embed(title=f"Se ha ajustado el volumen de la fuente a {volume}.", color=Color.green()))
             return
         else:

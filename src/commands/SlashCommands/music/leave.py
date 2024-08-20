@@ -13,7 +13,7 @@ class leave(commands.Cog):
     async def on_ready(self):
         print(f"{Fore.GREEN}[Slash Command] leave cargado.")
 
-    @app_commands.command(name="leave", description="Reproduce una canción")
+    @app_commands.command(name="leave", description="Hace que el bot se salga del canal de voz.")
     async def leave(self, interaction: discord.Interaction):
         user_voice_state = interaction.user.voice
         bot_voice_channel = interaction.guild.voice_client.channel if interaction.guild.voice_client else None

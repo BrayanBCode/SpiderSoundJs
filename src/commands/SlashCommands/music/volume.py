@@ -13,7 +13,7 @@ class volume(commands.Cog):
     async def on_ready(self):
         print(f"{Fore.GREEN}[Slash Command] volume cargado.")
 
-    @app_commands.command(name="volume", description="Reproduce una canción")
+    @app_commands.command(name="volume", description="Cambia el volumen actual.")
     @app_commands.describe(vol="URL de la canción a reproducir")
     async def volume(self, interaction: discord.Interaction, vol: int):
         user_voice_state = interaction.user.voice

@@ -19,7 +19,7 @@ class forceplay(commands.Cog):
     async def on_ready(self):
         print(f"{Fore.GREEN}[Slash Command] forceplay cargado.")
         
-    @app_commands.command(name="forceplay", description="Reproduce una canción")
+    @app_commands.command(name="forceplay", description="Fuerza la reproducción de una canción.")
     @app_commands.describe(url="URL de la canción a reproducir")
     async def forceplay(self, interaction: discord.Interaction, url: str):
         user_voice_state = interaction.user.voice
@@ -29,7 +29,7 @@ class forceplay(commands.Cog):
             await interaction.response.send_message(embed=discord.Embed(title="Debes estar en el mismo canal de voz que el bot.", color=Color.red()), ephemeral=True)
             return
 
-        await interaction.response.defer()
+        await interaction.response.defer(ephemeral=True)
 
         player: Player = self.bot.players.get_player(interaction.guild_id) if self.bot.players.get_player(interaction.guild_id) else self.bot.players.create_player(interaction.guild_id)
 

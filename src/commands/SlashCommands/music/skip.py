@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from discord import app_commands
+from discord import Color, app_commands
 from colorama import Fore
 
 from base.classes.SpiderPlayer.player import Player

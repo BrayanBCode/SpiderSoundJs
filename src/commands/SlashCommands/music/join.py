@@ -14,7 +14,7 @@ class join(commands.Cog):
     async def on_ready(self):
         print(f"{Fore.GREEN}[Slash Command] join cargado.")
 
-    @app_commands.command(name="join", description="Reproduce una canción")
+    @app_commands.command(name="join", description="Hace que el bot se una al canal de voz.")
     async def join(self, interaction: discord.Interaction):
         await interaction.response.defer()
         player: Player = self.bot.players.get_player(interaction.guild_id) if self.bot.players.get_player(interaction.guild_id) else self.bot.players.create_player(interaction.guild_id)
