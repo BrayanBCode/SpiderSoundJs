@@ -25,10 +25,14 @@ class sync(commands.Cog):
             
 
         if self.bot.synced == False:
-            self.bot.synced = True
-            fmt = await ctx.bot.tree.sync()
-            embed = discord.Embed(title="Sincronización Completa", description=f'Se sincronizaron {len(fmt)} items.', color=discord.Color.green())
-            await msg.edit(embed=embed)
+            try:
+                self.bot.synced = True
+                fmt = await ctx.bot.tree.sync()
+                embed = discord.Embed(title="Sincronización Completa", description=f'Se sincronizaron {len(fmt)} items.', color=discord.Color.green())
+                await msg.edit(embed=embed)
+            except Exception as e:
+                embed = discord.Embed(title="Error", description=f"Ocurrió un error al sincronizar los comandos: {e}", color=discord.Color.red())
+                await msg.edit(embed=embed)
 
         else:
             embed = discord.Embed(title="Sincronización", description="El árbol de comandos ya está sincronizado.", color=discord.Color.orange())
