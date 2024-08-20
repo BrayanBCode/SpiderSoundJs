@@ -5,6 +5,7 @@ import os
 from discord.ext import commands
 from base.classes.SpiderPlayer.SpiderPlayer import SpiderPlayer
 from base.handlers.Handler import Handler
+from base.db.DBManager import DBManager
 import colorama
 
 colorama.init(autoreset=True)
@@ -19,17 +20,32 @@ intents.guilds = True
 class CustomBot(commands.Bot):
     def __init__(self, command_prefix, debug=False):
         super().__init__(
-            command_prefix=command_prefix, 
+            command_prefix=command_prefix if not debug else "!=", 
             intents=intents, 
-            application_id=int(os.getenv("ClientID")) if debug else int(os.getenv("devClientID"))
+            application_id=int(os.getenv("devClientID") if debug else os.getenv("ClientID")),
+            help_command=None,
             )
-        self.debug = debug
-        self.synced = False
+
         self.players = SpiderPlayer(self)
+        self.db_manager = DBManager(Mongo_URI=os.getenv("MONGO_URI"), dbName="SpiderBot-DB")
+        self.synced = False
+        self.debug = debug
 
         self.init()
 
         self.run(os.getenv("devToken") if debug else os.getenv("token"))
+    
+    # async def on_command_error(self, ctx, error):
+    #     if isinstance(error, commands.CommandNotFound):
+    #         embed = discord.Embed(title="Error", description="El comando no existe.", color=discord.Color.red())
+    #     elif isinstance(error, commands.MissingRequiredArgument):
+    #         embed = discord.Embed(title="Error", description="Faltan argumentos.", color=discord.Color.red())
+    #     elif isinstance(error, commands.CommandOnCooldown):
+    #         embed = discord.Embed(title="Error", description=f"El comando está en cooldown. {error.retry_after:.2f} segundos restantes.", color=discord.Color.red())
+    #     else:
+    #         embed = discord.Embed(title="Error", description=f"Ha ocurrido un error: {error}", color=discord.Color.red())
+    
+    #     await ctx.reply(embed=embed)
 
     async def load_handlers(self):
         """
@@ -41,6 +57,12 @@ class CustomBot(commands.Bot):
 
         for command in handlers[1]:
             await self.load_extension(command)
+
+    def run(self, token):
+        try:
+            super().run(token)
+        except Exception as e:
+            print(f"An error occurred: {e}")
 
     def init(self):
         """
