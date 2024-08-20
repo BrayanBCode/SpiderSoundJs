@@ -16,3 +16,12 @@ async def test():
 
 # Asegúrate de incluir la llamada a asyncio.run(test()) si es el punto de entrada.
 asyncio.run(test())
+
+
+# https://www.youtube.com/watch?v=7V3zyLm82_4&list=RD7V3zyLm82_4&index=2
+# https://www.youtube.com/watch?v=DfEBmXxh1cA&list=RDDfEBmXxh1cA&start_radio=1&rv=DfEBmXxh1cA&t=0
+
+
+
+# https://www.youtube.com/watch?v=7V3zyLm82_4&list=RD7V3zyLm82_4&index=2
+# https://www.youtube.com/watch?v=7V3zyLm82_4&list=RD7V3zyLm82_4&start_radio=1&rv=DfEBmXxh1cA&t=0
