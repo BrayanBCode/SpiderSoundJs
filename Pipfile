@@ -11,6 +11,7 @@ requests = "*"
 pycparser = "*"
 "discord.py" = "*"
 colorama = "*"
+pymongo = "*"
 
 [dev-packages]
 
