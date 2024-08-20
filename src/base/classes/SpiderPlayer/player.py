@@ -34,19 +34,36 @@ class Player():
     - last_song: any: La última canción que se reprodujo en el reproductor.
     - pausedDisconnect: bool: Indica si el reproductor se desconectó por inactividad mientras estaba pausado.
     """
+    
+    guild: int
+    queue: List[ISong]
+    current_song: ISong
+    voiceChannel: discord.VoiceChannel
+    textChannel: discord.TextChannel
+    stoped: bool
+    loop: bool
+    playingMsg: discord.Message
+    should_reconnect: bool
+    last_voice_channel: discord.VoiceChannel
+    inactivity_timer: asyncio.Task
+    last_Interaction: discord.Interaction
+    last_song: ISong
+    pausedDisconnect: bool
+    sourceVolume: int
+    volume: int
 
-    def __init__(self, guild, bot) -> None:
+    def __init__(self, guild: int, bot) -> None:
+        from base.classes.Bot import CustomBot
         """
         Inicializa una instancia de la clase player.
 
         Parámetros:
-        - guild: discord.Guild: El servidor al que pertenece el reproductor.
+        - guild: int: El id del servidor al que pertenece el reproductor.
         """
-        self.bot = bot
+        
+        self.bot: CustomBot = bot
         self.guild = guild
-        self.queue: List[ISong] = []
-        self.volume = 25
-        self.sourceVolume = 100
+        self.queue = []
         self.current_song = None
         self.voiceChannel = None
         self.textChannel = None
@@ -59,6 +76,33 @@ class Player():
         self.last_Interaction = None
         self.last_song = None
         self.pausedDisconnect = False
+        self.sourceVolume = 100
+        self.volume = 25
+
+        self.LoadGuildData()
+    
+    def LoadGuildData(self):
+        """
+        Carga los datos del servidor desde la base de datos.
+        """
+        if "guilds" not in self.bot.db_manager.db.list_collection_names():
+            self.bot.db_manager.createCollection("guilds")
+        
+        guildData = self.bot.db_manager.getCollection("guilds").find_one({"_id": self.guild})
+        
+        if guildData is None:
+            guildData = {
+                "_id": self.guild,
+                "music-setting": {
+                    "sourcevolumen": 100,
+                    "volume": 25,
+                }
+            }
+            self.bot.db_manager.getCollection("guilds").insert_one(guildData)
+            return
+        
+        self.sourceVolume = guildData["music-setting"]["sourcevolumen"]
+        self.volume = guildData["music-setting"]["volume"]
 
     async def joinVoiceChannel(self, voiceChannel: discord.VoiceChannel):
             """
@@ -140,15 +184,20 @@ class Player():
         video = self.queue.pop(0)
         self.current_song = video
         try:
-            stream = await yt.get_audio_stream(video.url)
+            stream, video.thumbnail = await yt.get_audio_stream(video.url)
 
-            self.voiceChannel.play(stream[0], 
-                after=lambda e: (
-                    print(f"{Fore.BLUE}[Info] Canción '{video.title}' finalizada en '{interaction.guild.name}'."),
-                    self.bot.loop.create_task(self.play(interaction)),
-                    (self.add_song(video), print(f"{Fore.BLUE}[Info] loop activado")) if self.loop else None                
-                    )  
-                )
+            def after_play(e):
+                self.last_song = video
+                print(f"{Fore.BLUE}[Info] Canción '{video.title}' finalizada en '{interaction.guild.name}'.")
+                self.bot.loop.create_task(self.play(interaction))
+                if self.loop:
+                    self.add_song(video)
+                    print(f"{Fore.BLUE}[Info] loop activado - agregando '{video.title}' a la cola")
+
+            self.voiceChannel.play(stream, after=after_play)
+            self.last_song = video
+            
+
 
         except Exception as e:
             print(f"{Fore.RED}[Error] No se pudo reproducir la canción '{video.title}' en '{interaction.guild.name}'.")
@@ -161,8 +210,18 @@ class Player():
         if self.playingMsg is not None:
             await self.playingMsg.edit(view=None)
 
-        self.playingMsg = await playerMenu(interaction, self, video, stream[1]).Send()
+        self.playingMsg = await playerMenu(interaction, self, video).Send()
         
+    async def back(self):
+        if self.last_song is None:
+            return "no last song"
+
+        if self.loop and self.last_song is self.queue[-1]:
+            self.queue.pop()
+
+        self.add_song_at(self.last_song)
+        self.voiceChannel.stop()
+
     async def resume(self):
         self.voiceChannel.resume()
 
@@ -345,7 +404,6 @@ class Player():
         return ":".join(duration_parts)
     
     async def destroy(self):
-        
         if not self.voiceChannel.is_paused():
             self.queue.clear()
             self.last_song = None
@@ -353,7 +411,6 @@ class Player():
         if self.voiceChannel is not None:
             self.voiceChannel.stop()
             await self.voiceChannel.disconnect()
-
 
         if self.playingMsg is not None:
             await self.playingMsg.edit(view=None)
