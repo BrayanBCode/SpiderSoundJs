@@ -1,5 +1,6 @@
 from colorama import Fore
 from base.db.connect import DBConnection
+from base.utils.Logging.ErrorMessages import LogDebug
 
 # from connect import DBConnection
 # from controller import SpiderDBController
@@ -43,7 +44,12 @@ class DBManager(DBConnection):
     def dropAllCollections(self):
         for collection in self.db.list_collection_names():
             self.db.drop_collection(collection)
-
+            
+        LogDebug(
+            title="Colecciones eliminadas.",
+            message="Todas las colecciones han sido eliminadas."
+        ).print()
+        
 
 
 
