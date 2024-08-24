@@ -1,13 +1,15 @@
 import re
+import traceback
 from colorama import Fore
-from discord import VoiceChannel, FFmpegPCMAudio
-import discord
-from discord.ext import commands
+from discord import FFmpegPCMAudio
 import yt_dlp
 
+from base.classes.music.PlaylIst import Playlist
+from base.classes.music.Search import SearchVideos
+from base.classes.music.Spotify import Spotify
+from base.classes.music.Video import SingleVideo
 from base.interfaces.IPlayList import IPlayList
-from base.interfaces.ISearchResults import ISearchResults
-from base.interfaces.ISong import ISong
+from base.utils.Logging.ErrorMessages import LogError
 
 
 class Youtube():
@@ -28,7 +30,7 @@ class Youtube():
             ffmpg_audio = FFmpegPCMAudio(audio_url, **ffmpg)
         return ffmpg_audio, thumbnail
     
-    async def get_video_info(self, url) -> ISong | None:
+    async def get_video_info(self, url) -> SingleVideo | None:
         # print(f"{Fore.YELLOW}[Debug] - [Video] obteniendo información de {url}")
         ydl_opts = {
             'quiet': True,
@@ -40,7 +42,7 @@ class Youtube():
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=False)
-                return ISong(
+                return SingleVideo(
                     title=self.cleanTitle(info.get('title')),
                     url=f"https://www.youtube.com/watch?v={info.get('id')}",
                     duration=info.get('duration'),
@@ -51,7 +53,7 @@ class Youtube():
             return None  
 
     # Arreglar el manejo de errores - si hay error se debe retornar None
-    async def get_search(self, query) -> ISearchResults | None:
+    async def get_search(self, query: str) -> SearchVideos | None:
         # print(f"{Fore.YELLOW}[Debug] - [Search] buscando {query}")
         ydl_opts = {
             'quiet': True,
@@ -64,22 +66,25 @@ class Youtube():
             try:
                 result = ydl.extract_info(f"ytsearch1:{query}", download=False)
                 
-                videos = [
-                    ISong(
-                        title=self.cleanTitle(video.get('title', 'private')),
-                        url=f"https://www.youtube.com/watch?v={video.get('id')}",
-                        duration=video.get('duration', 0),
-                        uploader=video.get('uploader', 'Desconocido')
-                        ) for video in result['entries'] if video.get('title') and video.get('title') != 'private'
-                ]
+                search = SearchVideos(search=query, 
+                    entries=[
+                        SingleVideo(
+                            title=self.cleanTitle(video.get('title', 'private')),
+                            url=f"https://www.youtube.com/watch?v={video.get('id')}",
+                            duration=video.get('duration', 0),
+                            uploader=video.get('uploader', 'Desconocido')
+                            ) for video in result['entries'] if video.get('title') and video.get('title') != 'private'
+                        ]
+                    )
 
-                return ISearchResults(search=query, results=videos)
+
+                return search
             
             except Exception as e:
                 print(f'{Fore.RED}[ERROR] Error al buscar la canción {query}.\n {e}')
                 return None
         
-    async def get_playlist_info(self, url) -> IPlayList:
+    async def get_playlist_info(self, url) -> Playlist:
         # print(f"{Fore.YELLOW}[Debug] - [Playlist] obteniendo información de {url}")
         ydl_opts = {
             'quiet': True,
@@ -101,7 +106,7 @@ class Youtube():
                 for video in info['entries']:
                     duration = video.get('duration', 0)
                     if duration is None:
-                        song = ISong(
+                        song = SingleVideo(
                             title=video.get('title'),
                             url=f"https://www.youtube.com/watch?v={video.get('id')}",
                             duration=0,
@@ -111,14 +116,14 @@ class Youtube():
                         removed.append(song)
                         continue
                     
-                    videos.append(ISong(
+                    videos.append(SingleVideo(
                         title=self.cleanTitle(video.get('title')),
                         url=f"https://www.youtube.com/watch?v={video.get('id')}",
                         duration=video.get('duration', 0),
                         uploader=video.get('uploader', 'desconocido')
                     ))
                 
-                return IPlayList(
+                return Playlist(
                     title=self.cleanTitle(info.get('title', 'private')),
                     url=info.get('original_url'),
                     uploader=info.get('uploader', 'Desconocido'),
@@ -126,20 +131,25 @@ class Youtube():
                     removed=removed
                 )
             except Exception as e:
-                print(f'{Fore.RED}[ERROR] Error al obtener la información de la playlist {url}.\n {e}')
-                return None
+                logger = LogError(
+                    title=f"Error al obtener la información de la playlist {url}.",
+                    message=f"Error: {e}",
+                )
+
+                logger.print()
+                logger.log(e)
 
     async def Search(self, url: str):
         if "youtube.com/playlist" in url or "list=PL" in url or "index=" in url:
-            return "playlist", await self.get_playlist_info(url)
+            return await self.get_playlist_info(url)
         elif "start_radio=" in url:
-            return "radio", await self.get_playlist_info(url)
+            return await self.get_playlist_info(url)
         elif "youtube.com/watch" in url or "youtu.be" in url:
-            return "video", await self.get_video_info(url)
+            return await self.get_video_info(url)
         elif "open.spotify.com" in url:
-            return "spotify", None 
+            return Spotify()
         else:
-            return "search", await self.get_search(url)
+            return await self.get_search(url)
 
     @staticmethod
     def cleanTitle(titulo):
