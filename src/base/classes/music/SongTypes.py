@@ -1,15 +1,20 @@
-from base.interfaces.ISong import ISong
 
 
 class SpiderSongType:
 
-    def __init__():
+    def __init__(self):
         pass
 
-    def send():
+    async def send(self):
         pass
 
-    def upload():
+    def UploadDefault(self, queue: list):
+        pass
+
+    def UploadFirst(self, queue: list):
+        pass
+
+    def send(self):
         pass
 
     def identify(self):

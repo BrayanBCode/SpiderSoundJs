@@ -1,7 +1,9 @@
-import discord
+import traceback
+from discord import Interaction
 from base.classes.music.SongTypes import SpiderSongType
+from base.classes.music.Video import SingleVideo
 from base.interfaces.ISong import ISong
-from base.utils.Logging.ErrorMessages import LogExitoso
+from base.utils.Logging.ErrorMessages import LogAviso, LogDebug, LogError, LogExitoso
 
 
 class Playlist(SpiderSongType):
@@ -12,25 +14,76 @@ class Playlist(SpiderSongType):
     title: str
     uploader: str
     url: str
-    entries: list[ISong]
+    entries: list[SingleVideo]
     removed: list[ISong]
 
     def __init__(self, title, uploader, url, entries, removed = []):
-        title = title
-        uploader = uploader
-        url =  url
-        entries = entries
-        removed = removed
+        self.title = title
+        self.uploader = uploader
+        self.url =  url
+        self.entries = entries
+        self.removed = removed
 
-    def start(self):
-        self.upload()
-        self.send()
+    async def send(self, interaction: Interaction):
+        """
+        Envía la lista de reproducción agregada al canal.
+        """
 
-    async def send(self, interaction: discord.Interaction):
-        await LogExitoso(title="pepe", message="pepe").send(interaction)
+        try:
+            ValidSongslogger = LogExitoso(
+                title=f"Lista de reproducción - **{self.title}** agregada.",
+                message=f"Se han agregado ``{len(self.entries)}`` canciones.",
+            )
 
-    def extract(self):
-        return self.entries
+            ValidSongslogger.print()
+            await ValidSongslogger.send(interaction)
 
-    def identify(self):
-        return self.__class__.__name__
+            if len(self.removed) > 0:
+                InValidSongslogger = LogAviso(
+                    title=f"Canciones removidas",
+                    message=f"Se removieron ``{len(self.removed)}`` canciones por no estar disponibles.",
+                )
+
+                InValidSongslogger.print()
+                await InValidSongslogger.send(interaction)
+        except Exception as e:
+            LogError(
+                title=f"Error al enviar la lista de reproducción **{self.title}**.",
+                message=f"Error: {e}",
+            ).log(e)
+
+    def UploadDefault(self, queue: list[ISong]):
+        """
+        Sube la lista de reproducción a la cola de reproducción.
+        """
+        try:
+            queue.extend(self.entries)
+            LogDebug(
+                title=f"Lista de reproducción **{self.title}** agregada.",
+                message=f"Se han agregado ``{len(self.entries)}`` canciones.",
+            ).print()
+        except Exception as e:
+            LogError(
+                title=f"Error al subir la lista de reproducción **{self.title}**.",
+                message=f"Error: {e}",
+            ).log(e)
+
+    def UploadFirst(self, queue: list[ISong]):
+        """
+        Sube la lista de reproducción a la base de datos.
+        """
+        try:
+            queue.insert(0, self.entries)
+            LogDebug(
+                title=f"Lista de reproducción **{self.title}** agregada.",
+                message=f"Se han agregado ``{len(self.entries)}`` canciones por delante de la cola.",
+            ).print()
+        except Exception as e:
+            LogError(
+                title=f"Error al subir la lista de reproducción **{self.title}**.",
+                message=f"Error: {e}",
+            ).log(e)
+
+    
+
+    
