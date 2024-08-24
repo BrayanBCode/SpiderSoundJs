@@ -19,4 +19,8 @@ class LogInfo(logger):
     def __init__(self, title: str, message: str):
         super().__init__(title, message, Fore.CYAN, warnings.Info.value)
 
+class LogDebug(logger):
+    def __init__(self, title: str, message: str):
+        super().__init__(title, message, Fore.MAGENTA, warnings.Debug.value)
+
 
