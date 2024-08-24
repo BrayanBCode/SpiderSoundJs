@@ -28,6 +28,7 @@ class CustomBot(commands.Bot):
 
         self.players = SpiderPlayer(self)
         self.db_manager = DBManager(Mongo_URI=os.getenv("MONGO_URI"), dbName="SpiderBot-DB")
+        # self.db_manager.dropAllCollections()
         self.synced = False
         self.debug = debug
 
