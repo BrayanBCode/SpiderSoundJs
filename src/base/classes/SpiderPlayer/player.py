@@ -1,12 +1,16 @@
 import asyncio
+import json
 import re
+import traceback
 from typing import List
 from colorama import Fore
 import discord
 from discord.ext import commands
 
 from base.classes.Youtube import Youtube
+from base.db.DBManager import DBManager
 from base.interfaces.ISong import ISong
+from base.utils.Logging.ErrorMessages import LogDebug, LogError, LogExitoso
 from base.utils.colors import Colours
 
 yt = Youtube()
@@ -78,31 +82,59 @@ class Player():
         self.pausedDisconnect = False
         self.sourceVolume = 100
         self.volume = 25
+        
 
-        self.LoadGuildData()
+        self.getConfig()
     
-    def LoadGuildData(self):
+    def getConfig(self):
         """
-        Carga los datos del servidor desde la base de datos.
+        Obtiene la configuración del reproductor de la base de datos.
         """
-        if "guilds" not in self.bot.db_manager.db.list_collection_names():
-            self.bot.db_manager.createCollection("guilds")
-        
-        guildData = self.bot.db_manager.getCollection("guilds").find_one({"_id": self.guild})
-        
-        if guildData is None:
-            guildData = {
-                "_id": self.guild,
-                "music-setting": {
-                    "sourcevolumen": 100,
-                    "volume": 25,
-                }
-            }
-            self.bot.db_manager.getCollection("guilds").insert_one(guildData)
-            return
-        
-        self.sourceVolume = guildData["music-setting"]["sourcevolumen"]
-        self.volume = guildData["music-setting"]["volume"]
+        try:
+            guildEntrie = self.bot.db_manager.db.get_collection("guilds").find_one({"_id": self.guild})
+            print(guildEntrie)
+
+            if guildEntrie is None:
+                try: 
+                    data = self.bot.db_manager.defaultGuildData(self.guild)
+
+                    guildCol = self.bot.db_manager.db.get_collection("guilds")
+
+                    isGuildEntryValid = bool(guildCol.insert_one(data))
+                    
+                    if not isGuildEntryValid:
+                        raise Exception("No se pudo insertar la entrada del servidor en la base de datos.")
+                    
+                    LogDebug(
+                        title="Configuración del servidor creada por defecto.",
+                        message=f"Configuración: \n{json.dumps(data, indent=4)}",
+                    ).print()
+
+                    guildEntrie = self.bot.db_manager.db.get_collection("guilds").find_one({"_id": self.guild})
+
+                except Exception as e:
+                    logger = LogError(
+                        title="Error al obtener la configuración del servidor.",
+                        message=f"Error: {e}",
+                    )
+                    logger.log(e)
+                    logger.print()
+            
+            self.volume = guildEntrie["music-setting"]["volume"]
+            self.sourceVolume = guildEntrie["music-setting"]["sourcevolumen"]
+
+            LogExitoso(
+                title="Configuración del servidor obtenida y cargada.",
+                message=f"Configuración: \n{json.dumps(guildEntrie, indent=4)}",
+            ).print()
+        except Exception as e:
+            logger = LogError(
+                title="Error al obtener la configuración del servidor.",
+                message=f"Error: {e}",
+            )
+            logger.log(e)
+            logger.print()
+
 
     async def joinVoiceChannel(self, voiceChannel: discord.VoiceChannel):
             """
@@ -404,6 +436,9 @@ class Player():
         return ":".join(duration_parts)
     
     async def destroy(self):
+        if self.voiceChannel is None:
+            return "destroyed"
+        
         if not self.voiceChannel.is_paused():
             self.queue.clear()
             self.last_song = None
