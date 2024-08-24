@@ -6,9 +6,6 @@ from colorama import Fore
 
 from base.classes.Bot import CustomBot
 from base.classes.Youtube import Youtube
-from base.interfaces.IPlayList import IPlayList
-from base.interfaces.ISearchResults import ISearchResults
-from base.interfaces.ISong import ISong
 from base.utils.colors import Colours
 
 yt = Youtube()
@@ -46,96 +43,12 @@ class play(commands.Cog):
 
             result = await yt.Search(url)
 
-            if result[0] == 'playlist':
-                if result[1] is None:
-                    await interaction.followup.send(embed=discord.Embed(
-                        title="Playlist inaccesible",
-                        description="No se pudo acceder a la playlist.",
-                        color=discord.Color.red()
-                    ))
-                    return
-                    
-                playlist: IPlayList = result[1]
-                for song in playlist.entries:
-                    player.add_song(song)
-
-                await interaction.followup.send(embed=discord.Embed(
-                    title=f"Playlist - **{self.clean_title(playlist.title)}**", 
-                    description=f"Se han añadido ``{len(playlist.entries)}`` canciones a la cola.", 
-                    color=discord.Color.green()
-                    ))
-                
-            if result[0] == 'radio':
-                if result[1] is None:
-                    await interaction.followup.send(embed=discord.Embed(
-                        title="Mix inaccesible",
-                        description="No se pudo acceder al mix.",
-                        color=discord.Color.red()
-                    ))
-                    return
-                    
-                playlist: IPlayList = result[1]
-                for song in playlist.entries:
-                    player.add_song(song)
-                    
-                await interaction.followup.send(embed=discord.Embed(
-                    title=f"Mix - **{self.clean_title(playlist.title)}**", 
-                    description=f"Se han añadido ``{len(playlist.entries)}`` canciones a la cola.", 
-                    color=discord.Color.green()
-                    ))
-                
-            if result[0] == 'video':
-                if result[1] is None:
-                    await interaction.followup.send(embed=discord.Embed(
-                        title="Video inaccesible",
-                        description="No se pudo acceder al video.",
-                        color=discord.Color.red()
-                    ))
-                    return
-                
-                video: ISong = result[1]
-                
-                player.add_song(video)
-                
-                await interaction.followup.send(embed=discord.Embed(
-                    title=f"Video - **{video.title}**", 
-                    description=f"Se ha añadido la canción a la cola.", 
-                    color=discord.Color.green()
-                    ))
-                
-            if result[0] == 'spotify':
-                await interaction.followup.send(embed=discord.Embed(
-                    title="Spotify", 
-                    description="No se puede reproducir contenido de Spotify.", 
-                    color=discord.Color.red()
-                    ))
-                
-            if result[0] == 'search':
-
-                search: ISearchResults = await yt.get_search(url)
-
-                video: ISong = search.results[0]
-                # Toca cambiar e implementar la funcion de Choices para que el usuario pueda seleccionar la cancion que desea
-                # Se elegira la primera cancion de la lista
-                if video.title == 'private':
-                    await interaction.followup.send(embed=discord.Embed(
-                        title="Video privado",
-                        description="No se puede reproducir contenido privado.",
-                        color=discord.Color.red()
-                    ))
-                    return
-
-                player.add_song(search.results[0])
-
-                await interaction.followup.send(embed=discord.Embed(
-                    title=f"Busqueda - **{search.search}**", 
-                    description=f"Se han añadido ``{search.results[0].title}`` a la cola.", 
-                    color=discord.Color.green()
-                ))
+            result.UploadDefault(player.queue)
+            await result.send(interaction)
 
             player.stoped = False
-            if len(player.queue) > 0:
-                print(f"{Fore.BLUE}[Debug] Canción '{self.clean_title(player.queue[0].title)}' añadida a la cola en '{interaction.guild.name}'.")
+            
+                
             await player.play(interaction)
         else:
             await interaction.followup.send(

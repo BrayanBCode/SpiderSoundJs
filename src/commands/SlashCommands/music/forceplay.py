@@ -5,9 +5,7 @@ from colorama import Fore
 
 from base.classes.SpiderPlayer.player import Player
 from base.classes.Youtube import Youtube
-from base.interfaces.IPlayList import IPlayList
-from base.interfaces.ISearchResults import ISearchResults
-from base.interfaces.ISong import ISong
+
 
 yt = Youtube()
 
@@ -29,7 +27,7 @@ class forceplay(commands.Cog):
             await interaction.response.send_message(embed=discord.Embed(title="Debes estar en el mismo canal de voz que el bot.", color=Color.red()), ephemeral=True)
             return
 
-        await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer()
 
         player: Player = self.bot.players.get_player(interaction.guild_id) if self.bot.players.get_player(interaction.guild_id) else self.bot.players.create_player(interaction.guild_id)
 
@@ -37,58 +35,8 @@ class forceplay(commands.Cog):
 
             result = await yt.Search(url)
 
-            if result[0] == 'playlist':
-                playlist: IPlayList = result[1]
-                player.add_songs_at_start(playlist.entries)
-
-                await interaction.followup.send(embed=discord.Embed(
-                    title=f"Playlist - **{playlist.title}**", 
-                    description=f"Se han añadido {len(playlist.entries)} canciones a la cola.", 
-                    color=discord.Color.green()
-                    ))
-                
-            if result[0] == 'radio':
-                playlist: IPlayList = result[1]
-
-                player.add_songs_at_start(playlist.entries)
-
-                await interaction.followup.send(embed=discord.Embed(
-                    title=f"Mix - **{playlist.title}**", 
-                    description=f"Se han añadido {len(playlist.entries)} canciones a la cola.", 
-                    color=discord.Color.green()
-                    ))
-                
-            if result[0] == 'video':
-                video: ISong = result[1]
-                player.add_song_at(video)
-
-                await interaction.followup.send(embed=discord.Embed(
-                    title=f"Video - **{video.title}**", 
-                    description=f"Se ha añadido la canción a la cola.", 
-                    color=discord.Color.green()
-                    ))
-
-                
-            if result[0] == 'spotify':
-                await interaction.followup.send(embed=discord.Embed(
-                    title="Spotify", 
-                    description="No se puede reproducir contenido de Spotify.", 
-                    color=discord.Color.red()
-                    ))
-                
-            if result[0] == 'search':
-
-                search: ISearchResults = await yt.get_search(url)
-
-                # Toca cambiar e implementar la funcion de Choices para que el usuario pueda seleccionar la cancion que desea
-                # Se elegira la primera cancion de la lista
-                player.add_song_at(search.results[0])
-
-                await interaction.followup.send(embed=discord.Embed(
-                    title=f"Busqueda - **{search.search}**", 
-                    description=f"Se han añadido {search.results[0].title} a la cola.", 
-                    color=discord.Color.green()
-                ))
+            result.UploadFirst(player.queue)
+            await result.send(interaction)
             
             player.stoped = False
             
