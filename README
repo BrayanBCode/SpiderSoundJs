@@ -1,32 +1,46 @@
+
 # Araña Sound Development
 
 [![logo.png](https://i.postimg.cc/76XFG7cH/logo.png)](https://postimg.cc/zbbt4L86)
 
-## Que es Araña sound?
-Araña sound es un bot de musica el cual reproduce musica desde YouTube utilizando la libreria YT_dlp, la idea general de Araña Sound es un bot multiproposito el cual se centra en la repducción de musica, el bot podra ayudarte a gestionar tu servidor mediante un sistema de Warnings (Avisos) y mediante la aplicacion de sanciones las cuales son configurables, tambien tendra una IA para uso de los Usuarios de tu Servidor.
+## ¿Qué es Araña Sound?
 
-En cuanto al enfoque principal que es la reproduccion de musica contamos con comandos como /play, /stop, /pause, /skip, /queue y otros varios mas, estamos trabajando en el guardado de tus canciones favoritas para que no tengas que volver a buscarlas al querer escucharlas, implementaremos a futuro comandos como /autoplay ademas de un menu avanzado en el cual con solo escribir una parte de tu busqueda por ejemplo /play Emanero nosotros te brindaremos sugerencias para que la busqueda sea mas facil y comoda, ademas de evitar el error de seleccionar la cancion/video que no querias por error.
+Araña Sound es un bot de música para Discord que reproduce música desde YouTube utilizando la librería YT_dlp. Nuestro objetivo es ofrecer un bot multipropósito centrado en la reproducción de música. Además de gestionar tu servidor con un sistema de avisos y sanciones configurables, Araña Sound incluirá una IA para interactuar con los usuarios del servidor.
 
-Hola! Soy el desarrollador y estoy trabajando en Araña Sound yo solo, por ahora los colaboradores son compañeros los cuales me aconsejan y ayudan a pulir mi codigo cualquier ayuda es bienvenida.
+### Características Principales:
+- **Reproducción de Música**: Comandos como `/play`, `/stop`, `/pause`, `/skip`, `/queue`, entre otros.
+- **Favoritos**: Guarda tus canciones favoritas para escucharlas fácilmente en el futuro.
+- **Sugerencias Inteligentes**: Comandos como `/autoplay` y búsqueda avanzada para facilitar la selección de canciones.
+- **Gestión de Servidor**: Sistema de avisos y sanciones configurables para gestionar tu servidor de manera eficiente.
 
-## Indice
+¡Hola! Soy el desarrollador de Araña Sound y actualmente estoy trabajando en el proyecto por mi cuenta. Los colaboradores que tengo me asesoran y ayudan a pulir el código. ¡Cualquier ayuda es bienvenida!
 
-+ [Araña Sound](#Que-es-Araña-sound?)
-+ [Invitaciones](#Invita-al-bot-Oficial-y-de-Testeo-a-tu-server:)
+## Índice
 
-## Invita al bot Oficial y de Testeo a tu server:
-+ Test bot link: [Invita al Bot de pruebas](https://discord.com/oauth2/authorize?client_id=1256395249417457775&permissions=3018878550&integration_type=0&scope=bot+applications.commands)
-+ Oficial bot link: [Invita al Bot de Oficial](https://discord.com/oauth2/authorize?client_id=1177344170638180503&permissions=3018878550&integration_type=0&scope=bot+applications.commands)
+- [Invitar al Bot](#invita-al-bot-oficial-y-de-testeo-a-tu-server)
+- [Notas de Desarrollo](#notas-de-desarrollo)
+- [Índice de Clases](#indice-de-clases)
 
-## Notas de Desarrollo:
-En estas notas se agregaran los ejemplos de uso de algunas clases utilizadas en el codigo
+## Invita al Bot
 
-## indice de clases:
+Puedes invitar tanto al bot oficial como al bot de pruebas a tu servidor de Discord:
 
-+ [User](#user-class)
-+ [Guild](#guild-class)
+- **Bot de Pruebas**: [Invita al Bot de Pruebas](https://discord.com/oauth2/authorize?client_id=1256395249417457775&permissions=3018878550&integration_type=0&scope=bot+applications.commands)
+- **Bot Oficial**: [Invita al Bot Oficial](https://discord.com/oauth2/authorize?client_id=1177344170638180503&permissions=3018878550&integration_type=0&scope=bot+applications.commands)
 
-### User Class:
+## Notas de Desarrollo
+
+En esta sección se incluyen ejemplos de uso para algunas de las clases implementadas en el código.
+
+## Índice de Clases
+
+- [User Class](#user-class)
+- [Guild Class](#guild-class)
+
+### User Class
+
+La clase `User` gestiona los datos del usuario en la base de datos. Aquí tienes un ejemplo de cómo usarla:
+
 ```python
 # Crear una instancia de conexión a la base de datos
 mongoConn = MongoDBConnection("mongodb://localhost:27017/", "mi_base_de_datos")
@@ -77,10 +91,11 @@ usuario.delete()
 
 # Desconectar de la base de datos
 mongoConn.disconnect()
-
 ```
 
-### Guild Class:
+### Guild Class
+
+La clase `Guild` gestiona la configuración de música para los servidores. Aquí tienes un ejemplo de cómo usarla:
 
 ```python
 # Crear una instancia de conexión a la base de datos
