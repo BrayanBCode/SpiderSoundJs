@@ -12,6 +12,10 @@ pycparser = "*"
 "discord.py" = "*"
 colorama = "*"
 pymongo = "*"
+faker = "*"
+pip = "*"
+install = "*"
+jsonschema = "*"
 
 [dev-packages]
 

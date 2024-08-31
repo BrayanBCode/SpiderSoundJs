@@ -8,52 +8,29 @@ class Handler:
     @staticmethod
     def getHandlers():
         print(f"{Fore.CYAN}[info] Loading handlers...")
-        events = Handler.loadEvents()
-        commands = Handler.loadCommands()
+        events = Handler.loadCogs("events")
+        commands = Handler.loadCogs("commands")
         return events, commands
 
     @staticmethod
-    def loadEvents():
+    def loadCogs(carpetName: str):
         event_paths = []
-        print(f"{Fore.CYAN}[info] Loading events")
+        print(f"{Fore.CYAN}[info] Loading {carpetName}")
         root_path = Path(str(os.getcwd()))  # Ajusta esta ruta
         # print(f"{Fore.YELLOW}[Debug] {root_path}")
-        events_folder = Handler.find_folder(root_path, "events")
+        events_folder = Handler.find_folder(root_path, carpetName)
         if events_folder is None:
-            print(f"{Fore.RED}[Error] Folder 'events' not found.")
+            print(f"{Fore.RED}[Error] Folder '{carpetName}' not found.")
             return event_paths
         try:
             for filepath in events_folder.rglob("**/*.py"):
                 if filepath.is_file():
                     # Obtener la ruta alternativa
                     alternative_path = ".".join(filepath.relative_to(events_folder).parts).replace(".py", "")
-                    alternative_path = "events." + alternative_path
+                    alternative_path = f"{carpetName}." + alternative_path
                     # print(f"{Fore.YELLOW}[Debug] {alternative_path}")
                     event_paths.append(alternative_path)
             return event_paths
-        except Exception as e:
-            print(e)
-            return
-    
-    @staticmethod
-    def loadCommands():
-        commands_paths = []
-        print(f"{Fore.CYAN}[info] Loading commands")
-        root_path = Path(str(os.getcwd()))  # Ajusta esta ruta
-        # print(f"{Fore.YELLOW}[Debug] {root_path}")
-        commands_folder = Handler.find_folder(root_path, "commands")
-        if commands_folder is None:
-            print(f"{Fore.RED}[Error] Folder 'commands' not found.")
-            return commands_paths
-        try:
-            for filepath in commands_folder.rglob("**/*.py"):
-                if filepath.is_file():
-                    # Obtener la ruta alternativa
-                    alternative_path = ".".join(filepath.relative_to(commands_folder).parts).replace(".py", "")
-                    alternative_path = "commands." + alternative_path
-                    # print(f"{Fore.YELLOW}[Debug] {alternative_path}")
-                    commands_paths.append(alternative_path)
-            return commands_paths
         except Exception as e:
             print(e)
             return
@@ -63,6 +40,3 @@ class Handler:
             if path.is_dir():
                 return path
         return None
-            
-
-        

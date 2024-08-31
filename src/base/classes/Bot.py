@@ -4,9 +4,11 @@ import os
 
 from discord.ext import commands
 from base.classes.SpiderPlayer.SpiderPlayer import SpiderPlayer
+from base.db.connect import MongoDBConnection
 from base.handlers.Handler import Handler
-from base.db.DBManager import DBManager
 import colorama
+
+from base.utils.Logging.ErrorMessages import LogError, LogExitoso
 
 colorama.init(autoreset=True)
 
@@ -27,8 +29,14 @@ class CustomBot(commands.Bot):
             )
 
         self.players = SpiderPlayer(self)
-        self.db_manager = DBManager(Mongo_URI=os.getenv("MONGO_URI"), dbName="SpiderBot-DB")
-        # self.db_manager.dropAllCollections()
+        self.db_manager = MongoDBConnection(os.getenv("MONGO_URI"), "SpiderBot-DB")
+        try:
+            self.db_manager.connect()
+            LogExitoso("Conexión Exitosa", f"Conectado a la base de datos: SpiderBot-DB").print()
+        except Exception as e:
+            LogError("Error de Conexión", f"No se pudo conectar a la base de datos: {e}").log(e)
+            raise e
+
         self.synced = False
         self.debug = debug
 

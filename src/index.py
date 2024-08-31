@@ -1,4 +1,3 @@
-
 from base.classes.Bot import CustomBot
 import dotenv, os, signal, sys
 

@@ -9,6 +9,7 @@ from discord.ext import commands
 
 from base.classes.Youtube import Youtube
 from base.db.DBManager import DBManager
+from base.db.templates.DefaultDatas import DefaultData
 from base.interfaces.ISong import ISong
 from base.utils.Logging.ErrorMessages import LogDebug, LogError, LogExitoso
 from base.utils.colors import Colours
@@ -83,59 +84,7 @@ class Player():
         self.sourceVolume = 100
         self.volume = 25
         
-
-        self.getConfig()
     
-    def getConfig(self):
-        """
-        Obtiene la configuración del reproductor de la base de datos.
-        """
-        try:
-            guildEntrie = self.bot.db_manager.db.get_collection("guilds").find_one({"_id": self.guild})
-            print(guildEntrie)
-
-            if guildEntrie is None:
-                try: 
-                    data = self.bot.db_manager.defaultGuildData(self.guild)
-
-                    guildCol = self.bot.db_manager.db.get_collection("guilds")
-
-                    isGuildEntryValid = bool(guildCol.insert_one(data))
-                    
-                    if not isGuildEntryValid:
-                        raise Exception("No se pudo insertar la entrada del servidor en la base de datos.")
-                    
-                    LogDebug(
-                        title="Configuración del servidor creada por defecto.",
-                        message=f"Configuración: \n{json.dumps(data, indent=4)}",
-                    ).print()
-
-                    guildEntrie = self.bot.db_manager.db.get_collection("guilds").find_one({"_id": self.guild})
-
-                except Exception as e:
-                    logger = LogError(
-                        title="Error al obtener la configuración del servidor.",
-                        message=f"Error: {e}",
-                    )
-                    logger.log(e)
-                    logger.print()
-            
-            self.volume = guildEntrie["music-setting"]["volume"]
-            self.sourceVolume = guildEntrie["music-setting"]["sourcevolumen"]
-
-            LogExitoso(
-                title="Configuración del servidor obtenida y cargada.",
-                message=f"Configuración: \n{json.dumps(guildEntrie, indent=4)}",
-            ).print()
-        except Exception as e:
-            logger = LogError(
-                title="Error al obtener la configuración del servidor.",
-                message=f"Error: {e}",
-            )
-            logger.log(e)
-            logger.print()
-
-
     async def joinVoiceChannel(self, voiceChannel: discord.VoiceChannel):
             """
             Conecta al bot al canal de voz especificado.
