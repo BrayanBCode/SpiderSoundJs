@@ -1,9 +1,114 @@
 # Araña Sound Development
 
-![Logo](src/imgs/logo.png)
+[![logo.png](https://i.postimg.cc/76XFG7cH/logo.png)](https://postimg.cc/zbbt4L86)
 
+## Que es Araña sound?
+Araña sound es un bot de musica el cual reproduce musica desde YouTube utilizando la libreria YT_dlp, la idea general de Araña Sound es un bot multiproposito el cual se centra en la repducción de musica, el bot podra ayudarte a gestionar tu servidor mediante un sistema de Warnings (Avisos) y mediante la aplicacion de sanciones las cuales son configurables, tambien tendra una IA para uso de los Usuarios de tu Servidor.
 
+En cuanto al enfoque principal que es la reproduccion de musica contamos con comandos como /play, /stop, /pause, /skip, /queue y otros varios mas, estamos trabajando en el guardado de tus canciones favoritas para que no tengas que volver a buscarlas al querer escucharlas, implementaremos a futuro comandos como /autoplay ademas de un menu avanzado en el cual con solo escribir una parte de tu busqueda por ejemplo /play Emanero nosotros te brindaremos sugerencias para que la busqueda sea mas facil y comoda, ademas de evitar el error de seleccionar la cancion/video que no querias por error.
 
-## Invite Test and Oficial bot's to your server
+Hola! Soy el desarrollador y estoy trabajando en Araña Sound yo solo, por ahora los colaboradores son compañeros los cuales me aconsejan y ayudan a pulir mi codigo cualquier ayuda es bienvenida.
+
+## Indice
+
++ [Araña Sound](#Que-es-Araña-sound?)
++ [Invitaciones](#Invita-al-bot-Oficial-y-de-Testeo-a-tu-server:)
+
+## Invita al bot Oficial y de Testeo a tu server:
 + Test bot link: [Invita al Bot de pruebas](https://discord.com/oauth2/authorize?client_id=1256395249417457775&permissions=3018878550&integration_type=0&scope=bot+applications.commands)
 + Oficial bot link: [Invita al Bot de Oficial](https://discord.com/oauth2/authorize?client_id=1177344170638180503&permissions=3018878550&integration_type=0&scope=bot+applications.commands)
+
+## Notas de Desarrollo:
+En estas notas se agregaran los ejemplos de uso de algunas clases utilizadas en el codigo
+
+## indice de clases:
+
++ [User](#user-class)
++ [Guild](#guild-class)
+
+### User Class:
+```python
+# Crear una instancia de conexión a la base de datos
+mongoConn = MongoDBConnection("mongodb://localhost:27017/", "mi_base_de_datos")
+mongoConn.connect()
+
+# Datos de usuario
+userData = {
+    "_id": 1,
+    "fav": {
+        "albums": {
+            "example": {
+                "name": "Adele mix",
+                "songs": [
+                    {
+                        "title": "Adele - Skyfall (Official Lyric Video)",
+                        "url": "https://www.youtube.com/watch?v=DeumyOzKqgI",
+                        "duration": 290,
+                        "uploader": "Adele"
+                    }
+                ]
+            }
+        }
+    }
+}
+
+# Crear un modelo de usuario
+usuario = User(mongoConn, userData=userData)
+
+# Insertar el usuario en la base de datos
+usuario.insert()
+
+# Actualizar los datos del usuario
+usuario.addAlbum("newAlbum", {
+    "name": "New Album Mix",
+    "songs": [
+        {
+            "title": "New Song",
+            "url": "https://www.example.com/new_song",
+            "duration": 200,
+            "uploader": "New Artist"
+        }
+    ]
+})
+usuario.update()
+
+# Eliminar el usuario de la base de datos
+usuario.delete()
+
+# Desconectar de la base de datos
+mongoConn.disconnect()
+
+```
+
+### Guild Class:
+
+```python
+# Crear una instancia de conexión a la base de datos
+mongoConn = MongoDBConnection("mongodb://localhost:27017/", "mi_base_de_datos")
+mongoConn.connect()
+
+# Datos de la guild
+guildData = {
+    "_id": 1,
+    "music-setting": {
+        "sourcevolumen": 80,
+        "volume": 60
+    }
+}
+
+# Crear un modelo de guild
+guild = Guild(mongoConn, guildData=guildData)
+
+# Insertar la guild en la base de datos
+guild.insert()
+
+# Modificar la configuración de música
+guild.setMusicSetting("volume", 75)
+guild.update()
+
+# Buscar una guild por ID
+guildData = guild.findOne({"_id": 1})
+
+# Desconectar de la base de datos
+mongoConn.disconnect()
+```
