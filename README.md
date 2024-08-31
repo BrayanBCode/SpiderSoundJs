@@ -1,7 +1,7 @@
 
 # Araña Sound Development
 
-[![logo.png](https://i.postimg.cc/76XFG7cH/logo.png)](https://postimg.cc/zbbt4L86)
+[![logo](https://i.postimg.cc/76XFG7cH/logo.png)](https://postimg.cc/zbbt4L86)
 
 ## ¿Qué es Araña Sound?
 
