@@ -32,12 +32,12 @@ Puedes invitar tanto al bot oficial como al bot de pruebas a tu servidor de Disc
 
 En esta sección se incluyen ejemplos de uso para algunas de las clases implementadas en el código.
 
-## Índice de Clases
+### Índice de Clases
 
 - [User Class](#user-class)
 - [Guild Class](#guild-class)
 
-### User Class
+#### User Class
 
 La clase `User` gestiona los datos del usuario en la base de datos. Aquí tienes un ejemplo de cómo usarla:
 
@@ -93,7 +93,7 @@ usuario.delete()
 mongoConn.disconnect()
 ```
 
-### Guild Class
+#### Guild Class
 
 La clase `Guild` gestiona la configuración de música para los servidores. Aquí tienes un ejemplo de cómo usarla:
 
