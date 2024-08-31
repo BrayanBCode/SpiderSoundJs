@@ -17,9 +17,9 @@ Araña Sound es un bot de música para Discord que reproduce música desde YouTu
 
 ## Índice
 
-- [Invitar al Bot](#invita-al-bot-oficial-y-de-testeo-a-tu-server)
+- [Invitar al Bot](#invita-al-bot)
 - [Notas de Desarrollo](#notas-de-desarrollo)
-- [Índice de Clases](#indice-de-clases)
+- [Índice de Clases](#índice-de-clases)
 
 ## Invita al Bot
 
