@@ -17,7 +17,8 @@ def signal_handler(sig, frame):
 
 if __name__ == "__main__":
     # Registra el manejador de señales para SIGINT
-    signal.signal(signal.SIGINT, signal_handler)
+    
+    # signal.signal(signal.SIGINT, signal_handler)
 
     # Inicializa y ejecuta el bot
     bot = CustomBot(command_prefix="=", debug=False)

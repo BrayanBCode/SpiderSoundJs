@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-from base.utils.Logging.logger import LogError, LogExitoso, LogInfo, LogAviso
+from base.utils.Logging.ErrorMessages import LogError, LogExitoso, LogInfo, LogAviso
 
 class MongoDBConnection:
     def __init__(self, uri, databaseName):

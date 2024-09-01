@@ -3,7 +3,7 @@
 class DefaultData():
 
     @staticmethod
-    def DefaultUser(self, ID: int):
+    def DefaultUser(ID: int):
         return {
             "_id": ID,
             "fav": {
@@ -24,7 +24,7 @@ class DefaultData():
         }
     
     @staticmethod
-    def DefaultGuild(self, ID: int):
+    def DefaultGuild(ID: int):
         return {
             "_id": ID,
             "music-setting": {

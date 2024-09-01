@@ -27,34 +27,31 @@ class CustomBot(commands.Bot):
             application_id=int(os.getenv("devClientID") if debug else os.getenv("ClientID")),
             help_command=None,
             )
-
+        
         self.players = SpiderPlayer(self)
+
+
         self.db_manager = MongoDBConnection(os.getenv("MONGO_URI"), "SpiderBot-DB")
-        try:
-            self.db_manager.connect()
-            LogExitoso("Conexión Exitosa", f"Conectado a la base de datos: SpiderBot-DB").print()
-        except Exception as e:
-            LogError("Error de Conexión", f"No se pudo conectar a la base de datos: {e}").log(e)
-            raise e
+        self.db_manager.connect()
+
 
         self.synced = False
         self.debug = debug
-
         self.init()
 
         self.run(os.getenv("devToken") if debug else os.getenv("token"))
     
-    # async def on_command_error(self, ctx, error):
-    #     if isinstance(error, commands.CommandNotFound):
-    #         embed = discord.Embed(title="Error", description="El comando no existe.", color=discord.Color.red())
-    #     elif isinstance(error, commands.MissingRequiredArgument):
-    #         embed = discord.Embed(title="Error", description="Faltan argumentos.", color=discord.Color.red())
-    #     elif isinstance(error, commands.CommandOnCooldown):
-    #         embed = discord.Embed(title="Error", description=f"El comando está en cooldown. {error.retry_after:.2f} segundos restantes.", color=discord.Color.red())
-    #     else:
-    #         embed = discord.Embed(title="Error", description=f"Ha ocurrido un error: {error}", color=discord.Color.red())
+    async def on_command_error(self, ctx, error):
+        if isinstance(error, commands.CommandNotFound):
+            embed = discord.Embed(title="Error", description="El comando no existe.", color=discord.Color.red())
+        elif isinstance(error, commands.MissingRequiredArgument):
+            embed = discord.Embed(title="Error", description="Faltan argumentos.", color=discord.Color.red())
+        elif isinstance(error, commands.CommandOnCooldown):
+            embed = discord.Embed(title="Error", description=f"El comando está en cooldown. {error.retry_after:.2f} segundos restantes.", color=discord.Color.red())
+        else:
+            embed = discord.Embed(title="Error", description=f"Ha ocurrido un error: {error}", color=discord.Color.red())
     
-    #     await ctx.reply(embed=embed)
+        await ctx.reply(embed=embed)
 
     async def load_handlers(self):
         """

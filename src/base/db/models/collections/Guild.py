@@ -19,7 +19,7 @@ class Guild(CollectionModel):
         "required": ["_id", "music-setting"]
     }
 
-    def __init__(self, mongoConnection, collectionName="guilds", guildData=None):
+    def __init__(self, mongoConnection,  guildData=None, collectionName="guilds"):
         super().__init__(mongoConnection, collectionName)
         self._id = None
         self.musicSetting = {"sourcevolumen": 100, "volume": 50}
@@ -69,33 +69,25 @@ class Guild(CollectionModel):
             "music-setting": self.musicSetting
         }
 
-    def create(self, collectionName=None):
+    def create(self):
         """
         Crea un nuevo documento en la colección especificada o en la colección por defecto.
         
         :param collectionName: Nombre de la colección donde se creará el documento (opcional)
         :return: ID del documento creado
         """
-        return super().create(self.toDict(), collectionName)
+        return super().create(self.toDict())
 
-    def drop(self, collectionName=None):
-        """
-        Elimina la colección de la base de datos.
-        
-        :param collectionName: Nombre de la colección a eliminar (opcional)
-        """
-        return super().drop(collectionName)
-
-    def insert(self, collectionName=None):
+    def insert(self):
         """
         Inserta los datos de la guild en la colección especificada o en la colección por defecto.
         
         :param collectionName: Nombre de la colección donde se insertará el documento (opcional)
         :return: ID del documento insertado
         """
-        return super().insert(self.toDict(), collectionName)
+        return super().insert(self.toDict())
 
-    def findOne(self, query=None, collectionName=None):
+    def findOne(self, query=None):
         """
         Encuentra un documento en la colección especificada o en la colección por defecto.
         
@@ -103,9 +95,9 @@ class Guild(CollectionModel):
         :param collectionName: Nombre de la colección donde se buscará el documento (opcional)
         :return: Documento encontrado o None si no se encuentra
         """
-        return super().findOne(query, collectionName)
+        return super().findOne(query)
 
-    def findAll(self, query=None, collectionName=None):
+    def findAll(self, query=None):
         """
         Encuentra todos los documentos que coinciden con la consulta en la colección especificada o en la colección por defecto.
         
@@ -113,4 +105,4 @@ class Guild(CollectionModel):
         :param collectionName: Nombre de la colección donde se buscarán los documentos (opcional)
         :return: Lista de documentos encontrados
         """
-        return super().findAll(query, collectionName)
+        return super().findAll(query)

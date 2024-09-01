@@ -8,7 +8,7 @@ import discord
 from discord.ext import commands
 
 from base.classes.Youtube import Youtube
-from base.db.DBManager import DBManager
+from base.db.models.collections.Guild import Guild
 from base.db.templates.DefaultDatas import DefaultData
 from base.interfaces.ISong import ISong
 from base.utils.Logging.ErrorMessages import LogDebug, LogError, LogExitoso
@@ -83,7 +83,25 @@ class Player():
         self.pausedDisconnect = False
         self.sourceVolume = 100
         self.volume = 25
+        self.GuildTable = None
         
+        # self.getConfig()
+
+    def getConfig(self):
+        Col = self.bot.db_manager.getCollection("guilds")
+            
+        self.GuildTable = Guild(self.bot.db_manager, Col.find_one({"_id": self.guild}), "guilds")
+
+        if self.GuildTable.musicSetting is None:
+            self.GuildTable.create()
+            self.GuildTable.load_guild_data(DefaultData.DefaultGuild(self.guild))
+            self.GuildTable.insert()
+            
+
+        self.sourceVolume = self.GuildTable.musicSetting.get("sourcevolumen", 100)
+        self.volume = self.GuildTable.musicSetting.get("volume", 25)
+        LogExitoso("Configuración de música cargada", f"Configuración de música cargada para '{self.bot.get_guild(self.guild).name}'.").print()
+
     
     async def joinVoiceChannel(self, voiceChannel: discord.VoiceChannel):
             """
