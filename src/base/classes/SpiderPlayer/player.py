@@ -56,6 +56,7 @@ class Player():
     pausedDisconnect: bool
     sourceVolume: int
     volume: int
+    GuildTable: Guild
 
     def __init__(self, guild: int, bot) -> None:
         from base.classes.Bot import CustomBot

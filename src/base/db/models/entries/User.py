@@ -49,7 +49,17 @@ class User(EntrieModel):
         self.fav = {"albums": {}}
         if userData:
             self.load_user_data(userData)
-
+    def load_by_id(self):
+        """
+        Carga los datos del usuario desde la base de datos utilizando la ID del usuario.
+        
+        :raises ValueError: Si no se encuentra ningún usuario con la ID proporcionada
+        """
+        user_data = self.findOne({"_id": self._id})
+        if user_data is None:
+            raise ValueError(f"No se encontró ningún usuario con la ID: {self._id}")
+        self.load_user_data(user_data)
+        
     def load_user_data(self, userData):
         """
         Carga y valida los datos del usuario desde un diccionario.

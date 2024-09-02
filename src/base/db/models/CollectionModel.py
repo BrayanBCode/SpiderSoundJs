@@ -51,3 +51,20 @@ class CollectionModel:
         except Exception as e:
             LogError("Error al Buscar Documentos", f"No se pudo buscar los documentos: {e}").log(e)
             raise e
+
+    def update(self, query, updateValues, collectionName=None):
+        """Actualiza un documento en la colección especificada o en la colección de la clase."""
+        try:
+            if collectionName:
+                collection = self.mongoConnection.getCollection(collectionName)
+            elif self.collection:
+                collection = self.collection
+            else:
+                raise ValueError("Debe especificar una colección en el constructor o en la función update.")
+            
+            result = collection.update_one(query, {'$set': updateValues})
+            LogInfo("Documento Actualizado", f"Documentos actualizados: {result.modified_count}").print()
+            return result
+        except Exception as e:
+            LogError("Error al Actualizar Documento", f"No se pudo actualizar el documento: {e}").log(e)
+            raise e

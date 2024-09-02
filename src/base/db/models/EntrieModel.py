@@ -1,4 +1,4 @@
-from base.utils.Logging.logger import LogError, LogExitoso, LogInfo
+from base.utils.Logging.ErrorMessages import LogError, LogExitoso, LogInfo
 
 class EntrieModel:
     def __init__(self, mongoConnection, collectionName=None):

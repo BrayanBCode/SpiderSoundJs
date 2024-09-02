@@ -25,6 +25,9 @@ class sourceVolume(commands.Cog):
 
         if player:
             player.sourceVolume = volume
+            player.GuildTable.setMusicSetting["sourceVolume"] = volume
+            player.GuildTable.insert()
+
             await interaction.response.send_message(embed=discord.Embed(title=f"Se ha ajustado el volumen de la fuente a {volume}.", color=Color.green()))
             return
         else:
