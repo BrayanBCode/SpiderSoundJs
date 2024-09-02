@@ -69,15 +69,6 @@ class Guild(CollectionModel):
             "music-setting": self.musicSetting
         }
 
-    def create(self):
-        """
-        Crea un nuevo documento en la colección especificada o en la colección por defecto.
-        
-        :param collectionName: Nombre de la colección donde se creará el documento (opcional)
-        :return: ID del documento creado
-        """
-        return super().create(self.toDict())
-
     def insert(self):
         """
         Inserta los datos de la guild en la colección especificada o en la colección por defecto.
@@ -106,3 +97,6 @@ class Guild(CollectionModel):
         :return: Lista de documentos encontrados
         """
         return super().findAll(query)
+    
+    def __str__(self) -> str:
+        return f"Guild(_id={self._id}, musicSetting={self.musicSetting})"

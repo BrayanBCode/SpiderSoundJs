@@ -11,7 +11,7 @@ class MongoDBConnection:
     def connect(self):
         """Establece la conexión a la base de datos."""
         try:
-            if not self.client:
+            if self.client is None:
                 self.client = MongoClient(self.uri)
                 self.db = self.client[self.databaseName]
                 LogExitoso("Conexión Exitosa", f"Conectado a la base de datos: {self.databaseName}").print()
@@ -21,7 +21,7 @@ class MongoDBConnection:
     def disconnect(self):
         """Cierra la conexión a la base de datos."""
         try:
-            if self.client:
+            if self.client is not None:
                 self.client.close()
                 self.client = None
                 self.db = None
@@ -32,9 +32,9 @@ class MongoDBConnection:
     def getCollection(self, collectionName):
         """Devuelve una colección de la base de datos."""
         try:
-            if not self.db:
+            if self.db is None:
                 raise Exception("No estás conectado a la base de datos.")
             return self.db[collectionName]
         except Exception as e:
             LogError("Error al Obtener Colección", f"No se pudo obtener la colección: {e}").log(e)
-            raise e
+            return None

@@ -85,23 +85,22 @@ class Player():
         self.volume = 25
         self.GuildTable = None
         
-        # self.getConfig()
+        self.getConfig()
 
     def getConfig(self):
-        Col = self.bot.db_manager.getCollection("guilds")
+        Col = self.bot.DBConnect.getCollection("guilds")
             
-        self.GuildTable = Guild(self.bot.db_manager, Col.find_one({"_id": self.guild}), "guilds")
+        self.GuildTable = Guild(self.bot.DBConnect, Col.find_one({"_id": self.guild}), "guilds")
 
-        if self.GuildTable.musicSetting is None:
+        if self.GuildTable.musicSetting is None or self.GuildTable._id is None:
             self.GuildTable.create()
             self.GuildTable.load_guild_data(DefaultData.DefaultGuild(self.guild))
+            LogDebug("Configuración de música creada", f"Configuración de música creada para '{self.bot.get_guild(self.guild).name}'.").print()
             self.GuildTable.insert()
             
-
         self.sourceVolume = self.GuildTable.musicSetting.get("sourcevolumen", 100)
         self.volume = self.GuildTable.musicSetting.get("volume", 25)
         LogExitoso("Configuración de música cargada", f"Configuración de música cargada para '{self.bot.get_guild(self.guild).name}'.").print()
-
     
     async def joinVoiceChannel(self, voiceChannel: discord.VoiceChannel):
             """

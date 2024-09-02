@@ -31,8 +31,8 @@ class CustomBot(commands.Bot):
         self.players = SpiderPlayer(self)
 
 
-        self.db_manager = MongoDBConnection(os.getenv("MONGO_URI"), "SpiderBot-DB")
-        self.db_manager.connect()
+        self.DBConnect = MongoDBConnection(os.getenv("MONGO_URI"), "SpiderBot-DB")
+        self.DBConnect.connect()
 
 
         self.synced = False

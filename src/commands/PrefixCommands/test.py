@@ -12,7 +12,7 @@ class Test(commands.Cog):
     async def test(self, ctx: commands.Context):
         view = AlbumMenu(self.bot)
         await ctx.send(view=view)
-        # guild = GuildInstance(self.bot.db_manager.db, {"_id": ctx.guild.id, "music-setting": {"sourcevolumen": 25, "volume": 100}})
+        # guild = GuildInstance(self.bot.DBConnect.db, {"_id": ctx.guild.id, "music-setting": {"sourcevolumen": 25, "volume": 100}})
         # guild.updateOne({"music-setting": {"sourcevolumen": 50, "volume": 50}})
 
         # entrie = guild.table.find_one({"_id": ctx.guild.id})
