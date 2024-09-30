@@ -13,6 +13,7 @@ pycparser = "*"
 colorama = "*"
 pymongo = "*"
 faker = "*"
+jsonschema = "*"
 
 [dev-packages]
 

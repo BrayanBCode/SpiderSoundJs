@@ -1,7 +1,8 @@
 import discord
-from discord.ext import commands
 from discord import Color, app_commands
-from colorama import Fore
+from discord.ext import commands
+
+from base.utils.Logging.LogMessages import LogExitoso
 
 
 class wave(commands.Cog):
@@ -10,11 +11,17 @@ class wave(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print(f"{Fore.GREEN}[Slash Command] wave cargado.")
+        LogExitoso("[Slash Command] wave cargado.").print()
 
     @app_commands.command(name="saludo", description="Saluda al bot")
     async def wave(self, interaction: discord.Interaction):
-        await interaction.response.send_message(embed=discord.Embed(title=f"Hola! `{interaction.user.display_name}`", description="¿En qué puedo ayudarte?", color=Color(0x24005A)))
+        await interaction.response.send_message(
+            embed=discord.Embed(
+                title=f"Hola! `{interaction.user.display_name}`",
+                description="¿En qué puedo ayudarte?",
+                color=Color(0x24005A),
+            )
+        )
 
 
 async def setup(bot):

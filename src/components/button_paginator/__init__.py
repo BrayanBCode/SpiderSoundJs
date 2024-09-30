@@ -1,4 +1,5 @@
-from inspect import iscoroutinefunction as iscoro, isfunction as isfunc
+from inspect import iscoroutinefunction as iscoro
+from inspect import isfunction as isfunc
 
 import discord
 
@@ -12,7 +13,9 @@ class SelectPaginator(discord.ui.Select):
         super().__init__()
         self.embeds = {}
 
-    def add_paginator_option(self, *, embed: discord.Embed, option: discord.SelectOption):
+    def add_paginator_option(
+        self, *, embed: discord.Embed, option: discord.SelectOption
+    ):
         self.append_option(option)
         self.embeds[option.value.lower()] = embed
 
@@ -141,10 +144,10 @@ class goto_modal(discord.ui.Modal, title="Go to"):
         super().__init__()
         self.button = button
         self.page_num = discord.ui.TextInput(
-            label='Page',
-            placeholder=f'page number 1-{len(self.button.view.embeds)}',
+            label="Page",
+            placeholder=f"page number 1-{len(self.button.view.embeds)}",
             style=discord.TextStyle.short,
-            required=True
+            required=True,
         )
         self.add_item(self.page_num)
 
@@ -156,7 +159,9 @@ class goto_modal(discord.ui.Modal, title="Go to"):
             if num in range(len(view.embeds)):
                 view.page = num
             else:
-                return await interaction.followup.send(content="Invalid number: aborting", ephemeral=True)
+                return await interaction.followup.send(
+                    content="Invalid number: aborting", ephemeral=True
+                )
 
             await view.before_press(self.button, interaction)
 
@@ -165,7 +170,9 @@ class goto_modal(discord.ui.Modal, title="Go to"):
 
             await view.after_press(self.button, interaction)
         except ValueError:
-            return await interaction.response.send_message(content="That's not a number", ephemeral=True)
+            return await interaction.response.send_message(
+                content="That's not a number", ephemeral=True
+            )
 
 
 class goto_page(discord.ui.Button):
@@ -193,14 +200,25 @@ class lock_page(discord.ui.Button):
 
 
 class Paginator(discord.ui.View):
-    def __init__(self, bot, embeds, destination, /, *, interactionfailed=None, check=None, timeout=None,
-                 before_press=empty_func, after_press=empty_func):
+    def __init__(
+        self,
+        bot,
+        embeds,
+        destination,
+        /,
+        *,
+        interactionfailed=None,
+        check=None,
+        timeout=None,
+        before_press=empty_func,
+        after_press=empty_func,
+    ):
         """A class which controls everything that happens
 
         Parameters
         -----------
         bot: :class:`Bot`
-            The bot object 
+            The bot object
         embeds: :class:`list`
             The embeds that will be paginated
         destination: :class:`discord.abc.Messageable`
@@ -226,21 +244,27 @@ class Paginator(discord.ui.View):
         self.after_press = after_press
 
     def default_pagination(self):
-        self.add_button("first", label='first')
-        self.add_button("back", label='back')
-        self.add_button("page", label='page')
-        self.add_button("next", label='next')
-        self.add_button("last", label='last')
-        self.add_button("delete", label='Close paginator')
+        self.add_button("first", label="first")
+        self.add_button("back", label="back")
+        self.add_button("page", label="page")
+        self.add_button("next", label="next")
+        self.add_button("last", label="last")
+        self.add_button("delete", label="Close paginator")
 
     async def edit_embed(self, interaction: discord.Interaction, *, embed=None):
         current = embed or self.embeds[self.page]
         if isinstance(current, str):
-            await interaction.response.edit_message(content=current, embed=None, attachments=[], view=self)
+            await interaction.response.edit_message(
+                content=current, embed=None, attachments=[], view=self
+            )
         elif isinstance(current, discord.Embed):
-            await interaction.response.edit_message(content=None, embed=current, attachments=[], view=self)
+            await interaction.response.edit_message(
+                content=None, embed=current, attachments=[], view=self
+            )
         elif isinstance(current, discord.File):
-            await interaction.response.edit_message(content=None, embed=None, attachments=[current], view=self)
+            await interaction.response.edit_message(
+                content=None, embed=None, attachments=[current], view=self
+            )
         elif isinstance(current, tuple):
             dct = {}
             for item in current:
@@ -251,30 +275,46 @@ class Paginator(discord.ui.View):
                 elif isinstance(item, discord.File):
                     dct["file"] = [item]
             if interaction and not interaction.response.is_done():
-                await interaction.response.edit_message(content=dct.get("content", None), embed=dct.get("embed", None),
-                                                        attachments=dct.get('file', None), view=self)
+                await interaction.response.edit_message(
+                    content=dct.get("content", None),
+                    embed=dct.get("embed", None),
+                    attachments=dct.get("file", None),
+                    view=self,
+                )
             else:
-                await self.message.edit(content=dct.get("content", None), embed=dct.get("embed", None),
-                                        attachments=dct.get('file', None), view=self)
+                await self.message.edit(
+                    content=dct.get("content", None),
+                    embed=dct.get("embed", None),
+                    attachments=dct.get("file", None),
+                    view=self,
+                )
 
     async def start(self):
         try:
             current = self.embeds[self.page]
             if isinstance(current, str):
                 if isinstance(self.destination, discord.Interaction):
-                    await self.destination.response.send_message(content=current, view=self)
+                    await self.destination.response.send_message(
+                        content=current, view=self
+                    )
                     self.message = await self.destination.original_response()
                 else:
-                    self.message = await self.destination.send(content=current, view=self)
+                    self.message = await self.destination.send(
+                        content=current, view=self
+                    )
             elif isinstance(current, discord.Embed):
                 if isinstance(self.destination, discord.Interaction):
-                    await self.destination.response.send_message(embed=current, view=self)
+                    await self.destination.response.send_message(
+                        embed=current, view=self
+                    )
                     self.message = await self.destination.original_response()
                 else:
                     self.message = await self.destination.send(embed=current, view=self)
             elif isinstance(current, discord.File):
                 if isinstance(self.destination, discord.Interaction):
-                    await self.destination.response.send_message(file=current, view=self)
+                    await self.destination.response.send_message(
+                        file=current, view=self
+                    )
                     self.message = await self.destination.original_response()
                 else:
                     self.message = await self.destination.send(file=current, view=self)
@@ -289,15 +329,20 @@ class Paginator(discord.ui.View):
                         dct["file"] = item
 
                 if isinstance(self.destination, discord.Interaction):
-                    await self.destination.response.send_message(content=dct.get("content", None),
-                                                                 embed=dct.get("embed", None),
-                                                                 file=dct.get("file", None),
-                                                                 view=self)
+                    await self.destination.response.send_message(
+                        content=dct.get("content", None),
+                        embed=dct.get("embed", None),
+                        file=dct.get("file", None),
+                        view=self,
+                    )
                     self.message = await self.destination.original_response()
                 else:
-                    self.message = await self.destination.send(content=dct.get("content", None),
-                                                               embed=dct.get("embed", None), file=dct.get("file", None),
-                                                               view=self)
+                    self.message = await self.destination.send(
+                        content=dct.get("content", None),
+                        embed=dct.get("embed", None),
+                        file=dct.get("file", None),
+                        view=self,
+                    )
         except discord.HTTPException:
             self.stop()
 
@@ -325,10 +370,31 @@ class Paginator(discord.ui.View):
         except (NameError, AttributeError):
             pass
 
-    def add_button(self, action, /, *, label="", emoji=None, style=discord.ButtonStyle.grey, row=None):
+    def add_button(
+        self,
+        action,
+        /,
+        *,
+        label="",
+        emoji=None,
+        style=discord.ButtonStyle.grey,
+        row=None,
+    ):
         action = action.strip().lower()
-        if action not in ["first", "prev", "previous", "back", "delete", "next", "last", "end", "page", "show", "goto",
-                          "lock"]:
+        if action not in [
+            "first",
+            "prev",
+            "previous",
+            "back",
+            "delete",
+            "next",
+            "last",
+            "end",
+            "page",
+            "show",
+            "goto",
+            "lock",
+        ]:
             return
         elif action == "first":
             self.add_item(first_page(label, emoji, style, row))
@@ -356,10 +422,18 @@ class Paginator(discord.ui.View):
             self.add_item(lock_page(label, emoji, style, row))
 
 
-def embed_creator(text, num, /, *, title='', prefix='', suffix='', color=None, colour=None):
+def embed_creator(
+    text, num, /, *, title="", prefix="", suffix="", color=None, colour=None
+):
     """A helper function which takes some string and returns a list of embeds"""
     if color != None and colour != None:
         raise ValueError
 
-    return [discord.Embed(title=title, description=prefix + (text[i:i + num]) + suffix,
-                          color=color or colour) for i in range(0, len(text), num)]
+    return [
+        discord.Embed(
+            title=title,
+            description=prefix + (text[i : i + num]) + suffix,
+            color=color or colour,
+        )
+        for i in range(0, len(text), num)
+    ]

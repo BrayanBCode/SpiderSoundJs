@@ -1,8 +1,7 @@
-import traceback
-
 from discord import Interaction
+
 from base.classes.music.SongTypes import SpiderSongType
-from base.utils.Logging.ErrorMessages import LogError
+from base.utils.Logging.LogMessages import LogError
 
 
 class Spotify(SpiderSongType):

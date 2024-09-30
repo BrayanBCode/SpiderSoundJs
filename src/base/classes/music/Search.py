@@ -1,8 +1,8 @@
-import traceback
 from discord import Interaction
+
 from base.classes.music.SongTypes import SpiderSongType
 from base.classes.music.Video import SingleVideo
-from base.utils.Logging.ErrorMessages import LogDebug, LogError, LogExitoso
+from base.utils.Logging.LogMessages import LogDebug, LogError, LogExitoso
 
 
 class SearchVideos(SpiderSongType):
@@ -23,12 +23,12 @@ class SearchVideos(SpiderSongType):
                 title=f"Busqueda - {self.search}.",
                 message=f"Se agrego ``{self.entries[0].title}`` a la cola",
             )
-            
+
             logger.print()
             await logger.send(interaction)
         except Exception as e:
             LogError(
-                title=f"Error al enviar el video **{self.entries[0].title}**.",
+                title=f"Error al enviar la busqueda **{self.search}**.",
                 message=f"Error: {e}",
             ).log(e)
 
@@ -41,7 +41,7 @@ class SearchVideos(SpiderSongType):
             ).print()
         except Exception as e:
             LogError(
-                title=f"Error al subir el video **{self.entries[0].title}**.",
+                title=f"Error al enviar la busqueda **{self.search}**.",
                 message=f"Error: {e}",
             ).log(e)
 

@@ -1,9 +1,8 @@
-import traceback
 from discord import Interaction
+
 from base.classes.music.SongTypes import SpiderSongType
 from base.classes.music.Video import SingleVideo
-from base.interfaces.ISong import ISong
-from base.utils.Logging.ErrorMessages import LogAviso, LogDebug, LogError, LogExitoso
+from base.utils.Logging.LogMessages import LogAviso, LogDebug, LogError, LogExitoso
 
 
 class Playlist(SpiderSongType):
@@ -15,12 +14,12 @@ class Playlist(SpiderSongType):
     uploader: str
     url: str
     entries: list[SingleVideo]
-    removed: list[ISong]
+    removed: list[SingleVideo]
 
-    def __init__(self, title, uploader, url, entries, removed = []):
+    def __init__(self, title, uploader, url, entries, removed=[]):
         self.title = title
         self.uploader = uploader
-        self.url =  url
+        self.url = url
         self.entries = entries
         self.removed = removed
 
@@ -40,7 +39,7 @@ class Playlist(SpiderSongType):
 
             if len(self.removed) > 0:
                 InValidSongslogger = LogAviso(
-                    title=f"Canciones removidas",
+                    title="Canciones removidas",
                     message=f"Se removieron ``{len(self.removed)}`` canciones por no estar disponibles.",
                 )
 
@@ -52,7 +51,7 @@ class Playlist(SpiderSongType):
                 message=f"Error: {e}",
             ).log(e)
 
-    def UploadDefault(self, queue: list[ISong]):
+    def UploadDefault(self, queue):
         """
         Sube la lista de reproducción a la cola de reproducción.
         """
@@ -68,7 +67,7 @@ class Playlist(SpiderSongType):
                 message=f"Error: {e}",
             ).log(e)
 
-    def UploadFirst(self, queue: list[ISong]):
+    def UploadFirst(self, queue):
         """
         Sube la lista de reproducción a la base de datos.
         """
@@ -83,7 +82,3 @@ class Playlist(SpiderSongType):
                 title=f"Error al subir la lista de reproducción **{self.title}**.",
                 message=f"Error: {e}",
             ).log(e)
-
-    
-
-    

@@ -1,12 +1,12 @@
-from colorama import Fore
 import discord
-
-from base.classes.Bot import CustomBot
 from discord.ext import commands
 
+from base.classes.Bot import CustomBot
 from base.interfaces.IHelpCommand import IHelpCommand
 from base.utils.colors import Colours
-from buttons import button_paginator as pg
+from base.utils.Logging.LogMessages import LogExitoso
+from components import button_paginator as pg
+
 
 class help(commands.Cog):
     def __init__(self, bot):
@@ -14,7 +14,7 @@ class help(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print(f"{Fore.GREEN}[Hybrid Command] help cargado.")
+        LogExitoso("[Hybrid Command] help cargado.").print()
 
     def add_command(self, command_dict, name, description, slash_command=False, prefix_command=False):
         if name not in command_dict.keys():

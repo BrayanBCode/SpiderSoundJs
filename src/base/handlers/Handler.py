@@ -1,7 +1,8 @@
 import os
-from colorama import Fore
-from discord.ext import commands
 from pathlib import Path
+
+from colorama import Fore
+
 
 class Handler:
 
@@ -17,7 +18,6 @@ class Handler:
         event_paths = []
         print(f"{Fore.CYAN}[info] Loading {carpetName}")
         root_path = Path(str(os.getcwd()))  # Ajusta esta ruta
-        # print(f"{Fore.YELLOW}[Debug] {root_path}")
         events_folder = Handler.find_folder(root_path, carpetName)
         if events_folder is None:
             print(f"{Fore.RED}[Error] Folder '{carpetName}' not found.")
@@ -26,9 +26,10 @@ class Handler:
             for filepath in events_folder.rglob("**/*.py"):
                 if filepath.is_file():
                     # Obtener la ruta alternativa
-                    alternative_path = ".".join(filepath.relative_to(events_folder).parts).replace(".py", "")
+                    alternative_path = ".".join(
+                        filepath.relative_to(events_folder).parts
+                    ).replace(".py", "")
                     alternative_path = f"{carpetName}." + alternative_path
-                    # print(f"{Fore.YELLOW}[Debug] {alternative_path}")
                     event_paths.append(alternative_path)
             return event_paths
         except Exception as e:

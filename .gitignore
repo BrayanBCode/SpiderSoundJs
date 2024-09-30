@@ -143,4 +143,9 @@ cython_debug/
 
 # DS_Store
 .DS_Store
+
+# logs
 logs/log.txt
+
+# .env
+src/.env
