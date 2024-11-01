@@ -53,7 +53,6 @@ class Player:
     volume: int
     autoPlay: bool
     yt: Youtube
-    # lastForceDisconnect: discord.AuditLogAction
 
     def __init__(self, guild: int, bot) -> None:
         from base.classes.Bot import CustomBot
@@ -80,7 +79,6 @@ class Player:
         self.last_Interaction = None
         self.lastSong = None
         self.pausedDisconnect = False
-        self.lastForceDisconnect = None
         self.yt = Youtube()
 
         # Cliente
@@ -127,6 +125,13 @@ class Player:
                 guildData=DefaultData.DefaultGuild(guildID),
             )
 
+    def getVoiceProtocol(self):
+        return self.bot.get_guild(self.guild._id).voice_client
+    
+    async def joinVoiceChannelFromLastChannel(self):
+        return self.joinVoiceChannel(self.last_voice_channel)
+
+
     async def joinVoiceChannel(self, voiceChannel: discord.VoiceChannel):
         """
         Conecta al bot a un canal de voz.
@@ -134,13 +139,21 @@ class Player:
 
         try:
             self.shouldReconnect = True
-            if self.VoiceClient:
 
-                if self.VoiceClient.is_connected():
-                    await self.VoiceClient.move_to(voiceChannel)
-                    return "connected"
+            if not voiceChannel:
+                return "no channel"
+
+            voice = self.getVoiceProtocol()
+
+            if voice and voice.is_connected():
+                self.VoiceClient = await voice.move_to(voiceChannel)
+                self.last_voice_channel = voiceChannel
+
+                return "connected"
 
             self.VoiceClient = await voiceChannel.connect()
+            self.last_voice_channel = voiceChannel
+
             return "connected"
 
         except discord.ClientException as e:
@@ -155,28 +168,60 @@ class Player:
             await self.rePlayAfterError()
 
         except Exception as e:
-            LogError(f"{Fore.RED}[Error] general:\n", e).log(e)
+            print(f"Error al intentar conectar al canal de voz: {e}")
 
-    async def rePlayAfterError(self):
 
-        await self.joinVoiceChannel(self.last_voice_channel)
+    async def rePlayAfterError(self, max_retries=3, delay=5):
+        """
+        Intenta reconectar al canal de voz y reanudar la reproducción si hay canciones en la cola.
+        """
 
-        if not self.queue:
-            return
+        try:
+            # Verificar si `last_voice_channel` está disponible
+            if not self.last_voice_channel:
+                print("Error: No se pudo reanudar la reproducción porque `last_voice_channel` es None.")
+                return
 
-        self.add_song_at(self.current_song)
+            # Intentar reconectar con reintentos limitados
+            retries = 0
+            while retries < max_retries:
+                try:
+                    await self.joinVoiceChannel(self.last_voice_channel)
+                    break  # Salir del bucle si se conecta con éxito
+                except Exception as e:
+                    print(f"Intento {retries + 1} de reconectar fallido: {e}")
+                    retries += 1
+                    await asyncio.sleep(delay)
+            else:
+                print("No se pudo conectar al canal de voz después de varios intentos.")
+                return
 
-        LogAviso(
-            f"Intentando reanudar la reproducción en '{self.last_voice_channel.guild.name}'."
-        ).print()
-        await self.play()
+            # Si la cola está vacía, no hay nada que reproducir
+            if not self.queue:
+                print("La cola está vacía. No hay canciones para reanudar.")
+                return
+
+            # Agregar la canción actual a la lista de reproducción y reanudar
+            self.add_song_at(self.current_song)
+
+            LogAviso(
+                f"Intentando reanudar la reproducción en '{self.last_voice_channel.guild.name}'."
+            ).print()
+
+            # Intentar reproducir la canción
+            await self.play()
+
+        except Exception as e:
+            print(f"Error al intentar reanudar la reproducción después de la desconexión: {e}")
+
+
 
     async def leaveVoiceChannel(self):
         """
         Desconecta al reproductor de un canal de voz.
         """
         if self.VoiceClient is not None:
-            await self.VoiceClient.disconnect()
+            await self.VoiceClient.disconnect(force=True)
             self.VoiceClient = None
             return "disconnected"
 

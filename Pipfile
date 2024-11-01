@@ -9,13 +9,14 @@ python-dotenv = "*"
 yt-dlp = "*"
 requests = "*"
 pycparser = "*"
-"discord.py" = "*"
 colorama = "*"
 pymongo = "*"
 faker = "*"
 jsonschema = "*"
+"discord.py" = "*"
+audioop-lts = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.12"
+python_version = "*"

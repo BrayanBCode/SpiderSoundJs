@@ -6,6 +6,7 @@ import discord
 from discord.ext import commands
 
 from base.classes.SpiderPlayer.SpiderPlayer import SpiderPlayer
+from base.classes.SpiderPlayer.player import Player
 from base.db.connect import MongoDBConnection
 from base.db.models.collections.GuildCol import GuildCol
 from base.db.models.collections.UserCol import UserCol
@@ -69,38 +70,69 @@ class CustomBot(commands.Bot):
 
         self.run(os.getenv("devToken") if debug else os.getenv("token"))
 
-    async def on_command_error(self, ctx, error):
-        if isinstance(error, commands.CommandNotFound):
-            embed = discord.Embed(
-                title="Error",
-                description="El comando no existe.",
-                color=discord.Color.red(),
-            )
-            return
+    # async def on_command_error(self, ctx, error):
+    #     if isinstance(error, commands.CommandNotFound):
+    #         embed = discord.Embed(
+    #             title="Error",
+    #             description="El comando no existe.",
+    #             color=discord.Color.red(),
+    #         )
+    #         return
 
-        if isinstance(error, commands.MissingRequiredArgument):
-            embed = discord.Embed(
-                title="Error",
-                description="Faltan argumentos.",
-                color=discord.Color.red(),
-            )
-            return
+    #     if isinstance(error, commands.MissingRequiredArgument):
+    #         embed = discord.Embed(
+    #             title="Error",
+    #             description="Faltan argumentos.",
+    #             color=discord.Color.red(),
+    #         )
+    #         return
 
-        if isinstance(error, commands.CommandOnCooldown):
-            embed = discord.Embed(
-                title="Error",
-                description=f"El comando está en cooldown. {error.retry_after:.2f} segundos restantes.",
-                color=discord.Color.red(),
-            )
-            return
+    #     if isinstance(error, commands.CommandOnCooldown):
+    #         embed = discord.Embed(
+    #             title="Error",
+    #             description=f"El comando está en cooldown. {error.retry_after:.2f} segundos restantes.",
+    #             color=discord.Color.red(),
+    #         )
+    #         return
 
-        embed = discord.Embed(
-            title="Error",
-            description=f"Ha ocurrido un error: {error}",
-            color=discord.Color.red(),
-        )
+    #     embed = discord.Embed(
+    #         title="Error",
+    #         description=f"Ha ocurrido un error: {error}",
+    #         color=discord.Color.red(),
+    #     )
 
-        await ctx.reply(embed=embed)
+    #     await ctx.reply(embed=embed)
+
+    async def on_disconnect(self):
+        print("Bot se ha desconectado de Discord.")
+        
+        # Obtener los servidores que están en el sistema de reproducción
+        guilds = self.players.getGuilds().values()
+
+        for player in guilds:
+            player: Player
+
+            # Si no debe reconectarse, saltar a la siguiente iteración
+            if not player.shouldReconnect:
+                print(f"No se reconectará al servidor {self.get_guild(player.guild._id).name} - shouldReconnect es False.")
+                continue
+
+            try:
+                # Intentar desconectar al bot del canal de voz
+                status = await player.leaveVoiceChannel()
+                print(f"Estado de salida del canal de voz en el servidor {self.get_guild(player.guild._id).name}: {status}")
+
+                # Continuar solo si estaba conectado
+                if status == "connected":
+                    continue
+
+                # Intentar la reconexión del reproductor tras el error
+                await player.rePlayAfterError()
+                print(f"Intentando reanudar la reproducción en el servidor {self.get_guild(player.guild._id).name}.")
+
+            except Exception as e:
+                print(f"Error al gestionar la reconexión en el servidor {self.get_guild(player.guild._id).name}: {e}")
+
 
     async def LoadHandler(self):
         """

@@ -64,27 +64,30 @@ class voiceDisconnect(commands.Cog):
                 await player.InactivityTimer()
                 return
 
-    def usersActivity(self, member, before, after):
+    def usersActivity(self, member, before, after, print = False):
 
         if member.id != self.bot.user.id and before.channel is None and after.channel:
-            LogDebug(
-                title=f"El usuario '{member.display_name}'",
-                message=f"se ha unido al canal de voz '{after.channel.name}' en '{member.guild.name}'.",
-            ).print()
+            if print:
+                LogDebug(
+                    title=f"El usuario '{member.display_name}'",
+                    message=f"se ha unido al canal de voz '{after.channel.name}' en '{member.guild.name}'.",
+                ).print()
             return True
 
         if member.id != self.bot.user.id and before.channel and after.channel is None:
-            LogDebug(
-                title=f"El usuario '{member.display_name}'",
-                message=f"se ha desconectado del canal de voz '{before.channel.name}' en '{member.guild.name}'.",
-            ).print()
+            if print:
+                LogDebug(
+                    title=f"El usuario '{member.display_name}'",
+                    message=f"se ha desconectado del canal de voz '{before.channel.name}' en '{member.guild.name}'.",
+                ).print()
             return True
 
         if member.id != self.bot.user.id and before.channel.id != after.channel.id:
-            LogDebug(
-                title=f"El usuario '{member.display_name}'",
-                message=f"ha cambiado de canal de voz de '{before.channel.name}' a '{after.channel.name}' en '{member.guild.name}'.",
-            ).print()
+            if print:
+                LogDebug(
+                    title=f"El usuario '{member.display_name}'",
+                    message=f"ha cambiado de canal de voz de '{before.channel.name}' a '{after.channel.name}' en '{member.guild.name}'.",
+                ).print()
             return True
 
         return False
