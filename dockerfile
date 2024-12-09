@@ -20,4 +20,4 @@ COPY . .
 EXPOSE 3000
 
 # Comando para ejecutar tu bot con ts-node
-CMD ["node ."]
+CMD ["npm", "run", "devstart"]

@@ -1,21 +1,26 @@
 {
-  "name": "test-de-lavalink",
-  "version": "1.0.0",
-  "main": "src/index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "discord.js": "^14.16.3",
-    "dotenv": "^16.4.7",
-    "kazagumo": "^3.2.1",
-    "kazagumo-spotify": "^2.1.1"
-  },
-  "devDependencies": {
-    "typescript": "^5.7.2"
-  }
+    "name": "spiderbotjs",
+    "version": "1.0.0",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "build": "tsc",
+        "devstart": "tsc && node dist/index.js",
+        "start": "node dist/index.js"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "description": "",
+    "devDependencies": {
+        "typescript": "^5.7.2"
+    },
+    "dependencies": {
+        "@discordjs/voice": "^0.18.0",
+        "bufferutil": "^4.0.8",
+        "discord.js": "^14.16.3",
+        "erela.js": "^2.4.0",
+        "erela.js-spotify": "^1.2.0",
+        "lavalink-client": "^2.4.1"
+    }
 }

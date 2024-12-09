@@ -1,19 +1,20 @@
 services:
-    lavalink:
-        image: ghcr.io/lavalink-devs/lavalink:4.0.8-alpine
-        ports:
-            - "2333:2333"
-        environment:
-            - LAVALINK_PASSWORD="password"
-        volumes:
-            - ./application.yml:/opt/Lavalink/application.yml
-            - ./plugins:/opt/Lavalink/plugins
+  lavalink:
+    
+    image: ghcr.io/lavalink-devs/lavalink:4.0.8
+    ports:
+      - "2333:2333"
+    environment:
+      - LAVALINK_PASSWORD="password"
+    volumes:
+      - ./application.yml:/opt/Lavalink/application.yml
+      - ./plugins:/opt/Lavalink/plugins
 
-    discord-bot:
-        build: .
-        ports:
-            - "3000:3000"
-        depends_on:
-            - lavalink
-        volumes:
-            - .:/usr/src/app
+  discord-bot:
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      - lavalink
+    volumes:
+      - .:/usr/src/app
