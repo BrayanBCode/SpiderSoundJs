@@ -1,17 +1,19 @@
-version: '3.8'
-
 services:
-  lavalink:
-    image: ghcr.io/freyacodes/lavalink:latest # Usa la última versión de Lavalink
-    container_name: lavalink
-    restart: unless-stopped
-    environment:
-      - SPRING_APPLICATION_JSON={"server":{"port":2333,"address":"0.0.0.0"},"lavalink":{"server":{"password":"youshallnotpass","sources":{"youtube":true,"bandcamp":true,"soundcloud":true,"twitch":true,"vimeo":true,"http":true,"local":true}}}}
-    ports:
-      - "2333:2333" # Expone el puerto 2333 para acceso externo
-    volumes:
-      - ./lavalink_data:/data # Mapea un directorio local para persistencia de datos
+    lavalink:
+        image: ghcr.io/lavalink-devs/lavalink:4.0.8-alpine
+        ports:
+            - "2333:2333"
+        environment:
+            - LAVALINK_PASSWORD="password"
+        volumes:
+            - ./application.yml:/opt/Lavalink/application.yml
+            - ./plugins:/opt/Lavalink/plugins
 
-networks:
-  default:
-    name: lavalink_network
+    discord-bot:
+        build: .
+        ports:
+            - "3000:3000"
+        depends_on:
+            - lavalink
+        volumes:
+            - .:/usr/src/app
