@@ -11,13 +11,12 @@ export async function deploylavalinkConnection(client: BotClient) {
                 authorization: config.lavalink.authorization,
                 host: config.lavalink.host,
                 port: config.lavalink.port,
-                id: config.bot.clientID,
+                id: config.bot.user,
 
             },
         ],
         sendToShard: (guildId, payload) =>
             client.guilds.cache.get(guildId)?.shard?.send(payload),
     });
-
     client.lavaManager = lavalinkManager;
 }
