@@ -36,3 +36,7 @@ with open("output.txt", "w", encoding="utf8") as file:
     file.write(json.dumps(info, indent=4))  # Convertimos el diccionario a una cadena JSON para escribirlo en el archivo
 ```
 
+## Dev Notes
+
+- "devstart": "tsc && node dist/index.js",
+

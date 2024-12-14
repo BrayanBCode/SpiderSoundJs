@@ -1,4 +1,4 @@
-import { AutocompleteInteraction, ChatInputCommandInteraction, SlashCommandBuilder, SlashCommandSubcommandBuilder, SlashCommandSubcommandGroupBuilder, SlashCommandSubcommandsOnlyBuilder } from "discord.js";
+import { AutocompleteInteraction, ChatInputCommandInteraction, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder, SlashCommandSubcommandBuilder, SlashCommandSubcommandGroupBuilder, SlashCommandSubcommandsOnlyBuilder } from "discord.js";
 
 import { BotClient } from "./BotClient.js";
 import { CommandOptions, SubCommandOptions } from "../types/CommandsOptions";
@@ -7,7 +7,7 @@ declare type InteractionExecuteFN = (client: BotClient, interaction: ChatInputCo
 declare type AutoCompleteExecuteFN = (client: BotClient, interaction: AutocompleteInteraction) => any
 
 export class Command {
-    data: SlashCommandBuilder | SlashCommandSubcommandsOnlyBuilder;
+    data: SlashCommandBuilder | SlashCommandSubcommandsOnlyBuilder | SlashCommandOptionsOnlyBuilder;
     execute: InteractionExecuteFN;
     autocomplete?: AutoCompleteExecuteFN;
 

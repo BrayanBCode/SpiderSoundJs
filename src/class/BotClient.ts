@@ -4,9 +4,10 @@ import { Command, SubCommand } from "../types/Client.js";
 import { deployEvents } from "../handlers/deploy-handlers.js";
 import { BotClientOptions } from "../interface/BotClientOptions.js";
 import { config } from "../config/config.js";
+import { lavaManagerCustom } from "./lavaManagerCustom.js";
 
 export class BotClient extends Client {
-    lavalink?: LavalinkManager;
+    lavaManager?: lavaManagerCustom;
     commands: Map<string, Command | SubCommand>;
     defaultVolume: number;
     debugMode: boolean;
@@ -27,3 +28,4 @@ export class BotClient extends Client {
     }
 
 }
+

@@ -5,7 +5,7 @@ import { Command, SubCommand } from "../../class/Commands.js";
 export function deployClientEvents(client: BotClient) {
     client.once("ready", () => {
         console.log(`|| ${client.user!.username} Se ejecuto con exitó ||`);
-        client.lavalink!.init({
+        client.lavaManager!.init({
             id: client.user!.id,
             username: client.user!.username,
         });

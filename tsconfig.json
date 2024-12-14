@@ -12,6 +12,6 @@
     "sourceMap": true,
     "outDir": "./dist"
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "launchtest.js"],
   "exclude": ["node_modules"]
 }
