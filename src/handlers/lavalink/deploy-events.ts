@@ -1,6 +1,7 @@
 import { EmbedBuilder, GuildMember, TextChannel } from "discord.js";
 import { BotClient } from "../../class/BotClient.js";
 import { formatMS_HHMMSS } from "../../utils/formatMS_HHMMSS.js";
+import { error } from "node:console";
 
 export function deployLavalinkEvents(client: BotClient) {
     console.log("Cargando Eventos de Lavalink");
@@ -62,13 +63,12 @@ export function deployLavalinkEvents(client: BotClient) {
         console.log(`reproduciendo: ${track?.info.title}`);
     });
     
-
     client.lavaManager!.on("trackStuck", (player, track) => {
         console.warn(`Se trabo: ${track?.info.title}`);
     })
 
-    client.lavaManager!.on("trackError", (player, track) => {
-        console.error(track);
+    client.lavaManager!.on("trackError", (player, track, payload) => {
+        console.error("trackError: " + payload.error)
     })
 
     client.lavaManager!.on("playerSocketClosed", (data) => {
@@ -78,7 +78,6 @@ export function deployLavalinkEvents(client: BotClient) {
     // client.lavaManager!.nodeManager.lavaManagerManager.on('playerUpdate', (state) => {
     //     console.log('Actualización del estado del jugador:', state);
     // });
-
 
 }
 

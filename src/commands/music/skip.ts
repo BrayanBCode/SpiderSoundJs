@@ -79,7 +79,7 @@ export default new Command({
         });
     },
 
-    autocomplete: async (client, interaction: AutocompleteInteraction) => {
+    autocomplete: async (client, interaction) => {
         if (!interaction.guildId) return;
 
         const player = client.lavaManager!.getPlayer(interaction.guildId);
@@ -89,9 +89,10 @@ export default new Command({
         }
 
         const tracks = player.queue.tracks;
-        const suggestions = tracks.slice(0, 25).map((track: any, index: number) => ({
+        // tracks.slice(0, 25).map
+        const suggestions = tracks.map((track: any, index: number) => ({
             name: `${index+1} - [${formatMS_HHMMSS(track.info.duration)}] ${track.info.title} - ${track.info.author || 'Autor desconocido'}`.substring(0, 100),
-            value: `autocomplete_${index}`
+            value: `autocomplete_${index+1}`
         }));
 
         // Limpiar entradas antiguas antes de establecer nuevas

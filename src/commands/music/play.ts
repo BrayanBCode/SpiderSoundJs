@@ -12,7 +12,7 @@ export default new Command(
     {
         data: new SlashCommandBuilder()
             .setName("play")
-            .setDescription("Reprodcuce musica con la fuente que quieras - YouTube, YouTube Music, Spotify")
+            .setDescription("Reproduce musica con la fuente que quieras - YouTube, YouTube Music, Spotify")
             .addStringOption(o => o.setName("busqueda").setDescription("Que ponemos che?").setAutocomplete(true).setRequired(true))
             .addStringOption(o => o.setName("fuente").setDescription("Desde que fuente quieres reproducir?").setRequired(false).setChoices(
                 { name: "Youtube", value: "ytsearch" }, // Requires plugin on lavalink: https://github.com/lavalink-devs/youtube-source

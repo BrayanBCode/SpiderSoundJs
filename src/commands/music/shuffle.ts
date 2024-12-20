@@ -6,6 +6,6 @@ export default new Command({
     .setName("shuffle")
     .setDescription("Mezcla las canciones de la cola de reprodución"),
     execute: async (client, interaction) => {
-
+        
     }
 })

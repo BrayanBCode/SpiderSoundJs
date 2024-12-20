@@ -1,6 +1,5 @@
 import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import { Command } from "../../class/Commands.js";
-import { createEmbedTemplate, getPlayer } from "../../utils/tools.js";
 import { formatMS_HHMMSS } from "../../utils/formatMS_HHMMSS.js";
 import { QueuePaginator } from "../../class/buttons/QueuePaginator.js";
 
@@ -12,11 +11,11 @@ export default new Command({
     execute: async (client, interaction) => {
         if (!interaction.guildId) return;
 
-        const player = getPlayer(client, interaction.guildId);
+        const player = client.Tools.getPlayer(interaction.guildId);
 
         if (!player) return interaction.reply({
             embeds: [
-                createEmbedTemplate()
+                client.Tools.createEmbedTemplate()
                     .setDescription("La lista de reproducción está vacía, utiliza /play para agregar canciones.")
             ]
         });
@@ -25,7 +24,7 @@ export default new Command({
 
         if (!queue.tracks.length) return await interaction.reply({
             embeds: [
-                createEmbedTemplate()
+                client.Tools.createEmbedTemplate()
                     .setDescription("La lista de reproducción está vacía, utiliza /play para agregar canciones.")
                     .addFields({
                         name: `${player.playing ? `Se está reproduciendo` : ""}`,
