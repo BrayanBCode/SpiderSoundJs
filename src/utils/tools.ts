@@ -14,7 +14,7 @@ export class Tools {
     }
 
     getPlayer(guildId: string) {
-        return this.client.lavaManager!.getPlayer(guildId)
+        return this.client.lavaManager.getPlayer(guildId)
     }
 
 }

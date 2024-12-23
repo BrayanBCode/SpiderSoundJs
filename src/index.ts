@@ -10,10 +10,8 @@ const client = new BotClient(
             GatewayIntentBits.GuildVoiceStates,
             GatewayIntentBits.GuildMessages,
             GatewayIntentBits.MessageContent,
-            
+
         ],
         debugMode: false
     }
-);
-
-client.init();
+).init();

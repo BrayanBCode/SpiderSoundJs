@@ -1,0 +1,41 @@
+{
+    "env": {
+      "browser": true,
+      "es2021": true,
+      "node": true
+    },
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "ecmaVersion": 2024,
+      "sourceType": "module"
+    },
+    "plugins": ["@typescript-eslint"],
+    "rules": {
+      "indent": ["error", 4], // Indentación de 4 espacios
+      "quotes": ["error", "single"], // Comillas simples
+      "semi": ["error", "always"], // Siempre usar punto y coma
+      "linebreak-style": ["error", "unix"], // Fin de línea tipo Unix (\n)
+      "arrow-parens": ["error", "always"], // Paréntesis obligatorios en arrow functions
+      "object-curly-spacing": ["error", "always"], // Espaciado dentro de llaves
+      "array-bracket-spacing": ["error", "never"], // Sin espacio en corchetes
+      "max-len": [
+        "error",
+        {
+          "code": 80, // Máximo de caracteres por línea
+          "ignoreStrings": true,
+          "ignoreTemplateLiterals": true,
+          "ignoreComments": true
+        }
+      ],
+      "no-trailing-spaces": ["error"], // Elimina espacios innecesarios al final de las líneas
+      "newline-per-chained-call": ["error", { "ignoreChainWithDepth": 2 }], // Divide métodos encadenados
+      "no-multiple-empty-lines": ["error", { "max": 1 }], // No más de una línea vacía consecutiva
+      "@typescript-eslint/no-unused-vars": "warn", // Variables no usadas
+      "@typescript-eslint/no-explicit-any": "off" // Permitir uso de "any"
+    }
+  }
+  

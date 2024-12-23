@@ -82,7 +82,7 @@ export default new Command({
     autocomplete: async (client, interaction) => {
         if (!interaction.guildId) return;
 
-        const player = client.lavaManager!.getPlayer(interaction.guildId);
+        const player = client.lavaManager.getPlayer(interaction.guildId);
 
         if (!player || player.queue.tracks.length === 0) {
             return interaction.respond([{ name: 'No hay canciones en la cola', value: 'no_tracks' }]);
@@ -90,7 +90,7 @@ export default new Command({
 
         const tracks = player.queue.tracks;
         // tracks.slice(0, 25).map
-        const suggestions = tracks.map((track: any, index: number) => ({
+        const suggestions = tracks.slice(0, 25).map((track: any, index: number) => ({
             name: `${index+1} - [${formatMS_HHMMSS(track.info.duration)}] ${track.info.title} - ${track.info.author || 'Autor desconocido'}`.substring(0, 100),
             value: `autocomplete_${index+1}`
         }));
