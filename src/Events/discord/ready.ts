@@ -14,7 +14,6 @@ export default class ReadyEvent extends BaseDiscordEvent<"ready"> {
     async execute(client: BotClient) {
         console.log(`¡Bot ${client.user?.tag} está listo y conectado!`);
         await this.initializeLavaManager(client)
-        await registerDiscordEvents(client);
         await registerAllCommands(client);
         await loadLavalinkEvents(client);
     }
