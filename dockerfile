@@ -1,5 +1,5 @@
 # Usa una imagen base de Node.js versión 22
-FROM node:22
+FROM node:22-slim
 
 # Establece el directorio de trabajo en el contenedor
 WORKDIR /usr/src/app
