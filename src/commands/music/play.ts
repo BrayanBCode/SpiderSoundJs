@@ -1,9 +1,9 @@
 import { CommandInteractionOptionResolver, EmbedBuilder, GuildMember, SlashCommandBuilder, VoiceChannel } from 'discord.js';
 import { Command } from '../../class/Commands.js';
-import { SearchPlatform, SearchResult, Track } from 'lavalink-client/dist/types/index.js';
 
 import { formatMS_HHMMSS } from '../../utils/formatMS_HHMMSS.js';
 import { config } from '../../config/config.js';
+import { SearchPlatform, SearchResult, Track } from 'lavalink-client';
 
 const autocompleteMap = new Map();
 
@@ -15,7 +15,7 @@ export default new Command(
             .addStringOption(
                 o => o
                     .setName("busqueda")
-                    .setDescription("Que ponemos che?")
+                    .setDescription("Que ponemos chee?")
                     .setAutocomplete(true)
                     .setRequired(true))
             .addStringOption(o =>

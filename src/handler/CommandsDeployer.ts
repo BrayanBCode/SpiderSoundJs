@@ -65,7 +65,7 @@ async function loadAllCommands(client: BotClient, baseDir: string) {
  * Registra todos los comandos en Discord.
  * @param client - Cliente del bot.
  */
-export async function deployAllCommands(client: BotClient) {
+export async function registerAllCommands(client: BotClient) {
     try {
         const commandsPath = join(process.cwd(), "dist", "commands");
         await loadAllCommands(client, commandsPath);

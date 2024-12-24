@@ -1,6 +1,4 @@
-import { Client, GatewayIntentBits } from "discord.js";
-import { config } from "./config/config.js";
-import { deployEvents } from "./handlers/deploy-handlers.js";
+import { GatewayIntentBits } from "discord.js";
 import { BotClient } from "./class/BotClient.js";
 
 const client = new BotClient(
@@ -14,4 +12,6 @@ const client = new BotClient(
         ],
         debugMode: false
     }
-).init();
+);
+
+client.init();

@@ -1,4 +1,4 @@
-import { LavalinkManager } from "lavalink-client/dist/types";
+import { LavalinkManager } from "lavalink-client/dist/types/index.js";
 import { Command, SubCommand } from "../types/Client.js";
 import { GatewayIntentBits } from "discord.js";
 

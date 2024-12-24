@@ -5,10 +5,10 @@ import { Command } from '../../class/Commands.js';
 export default new Command(
     {
         data: new SlashCommandBuilder()
-        .setName("ping")
-        .setDescription("Responde Pong!"),
+            .setName("ping")
+            .setDescription("Responde Pong!"),
         execute: (client, interaction) => {
-            interaction.reply("Pong! " + client.user?.username )
+            interaction.reply("Pong! " + client.user?.username)
         }
     }
 )

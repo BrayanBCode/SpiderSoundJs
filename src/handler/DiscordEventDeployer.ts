@@ -1,10 +1,13 @@
 import { readdirSync } from "fs";
 import { join } from "path";
 import { BotClient } from "../class/BotClient.js";
-import { BaseDiscordEvent } from "../class/DiscordEvent.js";
+import { BaseDiscordEvent } from "../class/events/BaseDiscordEvent.js";
+import { ClientEvents } from "discord.js";
 
 
-export async function registerDiscordEvents(client: BotClient, eventsPath: string): Promise<void> {
+export async function registerDiscordEvents(client: BotClient): Promise<void> {
+
+    const eventsPath: string = join(process.cwd(), "dist", "Events", "discord")
     const files = readdirSync(eventsPath).filter(file => file.endsWith(".ts") || file.endsWith(".js"));
 
     for (const file of files) {
@@ -12,7 +15,7 @@ export async function registerDiscordEvents(client: BotClient, eventsPath: strin
 
         try {
             // Importar dinámicamente la clase del evento
-            const { default: EventClass } = await import(filePath) as { default: new () => BaseDiscordEvent };
+            const { default: EventClass } = await import(filePath) as { default: new () => BaseDiscordEvent<keyof ClientEvents> };
 
             // Validar que la clase importada extienda BaseDiscordEvent
             if (!EventClass || !(Object.getPrototypeOf(EventClass.prototype).constructor === BaseDiscordEvent)) {
@@ -25,9 +28,21 @@ export async function registerDiscordEvents(client: BotClient, eventsPath: strin
 
             // Registrar el evento en el cliente
             if (eventInstance.once) {
-                client.once(eventInstance.name, (...args) => eventInstance.execute(client, ...args));
+
+
+                client.once(eventInstance.name, (...args) => {
+                    console.log(`[DEBUG] Evento ${eventInstance.name} activado con argumentos:`, args);
+
+                    eventInstance.execute(client, ...args)
+                });
             } else {
-                client.on(eventInstance.name, (...args) => eventInstance.execute(client, ...args));
+
+
+                client.on(eventInstance.name, (...args) => {
+                    console.log(`[DEBUG] Evento ${eventInstance.name} activado con argumentos:`, args);
+
+                    eventInstance.execute(client, ...args)
+                });
             }
 
             console.log(`[INFO] Evento ${eventInstance.name} registrado correctamente.`);
