@@ -3,6 +3,7 @@ import { join } from "path";
 import { BotClient } from "../class/BotClient.js";
 import { BaseDiscordEvent } from "../class/events/BaseDiscordEvent.js";
 import { ClientEvents } from "discord.js";
+import logger from "../class/logger.js";
 
 
 export async function registerDiscordEvents(client: BotClient): Promise<void> {
@@ -17,37 +18,26 @@ export async function registerDiscordEvents(client: BotClient): Promise<void> {
             // Importar dinámicamente la clase del evento
             const { default: EventClass } = await import(filePath) as { default: new () => BaseDiscordEvent<keyof ClientEvents> };
 
-            // Validar que la clase importada extienda BaseDiscordEvent
             if (!EventClass || !(Object.getPrototypeOf(EventClass.prototype).constructor === BaseDiscordEvent)) {
-                console.warn(`[WARNING] El archivo ${file} no exporta una clase válida.`);
+                logger.warn(`El archivo ${file} no exporta una clase válida.`);
                 continue;
             }
 
-            // Crear instancia del evento
             const eventInstance = new EventClass();
 
-            // Registrar el evento en el cliente
             if (eventInstance.once) {
-
-
                 client.once(eventInstance.name, (...args) => {
-                    console.log(`[DEBUG] Evento ${eventInstance.name} activado con argumentos:`, args);
-
                     eventInstance.execute(client, ...args)
                 });
             } else {
-
-
                 client.on(eventInstance.name, (...args) => {
-                    console.log(`[DEBUG] Evento ${eventInstance.name} activado con argumentos:`, args);
-
                     eventInstance.execute(client, ...args)
                 });
             }
 
-            console.log(`[INFO] Evento ${eventInstance.name} registrado correctamente.`);
+            logger.info(`Evento ${eventInstance.name} registrado correctamente.`);
         } catch (error) {
-            console.error(`[ERROR] No se pudo registrar el evento en ${file}:`, error);
+            logger.error(`No se pudo registrar el evento en ${file}:`, error);
         }
     }
 }

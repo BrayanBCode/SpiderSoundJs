@@ -9,6 +9,7 @@ secret.json
 secrets/
 config/
 
+
 # Ignorar archivos específicos que pueden contener tokens o IDs
 *.key
 *.pem

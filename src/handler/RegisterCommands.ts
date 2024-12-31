@@ -5,6 +5,7 @@ import { bold, REST, Routes, SlashCommandBuilder } from "discord.js";
 import { BotClient } from "../class/BotClient.js";
 import { Command } from "../types/Client.js";
 import { config } from "../config/config.js";
+import logger from "../class/logger.js";
 
 /**
  * Carga y valida un comando desde un archivo.
@@ -18,15 +19,15 @@ async function loadCommand(client: BotClient, filePath: string) {
         const command = await import(fileUrl).then((mod) => mod.default) as Command;
 
         if (!command || !command.data || !command.execute) {
-            console.warn(`[WARNING] El archivo ${filePath} no contiene propiedades "data" o "execute".`);
+            logger.warn(`[WARNING] El archivo ${filePath} no contiene propiedades "data" o "execute".`);
             return;
         }
 
         // Registra el comando en el cliente
         client.commands.set(command.data.name, command);
-        console.log(`|| Comando registrado: ${bold(command.data.name)} ||`);
+        logger.info(`|| Comando registrado: ${bold(command.data.name)} ||`);
     } catch (err) {
-        console.error(`[ERROR] Error al cargar el comando en ${filePath}:`, err);
+        logger.error(`[ERROR] Error al cargar el comando en ${filePath}:`, err);
     }
 }
 
@@ -84,8 +85,8 @@ export async function registerAllCommands(client: BotClient) {
             { body: commandData }
         );
 
-        console.log("|| Todos los comandos fueron registrados con éxito ||");
+        logger.info("|| Todos los comandos fueron registrados con éxito ||");
     } catch (err) {
-        console.error("[ERROR] Falló el registro de los comandos:", err);
+        logger.error("[ERROR] Falló el registro de los comandos:", err);
     }
 }

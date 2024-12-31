@@ -1,29 +1,29 @@
-import { ClientEvents } from "discord.js";
 import { BotClient } from "../../class/BotClient.js";
 import { BaseDiscordEvent } from "../../class/events/BaseDiscordEvent.js";
 import { config } from "../../config/config.js";
 import { lavaManagerCustom } from "../../class/lavaManagerCustom.js";
-import { registerAllCommands } from "../../handler/CommandsDeployer.js";
-import { registerDiscordEvents } from "../../handler/DiscordEventDeployer.js";
-import { loadLavalinkEvents } from "../../handler/LavalinkEventDeployer.js";
+import { registerAllCommands } from "../../handler/RegisterCommands.js";
+import { registerLavalinkEvents } from "../../handler/RegisterlavalinkManagerEvent.js";
+import { registerLavalinkNodeEvents } from "../../handler/RegisterBaseNodeManagerEvents.js";
+import logger from "../../class/logger.js";
 
 export default class ReadyEvent extends BaseDiscordEvent<"ready"> {
     name: "ready" = "ready";
-    once: boolean = false;
 
     async execute(client: BotClient) {
-        console.log(`¡Bot ${client.user?.tag} está listo y conectado!`);
+        logger.info(`¡Bot ${client.user?.tag} está listo y conectado!`);
         await Promise.all([
             this.initializeLavaManager(client),
             registerAllCommands(client),
-            loadLavalinkEvents(client),
+            registerLavalinkEvents(client),
+            registerLavalinkNodeEvents(client)
         ]);
     }
 
 
     async initializeLavaManager(client: BotClient) {
         try {
-            console.log("Iniciando conexión con Lavalink...");
+            logger.info("Iniciando conexión con Lavalink...");
 
             client.lavaManager = new lavaManagerCustom({
                 nodes: [
@@ -43,12 +43,15 @@ export default class ReadyEvent extends BaseDiscordEvent<"ready"> {
                 username: client.user?.tag
 
             }).catch((err) => {
-                console.error("Error al iniciar LavaManager:", err);
+                logger.error("Error al iniciar LavaManager:", err);
             })
 
-            console.log("LavaManager inicializado.");
+            logger.info("|| Evento Raw Cargado ||");
+            client.on("raw", (d) => client.lavaManager.sendRawData(d))
+
+            logger.info("LavaManager inicializado.");
         } catch (err) {
-            console.error("Error al inicializar LavaManager:", err);
+            logger.error("Error al inicializar LavaManager:", err);
         }
     }
 

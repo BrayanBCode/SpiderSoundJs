@@ -33,14 +33,13 @@ export function deployLavalinkEvents(client: BotClient) {
         let msg = client.lavaManager.getGuildMessage(player.guildId);
         const channel = client.channels.cache.get(player.textChannelId!) as TextChannel | undefined;
 
-
         const emb = new EmbedBuilder()
             .setAuthor({ name: "Reproduciendo 🎧🎶" })
             .setTitle(`${track.info.title}`)
             .setDescription(`Duración: ${formatMS_HHMMSS(track.info.duration)}`)
             .setImage(`https://img.youtube.com/vi/${track.info.identifier}/hqdefault.jpg`) // Asegúrate de que track.info.thumbnail es una URL válida
             .setFooter({
-                text: `${player.queue.tracks ? `Quedan ${player.queue.tracks.length} canciones más en cola.` : ``}`,
+                text: `${player.queue.tracks.length ? `Quedan ${player.queue.tracks.length} canciones más en cola.` : ``}`,
             });
 
 
@@ -64,7 +63,7 @@ export function deployLavalinkEvents(client: BotClient) {
             }).catch(console.error);
         }
 
-        console.log(`reproduciendo: ${track?.info.title}`);
+        console.log(`Reproduciendo ${track?.info.title}`);
     });
 
     client.lavaManager.on("trackStuck", (player, track) => {

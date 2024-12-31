@@ -13,15 +13,18 @@ export default new Command(
                     .setRequired(true)),
 
         execute: async (client, interaction) => {
+            await interaction.deferReply()
             let ask = interaction.options.getString('pregunta');
 
             if (!ask) return await interaction.reply("No entendi la pregunta")
+
+            ask += ", en menos de 2000 letras"
 
             const response = await fetch(`https://gemini-rest.vercel.app/api/?prompt=${encodeURIComponent(ask)}`);
             const data = await response.json();
 
 
-            await interaction.reply(data.response);
+            await interaction.followUp(data.response.substring(0, 2000));
         }
     }
 );

@@ -1,6 +1,7 @@
 import { Collection, Message } from "discord.js";
 import { ManagerOptions } from "lavalink-client/dist/types";
 import { LavalinkManager } from "lavalink-client";
+import logger from "./logger.js";
 
 export class lavaManagerCustom extends LavalinkManager {
 
@@ -12,20 +13,29 @@ export class lavaManagerCustom extends LavalinkManager {
     }
 
     getGuildMessage(guildId: string) {
-        if (!guildId) return console.error("ID INVALIDO");
-        
+        if (!guildId) {
+            logger.error("ID INVALIDO");
+            return
+        }
+
         return this.messages.get(guildId)
     }
 
     setGuildMessage(guildId: string, msg: Message) {
-        if (!guildId) return console.error("ID INVALIDO");
+        if (!guildId) {
+            logger.error("ID INVALIDO");
+            return
+        }
 
         this.messages.set(guildId, msg)
     }
 
     destroyGuildMessage(guildId: string) {
-        if (!guildId) return console.error("ID INVALIDO");
-        
+        if (!guildId) {
+            logger.error("ID INVALIDO");
+            return
+        }
+
         this.messages.delete(guildId)
     }
 }

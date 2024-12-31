@@ -25,6 +25,8 @@
         "dotenv": "^16.4.7",
         "erela.js": "^2.4.0",
         "erela.js-spotify": "^1.2.0",
-        "lavalink-client": "^2.4.1"
+        "lavalink-client": "^2.4.1",
+        "ts-transformer-keys": "^0.4.4",
+        "winston": "^3.17.0"
     }
 }

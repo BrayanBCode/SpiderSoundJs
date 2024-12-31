@@ -1,6 +1,7 @@
 import { AutocompleteInteraction, EmbedBuilder, GuildMember, SlashCommandBuilder } from "discord.js";
 import { formatMS_HHMMSS } from "../../utils/formatMS_HHMMSS.js";
 import { Command } from "../../class/Commands.js";
+import logger from "../../class/logger.js";
 
 const autocompleteMap = new Map<string, { tracks: any[]; timeout: NodeJS.Timeout }>();
 
@@ -16,6 +17,8 @@ export default new Command({
         if (!interaction.guildId) return;
 
         const skipTo = interaction.options.getString("canción");
+
+        logger.debug(`SkipCommand option **canción** value: ${skipTo}`)
 
         const player = client.lavaManager?.getPlayer(interaction.guildId);
         const voiceChannelID = (interaction.member as GuildMember).voice.channelId;
@@ -56,7 +59,7 @@ export default new Command({
         }
 
         const songIndex = parseInt(skipTo.replace('autocomplete_', ''), 10);
-        if (isNaN(songIndex) || songIndex < 0 || songIndex >= player.queue.tracks.length) {
+        if (isNaN(songIndex) || songIndex < 0 || songIndex > player.queue.tracks.length) {
             return interaction.reply({
                 embeds: [
                     new EmbedBuilder()
@@ -91,8 +94,8 @@ export default new Command({
         const tracks = player.queue.tracks;
         // tracks.slice(0, 25).map
         const suggestions = tracks.slice(0, 25).map((track: any, index: number) => ({
-            name: `${index+1} - [${formatMS_HHMMSS(track.info.duration)}] ${track.info.title} - ${track.info.author || 'Autor desconocido'}`.substring(0, 100),
-            value: `autocomplete_${index+1}`
+            name: `${index + 1} - [${formatMS_HHMMSS(track.info.duration)}] ${track.info.title} - ${track.info.author || 'Autor desconocido'}`.substring(0, 100),
+            value: `autocomplete_${index + 1}`
         }));
 
         // Limpiar entradas antiguas antes de establecer nuevas
@@ -103,9 +106,11 @@ export default new Command({
         }
 
         // Almacenar los resultados actuales en el mapa de autocompletado
-        autocompleteMap.set(interaction.user.id, { tracks, timeout: setTimeout(() => {
-            autocompleteMap.delete(interaction.user.id);
-        }, 25000) });
+        autocompleteMap.set(interaction.user.id, {
+            tracks, timeout: setTimeout(() => {
+                autocompleteMap.delete(interaction.user.id);
+            }, 25000)
+        });
 
         await interaction.respond(suggestions);
     }
