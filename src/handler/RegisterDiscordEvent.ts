@@ -35,7 +35,8 @@ export async function registerDiscordEvents(client: BotClient): Promise<void> {
                 });
             }
 
-            logger.info(`Evento ${eventInstance.name} registrado correctamente.`);
+            logger.info(`|| Evento **${eventInstance.name}** registrado. ||`);
+
         } catch (error) {
             logger.error(`No se pudo registrar el evento en ${file}:`, error);
         }

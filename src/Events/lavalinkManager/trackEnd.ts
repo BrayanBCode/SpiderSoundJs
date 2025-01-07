@@ -1,7 +1,7 @@
 import { Player, Track, TrackEndEvent } from "lavalink-client/dist/types";
-import { BotClient } from "../../class/BotClient";
-import { BaseLavalinkManagerEvents } from "../../class/events/BaseLavalinkManagerEvents";
-import logger from "../../class/logger";
+import { BotClient } from "../../class/BotClient.js";
+import { BaseLavalinkManagerEvents } from "../../class/events/BaseLavalinkManagerEvents.js";
+import logger from "../../class/logger.js";
 import { TextChannel } from "discord.js";
 
 export default class trackEnd extends BaseLavalinkManagerEvents<"trackEnd"> {

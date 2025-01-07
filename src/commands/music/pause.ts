@@ -1,5 +1,6 @@
 import { SlashCommandBuilder } from "discord.js";
 import { Command } from "../../class/Commands.js";
+import logger from "../../class/logger.js";
 
 export default new Command({
     data: new SlashCommandBuilder()
@@ -44,7 +45,7 @@ export default new Command({
                 ]
             });
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             interaction.reply({
                 embeds: [
                     client.Tools.createEmbedTemplate()

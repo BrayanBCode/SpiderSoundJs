@@ -32,11 +32,9 @@ export default class queueEnd extends BaseLavalinkManagerEvents<"queueEnd"> {
 
                 msg = client.lavaManager.getGuildMessage(player.guildId)
 
-                msg
-                    ? msg.delete()
-                        .then(() => client.lavaManager.destroyGuildMessage(player.guildId))
-                        .catch((err) => logger.error(err))
-                    : ""
+                if (msg) msg.delete()
+                    .then(() => client.lavaManager.destroyGuildMessage(player.guildId))
+                    .catch((err) => logger.error(err))
 
                 if (channel) {
                     const embed = client.Tools.createEmbedTemplate()
@@ -47,7 +45,7 @@ export default class queueEnd extends BaseLavalinkManagerEvents<"queueEnd"> {
             } catch (error) {
                 logger.error("Error durante la desconexión por inactividad:", error);
             }
-        }, 10000);
+        }, 15000);
 
     }
 

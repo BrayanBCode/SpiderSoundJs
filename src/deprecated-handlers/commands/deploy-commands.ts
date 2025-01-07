@@ -5,6 +5,7 @@ import { Command } from "../../types/Client.js";
 import { config } from "../../config/config.js";
 import { BotClient } from "../../class/BotClient.js";
 import { bold, REST, Routes, SlashCommandBuilder } from "discord.js";
+import logger from "../../class/logger.js";
 
 export async function getCommands(client: BotClient, subCarpet: string = "") {
     const path = join(process.cwd(), "dist", "commands", (subCarpet ? subCarpet : ""));
@@ -20,14 +21,14 @@ export async function getCommands(client: BotClient, subCarpet: string = "") {
             const cmd = await import(fileUrl).then(v => v.default) as Command;
 
             if ("data" in cmd && "execute" in cmd) {
-                console.log(`|| Se obtuvo ${cmd.data.name} ||`);
+                logger.info(`|| Se obtuvo ${cmd.data.name} ||`);
                 client.commands.set(cmd.data.name, cmd);
-                // console.log("getCommands: " + [...client.commands.values()].map(cmd => cmd.data.name).join(", "));
+                // logger.log("getCommands: " + [...client.commands.values()].map(cmd => cmd.data.name).join(", "));
             } else {
-                console.warn(`[WARNING] The Command at ${filePath} is missing a required "data" or "execute" property.`);
+                logger.warn(`The Command at ${filePath} is missing a required "data" or "execute" property.`);
             }
         } catch (err) {
-            console.error(`[ERROR] Failed to load command at ${filePath}:`, err);
+            logger.error(`Failed to load command at ${filePath}:`, err);
         }
     }
 }
@@ -44,7 +45,7 @@ export async function deployAllCommands(client: BotClient) {
         const rest = new REST().setToken(config.bot.token);
         const commandData: SlashCommandBuilder[] = [];
 
-        // console.log("deployAllCommands: " + [...client.commands.values()].map(cmd => cmd.data.name).join(", "));
+        // logger.log("deployAllCommands: " + [...client.commands.values()].map(cmd => cmd.data.name).join(", "));
 
         client.commands.forEach((cmd) => {
             commandData.push(cmd.data as SlashCommandBuilder);
@@ -57,8 +58,8 @@ export async function deployAllCommands(client: BotClient) {
             { body: commandData }
         );
 
-        console.log('Successfully registered application commands.');
+        logger.info('Successfully registered application commands.');
     } catch (err) {
-        console.error('Error registering application commands:', err);
+        logger.error('Error registering application commands:', err);
     }
 }

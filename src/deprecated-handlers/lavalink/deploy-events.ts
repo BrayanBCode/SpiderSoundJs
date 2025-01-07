@@ -1,26 +1,26 @@
 import { EmbedBuilder, GuildMember, TextChannel } from "discord.js";
 import { BotClient } from "../../class/BotClient.js";
 import { formatMS_HHMMSS } from "../../utils/formatMS_HHMMSS.js";
-import { error } from "node:console";
+import logger from "../../class/logger.js";
 
 export function deployLavalinkEvents(client: BotClient) {
-    console.log("|| Cargando Eventos de Lavalink ||");
+    logger.info("|| Cargando Eventos de Lavalink ||");
 
     client.on("raw", (d) => client.lavaManager.sendRawData(d))
 
     client.lavaManager.nodeManager.on("connect", (node) => {
-        console.log(`Node ${node.options.id} conectado`);
+        logger.info(`Node ${node.options.id} conectado`);
     });
 
     client.lavaManager.nodeManager.on("error", (node, error) => {
-        console.log(`Node ${node.options.id} tuvo un error: ${error.message}`);
+        logger.info(`Node ${node.options.id} tuvo un error: ${error.message}`);
     });
     client.lavaManager.nodeManager.on("destroy", (node, error) => {
 
     });
 
     client.lavaManager.on("trackEnd", (player, track) => {
-        console.log(`Termino: ${track?.info.title}`);
+        logger.info(`Termino: ${track?.info.title}`);
 
         if (!player.queue.tracks) {
             return
@@ -44,7 +44,7 @@ export function deployLavalinkEvents(client: BotClient) {
 
 
 
-        if (!channel) return console.warn("No se encontró el canal de voz para emitir PlayingMessage...");
+        if (!channel) return logger.warn("No se encontró el canal de voz para emitir PlayingMessage...");
 
         if (!msg) {
             channel.send({
@@ -60,26 +60,26 @@ export function deployLavalinkEvents(client: BotClient) {
                     embeds: [emb],
                     flags: [4096]
                 }).then((message) => client.lavaManager.setGuildMessage(player.guildId, message));
-            }).catch(console.error);
+            }).catch(logger.error);
         }
 
-        console.log(`Reproduciendo ${track?.info.title}`);
+        logger.info(`Reproduciendo ${track?.info.title}`);
     });
 
     client.lavaManager.on("trackStuck", (player, track) => {
-        console.warn(`Se trabo: ${track?.info.title}`);
+        logger.warn(`Se trabo: ${track?.info.title}`);
     })
 
     client.lavaManager.on("trackError", (player, track, payload) => {
-        console.error("trackError: " + payload.error)
+        logger.error("trackError: " + payload.error)
     })
 
     client.lavaManager.on("playerSocketClosed", (data) => {
-        console.error('WebSocket cerrado:', data);
+        logger.error('WebSocket cerrado:', data);
     });
 
     // client.lavaManager.nodeManager.lavaManagerManager.on('playerUpdate', (state) => {
-    //     console.log('Actualización del estado del jugador:', state);
+    //     logger.info('Actualización del estado del jugador:', state);
     // });
 
 }

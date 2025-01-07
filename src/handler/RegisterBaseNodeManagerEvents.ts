@@ -35,7 +35,7 @@ export async function registerLavalinkNodeEvents(client: BotClient): Promise<voi
                 });
             }
 
-            logger.info(`Evento ${eventInstance.name} registrado correctamente.`);
+            logger.info(`|| Evento **${eventInstance.name}** registrado. ||`);
         } catch (error) {
             logger.error(`No se pudo registrar el evento en ${file}:`, error);
         }

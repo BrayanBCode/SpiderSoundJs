@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { BotClient } from '../class/BotClient.js';
 import { LavalinkManagerEvents } from 'lavalink-client/dist/types';
 import { BaseLavalinkManagerEvents } from '../class/events/BaseLavalinkManagerEvents.js';
+import logger from '../class/logger.js';
 
 export async function registerLavalinkEvents(client: BotClient): Promise<void> {
     const eventsPath: string = join(process.cwd(), "dist", "Events", "lavalinkManager");
@@ -18,7 +19,7 @@ export async function registerLavalinkEvents(client: BotClient): Promise<void> {
 
             // Validar que la clase importada extienda BaseLavalinkManagerEvents
             if (!EventClass || !(Object.getPrototypeOf(EventClass.prototype).constructor === BaseLavalinkManagerEvents)) {
-                console.warn(`[WARNING] El archivo ${file} no exporta una clase válida.`);
+                logger.warn(`El archivo ${file} no exporta una clase válida.`);
                 continue;
             }
 
@@ -34,9 +35,9 @@ export async function registerLavalinkEvents(client: BotClient): Promise<void> {
                 });
             }
 
-            console.log(`[INFO] Evento ${eventInstance.name} registrado correctamente.`);
+            logger.info(`|| Evento **${eventInstance.name}** registrado. ||`);
         } catch (error) {
-            console.error(`[ERROR] No se pudo registrar el evento en ${file}:`, error);
+            logger.error(`No se pudo registrar el evento en ${file}:`, error);
         }
     }
 }
