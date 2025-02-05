@@ -36,7 +36,7 @@ const logger = createLogger({
     ),
     transports: [
         new transports.Console(), // Imprime en la consola con colores
-        new transports.File({ filename: 'logs/error.log', level: 'error' }), // Guarda errores en un archivo
+        new transports.File({ filename: 'logs/error.log' }), // Guarda errores en un archivo
         new transports.File({ filename: 'logs/combined.log' }), // Guarda todos los logs
     ],
 });

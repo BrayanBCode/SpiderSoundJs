@@ -35,3 +35,4 @@ vendor/
 *.code-workspace
 .vscode/
 *.pyc
+/node_modules

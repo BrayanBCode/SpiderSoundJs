@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, Embed, InteractionCollector, Message, CommandInteraction, EmbedBuilder } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, Embed, InteractionCollector, Message, CommandInteraction, EmbedBuilder } from "discord.js";
 
 class QueuePaginator {
     private interaction: CommandInteraction;

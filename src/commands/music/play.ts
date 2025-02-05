@@ -4,142 +4,152 @@ import { Command } from '../../class/Commands.js';
 import { formatMS_HHMMSS } from '../../utils/formatMS_HHMMSS.js';
 import { config } from '../../config/config.js';
 import { SearchPlatform, SearchResult, Track } from 'lavalink-client';
+import logger from '../../class/logger.js';
 
 const autocompleteMap = new Map();
 
 export default new Command(
     {
-        data: new SlashCommandBuilder()
-            .setName("play")
-            .setDescription("Reproduce musica con la fuente que quieras - YouTube, YouTube Music, Spotify")
-            .addStringOption(
-                o => o
-                    .setName("busqueda")
-                    .setDescription("Que ponemos chee?")
-                    .setAutocomplete(true)
-                    .setRequired(true))
-            .addStringOption(o =>
-                o.setName("fuente")
-                    .setDescription("Desde que fuente quieres reproducir?").setRequired(false).setChoices(
-                        { name: "Youtube", value: "ytsearch" }, // Requires plugin on lavalink: https://github.com/lavalink-devs/youtube-source
-                        { name: "Youtube Music", value: "ytmsearch" }, // Requires plugin on lavalink: https://github.com/lavalink-devs/youtube-source
-                        { name: "Spotify", value: "spsearch" }, // Requires plugin on lavalink: https://github.com/topi314/LavaSrc
-                        // { name: "Soundcloud", value: "scsearch" },
-                        // { name: "Deezer", value: "dzsearch" }, // Requires plugin on lavalink: https://github.com/topi314/LavaSrc
-                        // { name: "Apple Music", value: "amsearch" }, // Requires plugin on lavalink: https://github.com/topi314/LavaSrc
-                        // { name: "Bandcamp", value: "bcsearch" },
-                        // { name: "Cornhub", value: "phsearch" },
-                    )),
+        data: {
+            command: new SlashCommandBuilder()
+                .setName("play")
+                .setDescription("Reproduce música o agrega a la lista. Escribe el nombre de la canción o pega el enlace.")
+                .addStringOption(
+                    o => o
+                        .setName("busqueda")
+                        .setDescription("Escribe el nombre de la canción, artista o pega un enlace directo.")
+                        .setAutocomplete(true)
+                        .setRequired(true))
+                .addStringOption(o =>
+                    o.setName("fuente")
+                        .setDescription("Selecciona la fuente desde la que reproducir música. Por defecto: YouTube.")
+                        .setRequired(false)
+                        .setChoices(
+                            { name: "Youtube", value: "ytsearch" }, // Requires plugin on lavalink: https://github.com/lavalink-devs/youtube-source
+                            { name: "Youtube Music", value: "ytmsearch" }, // Requires plugin on lavalink: https://github.com/lavalink-devs/youtube-source
+                            { name: "Spotify", value: "spsearch" }, // Requires plugin on lavalink: https://github.com/topi314/LavaSrc
+                            // { name: "Soundcloud", value: "scsearch" },
+                            // { name: "Deezer", value: "dzsearch" }, // Requires plugin on lavalink: https://github.com/topi314/LavaSrc
+                            // { name: "Apple Music", value: "amsearch" }, // Requires plugin on lavalink: https://github.com/topi314/LavaSrc
+                            // { name: "Bandcamp", value: "bcsearch" },
+                            // { name: "Cornhub", value: "phsearch" },
+                        )),
+            category: 'Music'
+        },
 
         execute: async (client, interaction) => {
-            if (!interaction.guildId) return;
+            try {
+                if (!interaction.guildId) return;
 
-            const voiceChannelID = (interaction.member as GuildMember)?.voice?.channelId;
-            if (!voiceChannelID) return interaction.reply({ embeds: [new EmbedBuilder({ description: `Unete a un canal de voz` }).setColor("Yellow")], ephemeral: true });
+                const voiceChannelID = (interaction.member as GuildMember)?.voice?.channelId;
+                if (!voiceChannelID) return interaction.reply({ embeds: [new EmbedBuilder({ description: `Unete a un canal de voz` }).setColor("Yellow")], ephemeral: true });
 
-            const vc = (interaction.member as GuildMember)?.voice?.channel as VoiceChannel;
-            if (!vc.joinable || !vc.speakable) return interaction.reply(
-                {
-                    embeds: [new EmbedBuilder({ description: `No me puedo unir al canal de voz o hablar por aqui.` }).setColor("Red")],
-                    ephemeral: true
-                }
-            );
+                const vc = (interaction.member as GuildMember)?.voice?.channel as VoiceChannel;
+                if (!vc.joinable || !vc.speakable) return interaction.reply(
+                    {
+                        embeds: [new EmbedBuilder({ description: `No me puedo unir al canal de voz o hablar por aqui.` }).setColor("Red")],
+                        ephemeral: true
+                    }
+                );
 
-            const src = (interaction.options as CommandInteractionOptionResolver).getString("fuente") as SearchPlatform | undefined;
-            const query = (interaction.options as CommandInteractionOptionResolver).getString("busqueda") as string;
+                const src = (interaction.options as CommandInteractionOptionResolver).getString("fuente") as SearchPlatform | undefined;
+                const query = (interaction.options as CommandInteractionOptionResolver).getString("busqueda") as string;
 
-            if (query === "nothing_found") return interaction.reply({
-                embeds: [new EmbedBuilder({ description: `No se encontraron resultados` }).setColor("Yellow")],
-                ephemeral: true
-            });
-
-            if (query === "join_vc") return interaction.reply(
-                {
-                    embeds: [new EmbedBuilder({ description: `Te uniste al canal de voz, pero vuelve a ejecutar el comando, por favor..` }).setColor("Yellow")],
+                if (query === "nothing_found") return interaction.reply({
+                    embeds: [new EmbedBuilder({ description: `No se encontraron resultados` }).setColor("Yellow")],
                     ephemeral: true
                 });
 
-            const fromAutoComplete = (Number(query.replace("autocomplete_", "")) >= 0 && autocompleteMap.has(`${interaction.user.id}_res`)) && autocompleteMap.get(`${interaction.user.id}_res`);
-            if (autocompleteMap.has(`${interaction.user.id}_res`)) {
-                if (autocompleteMap.has(`${interaction.user.id}_timeout`)) clearTimeout(autocompleteMap.get(`${interaction.user.id}_timeout`));
-                autocompleteMap.delete(`${interaction.user.id}_res`);
-                autocompleteMap.delete(`${interaction.user.id}_timeout`);
-            }
+                if (query === "join_vc") return interaction.reply(
+                    {
+                        embeds: [new EmbedBuilder({ description: `Te uniste al canal de voz, pero vuelve a ejecutar el comando, por favor..` }).setColor("Yellow")],
+                        ephemeral: true
+                    });
 
-            const player = client.lavaManager.getPlayer(interaction.guildId) || await client.lavaManager.createPlayer({
-                guildId: interaction.guildId,
-                voiceChannelId: voiceChannelID,
-                textChannelId: interaction.channelId,
-                selfMute: false,
-                selfDeaf: true,
-                volume: client.defaultVolume,  // default volume
-                node: config.bot.user,
-                vcRegion: (interaction.member as GuildMember)?.voice.channel?.rtcRegion!
-            });
-
-
-
-            if (!player.connected) await player.connect();
-
-            if (player.voiceChannelId !== voiceChannelID) return interaction.reply(
-                {
-                    embeds: [new EmbedBuilder({ description: "Necesitas estar en el mismo canal que yo" })],
-                    ephemeral: true
-                });
-
-            const res = (fromAutoComplete || await player.search({ query: query, source: src }, interaction.user)) as SearchResult;
-            if (!res || !res.tracks?.length) {
-                return interaction.reply({
-                    embeds: [new EmbedBuilder({ description: `No se encontraron resultados` })
-                        .setColor("Red")],
-                    ephemeral: true
-                });
-            }
-
-            if (res.loadType === "playlist") {
-                await player.queue.add(res.tracks);
-
-                const emb = new EmbedBuilder()
-                    .setAuthor({ name: `Agregando ${res.pluginInfo.type || "Playlist"} 🎧` })
-                    .setTitle(`${res.playlist ? res.playlist.title : query}`)
-                    .setThumbnail(`https://img.youtube.com/vi/${res.tracks[0].info.identifier}/hqdefault.jpg`)
-                    .setColor('Green')
-
-                for (let i = 0; i < Math.min(res.tracks.length, 3); i++) {
-                    emb.addFields({ name: `${res.tracks[i].info.title}`, value: `${res.tracks[i].info.author} - Duración: ${formatMS_HHMMSS(res.tracks[i].info.duration)}`, inline: true });
+                const fromAutoComplete = (Number(query.replace("autocomplete_", "")) >= 0 && autocompleteMap.has(`${interaction.user.id}_res`)) && autocompleteMap.get(`${interaction.user.id}_res`);
+                if (autocompleteMap.has(`${interaction.user.id}_res`)) {
+                    if (autocompleteMap.has(`${interaction.user.id}_timeout`)) clearTimeout(autocompleteMap.get(`${interaction.user.id}_timeout`));
+                    autocompleteMap.delete(`${interaction.user.id}_res`);
+                    autocompleteMap.delete(`${interaction.user.id}_timeout`);
                 }
 
-                emb.addFields({ name: `Se agregaron:`, value: `${res.tracks.length} canciones más`, inline: false });
-
-                // send playlist added message...
-                await interaction.reply({
-                    embeds: [emb]
+                const player = client.lavaManager.getPlayer(interaction.guildId) || await client.lavaManager.createPlayer({
+                    guildId: interaction.guildId,
+                    voiceChannelId: voiceChannelID,
+                    textChannelId: interaction.channelId,
+                    selfMute: false,
+                    selfDeaf: true,
+                    volume: client.defaultVolume,  // default volume
+                    node: config.bot.user,
+                    vcRegion: (interaction.member as GuildMember)?.voice.channel?.rtcRegion!
                 });
 
-            } else {
-                const pos = fromAutoComplete ? Number(query.replace("autocomplete_", "")) : 0;
-                const track = res.tracks[pos];
 
-                await player.queue.add(track);
 
-                // send added track message...
-                await interaction.reply({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setAuthor({ name: "Agregando 🎧" })
-                            .setTitle(track.info.title || "Sin Título")
-                            .setDescription(`Duración: ${formatMS_HHMMSS(track.info.duration)}`)
-                            .setFooter({
-                                text: `Pedido por ${interaction.user.displayName} - Hay ${player.queue.tracks.length} canciones en cola.`,
-                                iconURL: interaction.user.displayAvatarURL()
-                            })
-                            .setThumbnail(`https://img.youtube.com/vi/${track.info.identifier}/hqdefault.jpg`)
-                            .setColor('Green')
-                    ]
-                });
+                if (!player.connected) await player.connect();
+
+                if (player.voiceChannelId !== voiceChannelID) return interaction.reply(
+                    {
+                        embeds: [new EmbedBuilder({ description: "Necesitas estar en el mismo canal que yo" })],
+                        ephemeral: true
+                    });
+
+                const res = (fromAutoComplete || await player.search({ query: query, source: src }, interaction.user)) as SearchResult;
+                if (!res || !res.tracks?.length) {
+                    return interaction.reply({
+                        embeds: [new EmbedBuilder({ description: `No se encontraron resultados` })
+                            .setColor("Red")],
+                        ephemeral: true
+                    });
+                }
+
+                if (res.loadType === "playlist") {
+                    await player.queue.add(res.tracks);
+
+                    const emb = new EmbedBuilder()
+                        .setAuthor({ name: `Agregando ${res.pluginInfo.type || "Playlist"} 🎧` })
+                        .setTitle(`${res.playlist ? res.playlist.title : query}`)
+                        .setThumbnail(`https://img.youtube.com/vi/${res.tracks[0].info.identifier}/hqdefault.jpg`)
+                        .setColor('Green')
+
+                    for (let i = 0; i < Math.min(res.tracks.length, 3); i++) {
+                        emb.addFields({ name: `${res.tracks[i].info.title}`, value: `${res.tracks[i].info.author} - Duración: ${formatMS_HHMMSS(res.tracks[i].info.duration)}`, inline: true });
+                    }
+
+                    emb.addFields({ name: `Se agregaron:`, value: `${res.tracks.length} canciones más`, inline: false });
+
+                    // send playlist added message...
+                    await interaction.reply({
+                        embeds: [emb]
+                    });
+
+                } else {
+                    const pos = fromAutoComplete ? Number(query.replace("autocomplete_", "")) : 0;
+                    const track = res.tracks[pos];
+
+                    await player.queue.add(track);
+
+                    // send added track message...
+                    await interaction.reply({
+                        embeds: [
+                            new EmbedBuilder()
+                                .setAuthor({ name: "Agregando 🎧" })
+                                .setTitle(track.info.title || "Sin Título")
+                                .setDescription(`Duración: ${formatMS_HHMMSS(track.info.duration)}`)
+                                .setFooter({
+                                    text: `Pedido por ${interaction.user.displayName} - Hay ${player.queue.tracks.length} canciones en cola.`,
+                                    iconURL: interaction.user.displayAvatarURL()
+                                })
+                                .setThumbnail(`https://img.youtube.com/vi/${track.info.identifier}/hqdefault.jpg`)
+                                .setColor('Green')
+                        ]
+                    });
+                }
+
+                if (!player.playing) await player.play(player.connected ? { volume: client.defaultVolume, paused: false } : undefined);
+            } catch (err) {
+                logger.error(err)
             }
-
-            if (!player.playing) await player.play(player.connected ? { volume: client.defaultVolume, paused: false } : undefined);
         },
         autocomplete: async (client, interaction) => {
             if (!interaction.guildId) return;

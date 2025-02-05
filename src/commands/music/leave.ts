@@ -3,9 +3,13 @@ import { Command } from "../../class/Commands.js";
 import logger from "../../class/logger.js";
 
 export default new Command({
-    data: new SlashCommandBuilder()
-        .setName("leave")
-        .setDescription("Me desconecta del canal de voz"),
+    data: {
+        command: new SlashCommandBuilder()
+            .setName("leave")
+            .setDescription("Me desconecta del canal de voz"),
+        category: "Music"
+    },
+
     execute: async (client, interaction) => {
         if (!interaction.guildId) return;
 

@@ -3,7 +3,7 @@ server:
 
 lavalink:
     plugins:
-        - dependency: 'dev.lavalink.youtube:youtube-plugin:1.11.3'
+        - dependency: 'dev.lavalink.youtube:youtube-plugin:1.11.4'
         - dependency: 'com.github.topi314.lavasrc:lavasrc-plugin:4.3.0'
         - dependency: 'com.github.topi314.lavasearch:lavasearch-plugin:1.0.0'
 

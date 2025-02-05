@@ -1,5 +1,5 @@
 import { Client } from "discord.js";
-import { Command, SubCommand } from "../types/Client.js";
+import { ICommand, SubCommand } from "../types/Client.js";
 import { BotClientOptions } from "../interface/BotClientOptions.js";
 import { config } from "../config/config.js";
 import { lavaManagerCustom } from "./lavaManagerCustom.js";
@@ -8,7 +8,7 @@ import { registerDiscordEvents } from "../handler/RegisterDiscordEvent.js";
 
 export class BotClient extends Client {
     lavaManager!: lavaManagerCustom; // Inicializado más tarde
-    commands: Map<string, Command | SubCommand>;
+    commands: Map<string, ICommand | SubCommand>;
     defaultVolume: number;
     debugMode: boolean;
     Tools: Tools;

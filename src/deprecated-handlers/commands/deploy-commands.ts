@@ -1,7 +1,7 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "url";
-import { Command } from "../../types/Client.js";
+import { ICommand } from "../../types/Client.js";
 import { config } from "../../config/config.js";
 import { BotClient } from "../../class/BotClient.js";
 import { bold, REST, Routes, SlashCommandBuilder } from "discord.js";
@@ -18,11 +18,11 @@ export async function getCommands(client: BotClient, subCarpet: string = "") {
         const fileUrl = pathToFileURL(filePath).href;
 
         try {
-            const cmd = await import(fileUrl).then(v => v.default) as Command;
+            const cmd = await import(fileUrl).then(v => v.default) as ICommand;
 
             if ("data" in cmd && "execute" in cmd) {
-                logger.info(`|| Se obtuvo ${cmd.data.name} ||`);
-                client.commands.set(cmd.data.name, cmd);
+                logger.info(`|| Se obtuvo ${cmd.data.command.name} ||`);
+                client.commands.set(cmd.data.command.name, cmd);
                 // logger.log("getCommands: " + [...client.commands.values()].map(cmd => cmd.data.name).join(", "));
             } else {
                 logger.warn(`The Command at ${filePath} is missing a required "data" or "execute" property.`);
@@ -48,7 +48,7 @@ export async function deployAllCommands(client: BotClient) {
         // logger.log("deployAllCommands: " + [...client.commands.values()].map(cmd => cmd.data.name).join(", "));
 
         client.commands.forEach((cmd) => {
-            commandData.push(cmd.data as SlashCommandBuilder);
+            commandData.push(cmd.data.command as SlashCommandBuilder);
         });
 
         await rest.put(

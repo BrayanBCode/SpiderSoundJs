@@ -6,12 +6,15 @@ import logger from "../../class/logger.js";
 const autocompleteMap = new Map<string, { tracks: any[]; timeout: NodeJS.Timeout }>();
 
 export default new Command({
-    data: new SlashCommandBuilder()
-        .setName("skip")
-        .setDescription("Salta una canción o una específica en la cola.")
-        .addStringOption(o => o.setName("canción")
-            .setDescription("Selecciona la canción a la cual saltar")
-            .setAutocomplete(true)),
+    data: {
+        command: new SlashCommandBuilder()
+            .setName("skip")
+            .setDescription("Salta una canción o una específica en la cola.")
+            .addStringOption(o => o.setName("canción")
+                .setDescription("Selecciona la canción a la cual saltar")
+                .setAutocomplete(true)),
+        category: 'Music'
+    },
 
     execute: async (client, interaction) => {
         if (!interaction.guildId) return;

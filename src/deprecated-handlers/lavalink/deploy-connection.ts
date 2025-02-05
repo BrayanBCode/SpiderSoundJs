@@ -1,7 +1,7 @@
 // import { LavalinkManager } from "lavalink-client";
-// import { config } from "../../config/config.js";
-// import { BotClient } from "../../class/BotClient.js";
-// import { lavaManagerCustom } from "../../class/lavaManagerCustom.js";
+// import { config } from "../../config/config";
+// import { BotClient } from "../../class/BotClient";
+// import { lavaManagerCustom } from "../../class/lavaManagerCustom";
 
 
 // export async function deploylavalinkConnection(client: BotClient) {

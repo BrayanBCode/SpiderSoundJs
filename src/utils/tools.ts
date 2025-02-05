@@ -1,5 +1,5 @@
 import { EmbedBuilder } from "discord.js";
-import { BotClient } from "../class/BotClient";
+import { BotClient } from "../class/BotClient.js";
 
 export class Tools {
 

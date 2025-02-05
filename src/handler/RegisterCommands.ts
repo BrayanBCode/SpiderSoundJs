@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { pathToFileURL } from "url";
 import { bold, REST, Routes, SlashCommandBuilder } from "discord.js";
 import { BotClient } from "../class/BotClient.js";
-import { Command } from "../types/Client.js";
+import { ICommand } from "../types/Client.js";
 import { config } from "../config/config.js";
 import logger from "../class/logger.js";
 
@@ -16,18 +16,18 @@ async function loadCommand(client: BotClient, filePath: string) {
     const fileUrl = pathToFileURL(filePath).href;
 
     try {
-        const command = await import(fileUrl).then((mod) => mod.default) as Command;
+        const command = await import(fileUrl).then((mod) => mod.default) as ICommand;
 
         if (!command || !command.data || !command.execute) {
-            logger.warn(`[WARNING] El archivo ${filePath} no contiene propiedades "data" o "execute".`);
+            logger.warn(`El archivo ${filePath} no contiene propiedades "data" o "execute".`);
             return;
         }
 
         // Registra el comando en el cliente
-        client.commands.set(command.data.name, command);
-        logger.info(`|| Commando **${command.data.name}** registrado. ||`);
+        client.commands.set(command.data.command.name, command);
+        logger.info(`|| Comando **${command.data.command.name}** registrado. ||`);
     } catch (err) {
-        logger.error(`[ERROR] Error al cargar el comando en ${filePath}:`, err);
+        logger.error(`Error al cargar el comando en ${filePath}: ${err}`);
     }
 }
 
@@ -75,7 +75,7 @@ export async function registerAllCommands(client: BotClient) {
         const commandData: SlashCommandBuilder[] = [];
 
         client.commands.forEach((cmd) => {
-            commandData.push(cmd.data as SlashCommandBuilder);
+            commandData.push(cmd.data.command as SlashCommandBuilder);
         });
 
         await rest.put(
@@ -87,6 +87,6 @@ export async function registerAllCommands(client: BotClient) {
 
         logger.info("|| Todos los comandos fueron registrados con éxito ||");
     } catch (err) {
-        logger.error("[ERROR] Falló el registro de los comandos:", err);
+        logger.error("Falló el registro de los comandos:", err);
     }
 }

@@ -2,9 +2,11 @@ import { SlashCommandBuilder } from "discord.js";
 import { Command } from "../../class/Commands.js";
 
 export default new Command({
-    data: new SlashCommandBuilder()
-        .setName("shuffle")
-        .setDescription("Mezcla las canciones de la cola de reprodución"),
+    data: {
+        command: new SlashCommandBuilder()
+            .setName("shuffle")
+            .setDescription("Mezcla las canciones de la cola de reprodución"), category: 'Music'
+    },
     execute: async (client, interaction) => {
         if (!interaction.guildId) return;
 

@@ -4,9 +4,12 @@ import { formatMS_HHMMSS } from "../../utils/formatMS_HHMMSS.js";
 import { QueuePaginator } from "../../class/buttons/QueuePaginator.js";
 
 export default new Command({
-    data: new SlashCommandBuilder()
-        .setName("queue")
-        .setDescription("Muestra el listado de canciones en la cola de reproducción"),
+    data: {
+        command: new SlashCommandBuilder()
+            .setName("queue")
+            .setDescription("Muestra el listado de canciones en la cola de reproducción"),
+        category: 'Music'
+    },
 
     execute: async (client, interaction) => {
         if (!interaction.guildId) return;

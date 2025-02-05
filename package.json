@@ -6,7 +6,8 @@
     "scripts": {
         "build": "tsc",
         "devstart": "tsc && node dist/index.js",
-        "start": "node dist/index.js"
+        "start": "node dist/index.js",
+        "docker": "docker-compose up --build"
     },
     "keywords": [],
     "author": "",
@@ -21,7 +22,7 @@
     "dependencies": {
         "@discordjs/voice": "^0.18.0",
         "bufferutil": "^4.0.8",
-        "discord.js": "^14.16.3",
+        "discord.js": "^14.17.3",
         "dotenv": "^16.4.7",
         "erela.js": "^2.4.0",
         "erela.js-spotify": "^1.2.0",

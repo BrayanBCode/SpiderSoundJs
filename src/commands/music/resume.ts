@@ -3,9 +3,12 @@ import { Command } from "../../class/Commands.js";
 import logger from "../../class/logger.js";
 
 export default new Command({
-    data: new SlashCommandBuilder()
-        .setName("resume")
-        .setDescription("Reanuda la reproducción de música"),
+    data: {
+        command: new SlashCommandBuilder()
+            .setName("resume")
+            .setDescription("Reanuda la reproducción de música"),
+        category: 'Music'
+    },
     execute: async (client, interaction) => {
         if (!interaction.guildId) return;
 

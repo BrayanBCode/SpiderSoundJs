@@ -2,9 +2,12 @@ import { SlashCommandBuilder } from "discord.js";
 import { Command } from "../../class/Commands.js";
 
 export default new Command({
-    data: new SlashCommandBuilder()
-        .setName("stop")
-        .setDescription("Detiene y borra la cola de reprodución"),
+    data: {
+        command: new SlashCommandBuilder()
+            .setName("stop")
+            .setDescription("Detiene y borra la cola de reprodución"),
+        category: 'Music'
+    },
     execute: async (client, interaction) => {
         const guildID = interaction.guildId;
         const player = client.Tools.getPlayer(guildID);

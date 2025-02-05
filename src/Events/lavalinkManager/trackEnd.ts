@@ -15,7 +15,7 @@ export default class trackEnd extends BaseLavalinkManagerEvents<"trackEnd"> {
         if (!msg) return
 
         msg.delete().then((msg) => {
-            client.lavaManager.destroyGuildMessage(player.guildId)
+            // client.lavaManager.destroyGuildMessage(player.guildId)
             logger.debug(`Mensaje de reprodución eliminado de **${(msg.channel as TextChannel).name}** en **${guild?.name}**`)
 
         }).catch((err) => { logger.error(err) })

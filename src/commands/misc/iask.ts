@@ -4,13 +4,16 @@ import { Command } from '../../class/Commands.js';
 
 export default new Command(
     {
-        data: new SlashCommandBuilder()
-            .setName("iask")
-            .setDescription("Respuesta generada por la IA")
-            .addStringOption(o =>
-                o.setName("pregunta")
-                    .setDescription("Que te pinta preguntar che?")
-                    .setRequired(true)),
+        data: {
+            command: new SlashCommandBuilder()
+                .setName("iask")
+                .setDescription("Respuesta generada por la IA")
+                .addStringOption(o =>
+                    o.setName("pregunta")
+                        .setDescription("Que te pinta preguntar che?")
+                        .setRequired(true)),
+            category: 'Misc'
+        },
 
         execute: async (client, interaction) => {
             await interaction.deferReply()

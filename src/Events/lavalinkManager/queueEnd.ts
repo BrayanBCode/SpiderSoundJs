@@ -33,7 +33,7 @@ export default class queueEnd extends BaseLavalinkManagerEvents<"queueEnd"> {
                 msg = client.lavaManager.getGuildMessage(player.guildId)
 
                 if (msg) msg.delete()
-                    .then(() => client.lavaManager.destroyGuildMessage(player.guildId))
+                    // .then(() => client.lavaManager.destroyGuildMessage(player.guildId))
                     .catch((err) => logger.error(err))
 
                 if (channel) {
