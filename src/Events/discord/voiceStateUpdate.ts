@@ -16,22 +16,22 @@ export default class VoiceStateUpdate extends BaseDiscordEvent<"voiceStateUpdate
     async disconnectByInactivity(client: BotClient, oldState: VoiceState, newState: VoiceState) {
         const guild = oldState.guild || newState.guild;
 
-        // logger.info(`[disconnectByInactivity] Comprobando actividad en el servidor: ${guild.name}`);
-
         // Verificar si el bot fue movido a un nuevo canal
         const botWasMoved = oldState.channelId !== newState.channelId && newState.channel?.members.has(client.user!.id);
 
         if (botWasMoved) {
-            logger.info(`[disconnectByInactivity] El bot fue movido al canal ${newState.channel?.id} en el servidor: ${guild.name}`);
+            logger.info(`El bot fue movido al canal ${newState.channel?.id} en el servidor: ${guild.name}`);
 
             // Verificar si el canal está vacío al momento del movimiento
             const isNewChannelEmpty = newState.channel!.members.filter((member) => !member.user.bot).size === 0;
 
             if (isNewChannelEmpty) {
-                logger.info(`[disconnectByInactivity] El bot está solo en el nuevo canal. Configurando temporizador de desconexión.`);
+                logger.info(`El bot está solo en el nuevo canal. Configurando temporizador de desconexión.`);
                 this.startInactivityTimer(client, guild, newState.channel!);
+
             } else {
-                logger.info(`[disconnectByInactivity] Hay usuarios en el nuevo canal, no se configurará el temporizador.`);
+                logger.info(`Hay usuarios en el nuevo canal, no se configurará el temporizador.`);
+
             }
 
             return;
