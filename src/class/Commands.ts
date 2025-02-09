@@ -19,8 +19,6 @@ export class Command {
         this.data = options.data;
         this.execute = options.execute;
         this.autocomplete = options.autocomplete; // Aseguramos asignar esta propiedad opcional
-
-
     }
 
     setCategory(category: TCommandCategoryOptions) {
