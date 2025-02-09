@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from "discord.js";
-import { Command } from "../../class/Commands.js";
+import { Command } from "../../class/Commands";
 
 export default new Command({
     data: {
@@ -25,13 +25,13 @@ export default new Command({
             ]
         })
 
-        player.queue.splice(0, player.queue.tracks.length + 1)
-
-        await interaction.followUp({
-            embeds: [
-                client.Tools.createEmbedTemplate()
-                    .setDescription("🧹💨 Se borro la lista de reprodución")
-            ]
+        player.queue.utils.destroy().then(async () => {
+            await interaction.followUp({
+                embeds: [
+                    client.Tools.createEmbedTemplate()
+                        .setDescription("🧹💨 Se borro la lista de reprodución")
+                ]
+            })
         })
 
     }
