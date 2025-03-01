@@ -28,7 +28,12 @@ export async function getCommands(client: BotClient, subCarpet: string = "") {
                 logger.warn(`The Command at ${filePath} is missing a required "data" or "execute" property.`);
             }
         } catch (err) {
-            logger.error(`Failed to load command at ${filePath}:`, err);
+            if (err instanceof Error) {
+                logger.error(`Failed to load command at ${filePath}:`, err);
+                logger.error(`Stack Trace: ${err.stack}`);
+            } else {
+                logger.error('Ocurrió un error desconocido al registrar los comandos');
+            }
         }
     }
 }
@@ -60,6 +65,11 @@ export async function deployAllCommands(client: BotClient) {
 
         logger.info('Successfully registered application commands.');
     } catch (err) {
-        logger.error('Error registering application commands:', err);
+        if (err instanceof Error) {
+            logger.error('Error registering application commands:', err);
+            logger.error(`Stack Trace: ${err.stack}`);
+        } else {
+            logger.error('Ocurrió un error desconocido al registrar los comandos');
+        }
     }
 }

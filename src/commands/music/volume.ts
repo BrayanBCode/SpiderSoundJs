@@ -5,7 +5,7 @@ export default new Command({
     data: {
         command: new SlashCommandBuilder()
             .setName("volume")
-            .setDescription("Ajusta el volumen de reprdución")
+            .setDescription("Ajusta el volumen de reproducción")
             .addIntegerOption(o => o
                 .setName("vol")
                 .setDescription("Volumen entre 1 y 100")
@@ -18,31 +18,37 @@ export default new Command({
     execute: async (client, interaction) => {
         if (!interaction.guildId) return;
 
-        const player = client.Tools.getPlayer(interaction.guildId)
+        const player = client.Tools.getPlayer(interaction.guildId);
 
-        if (!player) return await interaction.reply({
-            embeds: [
-                client.Tools.createEmbedTemplate()
-                    .setDescription("No hay un reproductor para este servidor, utiliza /play para crearlo")
-            ]
-        })
+        if (!player) {
+            return await interaction.reply({
+                embeds: [
+                    client.Tools.createEmbedTemplate()
+                        .setDescription("No hay un reproductor para este servidor, utiliza /play para crearlo")
+                ]
+            });
+        }
 
-        const src = (interaction.options as CommandInteractionOptionResolver).getNumber("volume") as number;
+        const vol = (interaction.options as CommandInteractionOptionResolver).getInteger("vol") as number;
+        const beforeVolume = player.volume;
 
-        const afterVolume = player
-        await player.setVolume(src)
+        player.setVolume(vol, true);
+
+        const PrevGreatThanCurrent = beforeVolume > player.volume
 
         await interaction.reply({
             embeds: [
                 client.Tools.createEmbedTemplate()
-                    .setAuthor({ name: "Se cambio el volumen" })
-                    .addFields({ name: "Antes", value: `${afterVolume}`, inline: false }, { name: "Ahora", value: `${player.volume}`, inline: false })
+                    .setAuthor({ name: "🔊 Se cambió el volumen" })
+                    .addFields(
+                        { name: `${PrevGreatThanCurrent ? "🔉" : "🔊"} Antes`, value: `\`${beforeVolume}\``, inline: true },
+                        { name: `${PrevGreatThanCurrent ? "🔊" : "🔉"} Ahora`, value: `\`${player.volume}\``, inline: true }
+                    )
                     .setFooter({
-                        text: `Pedido por ${interaction.user.displayName}`,
+                        text: `Pedido por ${interaction.user.username}`,
                         iconURL: interaction.user.displayAvatarURL()
                     })
             ]
-        })
-
+        });
     }
-})
+});

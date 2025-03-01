@@ -18,17 +18,15 @@ export class BotClient extends Client {
         super({ intents });
 
         this.commands = options.commands ?? new Map();
-        this.defaultVolume = options.defaultVolume ?? 50.0;
+        this.defaultVolume = options.defaultVolume ?? 10.0;
         this.debugMode = options.debugMode ?? false;
         this.Tools = new Tools(this);
     }
-
 
     async init() {
         await registerDiscordEvents(this)
         this.login(config.bot.token)
     }
-
 
 }
 

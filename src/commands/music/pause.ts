@@ -48,7 +48,12 @@ export default new Command({
                 ]
             });
         } catch (error) {
-            logger.error(error);
+            if (error instanceof Error) {
+                logger.error(error);
+                logger.error(`Stack Trace: ${error.stack}`);
+            } else {
+                logger.error('Ocurrió un error desconocido al registrar los comandos');
+            }
             interaction.reply({
                 embeds: [
                     client.Tools.createEmbedTemplate()

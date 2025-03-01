@@ -47,7 +47,10 @@ export default class ReadyEvent extends BaseDiscordEvent<"ready"> {
             })
 
             logger.info("|| Evento Raw Cargado ||");
-            client.on("raw", (d) => client.lavaManager.sendRawData(d))
+            client.on("raw", (d) => {
+                logger.debug(d)
+                return client.lavaManager.sendRawData(d)
+            })
 
             logger.info("LavaManager inicializado.");
         } catch (err) {

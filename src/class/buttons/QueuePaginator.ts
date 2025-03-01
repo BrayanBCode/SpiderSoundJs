@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, Embed, InteractionCollector, Message, CommandInteraction, EmbedBuilder } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, Embed, InteractionCollector, Message, CommandInteraction, EmbedBuilder, MessageFlags } from "discord.js";
 
 class QueuePaginator {
     private interaction: CommandInteraction;
@@ -16,14 +16,14 @@ class QueuePaginator {
     async start() {
         const row = this.createActionRow();
 
-        const sentMessage = await this.interaction.reply({ embeds: [this.pages[this.currentPage]], components: [row], fetchReply: true });
-        this.message = sentMessage as Message;
+        const sentMessage = await this.interaction.reply({ embeds: [this.pages[this.currentPage]], components: [row], withResponse: true });
+        this.message = sentMessage as unknown as Message;
 
         const collector = this.message.createMessageComponentCollector({ componentType: ComponentType.Button, time: 60000 });
 
         collector.on('collect', async (i) => {
             if (i.user.id !== this.interaction.user.id) {
-                await i.reply({ content: 'Estos botones no son para ti!', ephemeral: true });
+                await i.reply({ content: 'Estos botones no son para ti!', flags: MessageFlags.Ephemeral });
                 return;
             }
 

@@ -1,4 +1,4 @@
-import { AutocompleteInteraction, EmbedBuilder, GuildMember, SlashCommandBuilder } from "discord.js";
+import { AutocompleteInteraction, EmbedBuilder, GuildMember, MessageFlags, SlashCommandBuilder } from "discord.js";
 import { formatMS_HHMMSS } from "../../utils/formatMS_HHMMSS.js";
 import { Command } from "../../class/Commands.js";
 import logger from "../../class/logger.js";
@@ -33,7 +33,7 @@ export default new Command({
                         .setDescription("La cola está vacía, utiliza /play para agregar canciones.")
                         .setColor("Yellow")
                 ],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
@@ -45,7 +45,7 @@ export default new Command({
                         .setDescription("Únete a mi canal de voz para saltar la canción")
                         .setColor("Yellow")
                 ],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
@@ -57,7 +57,7 @@ export default new Command({
                         .setDescription("⏭️ Canción saltada")
                         .setColor("Green")
                 ],
-                ephemeral: false
+                flags: MessageFlags.Ephemeral
             });
         }
 
@@ -69,7 +69,7 @@ export default new Command({
                         .setDescription("Índice de canción no válido.")
                         .setColor("Red")
                 ],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
@@ -81,7 +81,7 @@ export default new Command({
                     .setDescription(`⏭️ Saltando a la canción: **${player.queue.tracks[songIndex].info.title}**`)
                     .setColor("Green")
             ],
-            ephemeral: false
+            flags: MessageFlags.Ephemeral
         });
     },
 

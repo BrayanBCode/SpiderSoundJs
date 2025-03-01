@@ -28,7 +28,9 @@ export default class queueEnd extends BaseLavalinkManagerEvents<"queueEnd"> {
             try {
                 if (player.playing) return
 
-                await player.disconnect();
+                // await player.disconnect();
+                await player.destroy("Destoyed by Inactivity", true)
+
 
                 msg = client.lavaManager.getGuildMessage(player.guildId)
 

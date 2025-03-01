@@ -87,6 +87,11 @@ export async function registerAllCommands(client: BotClient) {
 
         logger.info("|| Todos los comandos fueron registrados con éxito ||");
     } catch (err) {
-        logger.error("Falló el registro de los comandos:", err);
+        if (err instanceof Error) {
+            logger.error(`Falló el registro de los comandos: ${err.message}`);
+            logger.error(`Stack Trace: ${err.stack}`);
+        } else {
+            logger.error('Ocurrió un error desconocido al registrar los comandos');
+        }
     }
 }

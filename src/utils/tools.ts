@@ -1,4 +1,4 @@
-import { EmbedBuilder } from "discord.js";
+import { EmbedBuilder, Guild } from "discord.js";
 import { BotClient } from "../class/BotClient.js";
 
 export class Tools {
@@ -15,6 +15,10 @@ export class Tools {
 
     getPlayer(guildId: string) {
         return this.client.lavaManager.getPlayer(guildId)
+    }
+
+    getGuild(guildId: string) {
+        return this.client.guilds.cache.get(guildId) as Guild
     }
 
 }

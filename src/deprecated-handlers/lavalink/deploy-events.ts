@@ -6,7 +6,11 @@ import logger from "../../class/logger.js";
 export function deployLavalinkEvents(client: BotClient) {
     logger.info("|| Cargando Eventos de Lavalink ||");
 
-    client.on("raw", (d) => client.lavaManager.sendRawData(d))
+    client.on("raw", (d) => {
+        logger.debug(d)
+        return client.lavaManager.sendRawData(d)
+    }
+    )
 
     client.lavaManager.nodeManager.on("connect", (node) => {
         logger.info(`Node ${node.options.id} conectado`);
@@ -60,7 +64,14 @@ export function deployLavalinkEvents(client: BotClient) {
                     embeds: [emb],
                     flags: [4096]
                 }).then((message) => client.lavaManager.setGuildMessage(player.guildId, message));
-            }).catch(logger.error);
+            }).catch((err) => {
+                if (err instanceof Error) {
+                    logger.error(`Error al enviar el mensaje de reproducción`)
+                    logger.error(`Stack Trace: ${err.stack}`);
+                } else {
+                    logger.error('Ocurrió un error desconocido al registrar los comandos');
+                }
+            });
         }
 
         logger.info(`Reproduciendo ${track?.info.title}`);

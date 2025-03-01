@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, ClientEvents, CommandInteractionOptionResolver, Interaction } from "discord.js";
+import { ChatInputCommandInteraction, ClientEvents, CommandInteractionOptionResolver, Interaction, MessageFlags } from "discord.js";
 import { BotClient } from "../../class/BotClient.js";
 import { Command, SubCommand } from "../../class/Commands.js";
 import { BaseDiscordEvent } from "../../class/events/BaseDiscordEvent.js";
@@ -60,9 +60,9 @@ export default class InteractionCreate extends BaseDiscordEvent<"interactionCrea
 
             // Envía un mensaje de error al usuario según si la interacción ya fue respondida o no
             if (interaction.replied || interaction.deferred) {
-                await interaction.followUp({ content: '¡Ocurrió un error al ejecutar este comando!', ephemeral: true });
+                await interaction.followUp({ content: '¡Ocurrió un error al ejecutar este comando!', flags: MessageFlags.Ephemeral });
             } else {
-                await interaction.reply({ content: '¡Ocurrió un error al ejecutar este comando!', ephemeral: true });
+                await interaction.reply({ content: '¡Ocurrió un error al ejecutar este comando!', flags: MessageFlags.Ephemeral });
             }
         };
 

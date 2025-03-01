@@ -24,7 +24,8 @@ export default new Command({
 
         const channel = client.channels.cache.get(player.voiceChannelId!) as VoiceChannel | undefined;
 
-        player.disconnect()
+        // player.disconnect()
+        await player.destroy("Destoyed by Inactivity", true)
             .then(async () => {
                 await interaction.reply({
                     embeds: [
@@ -34,7 +35,14 @@ export default new Command({
                     ]
                 })
             })
-            .catch((err) => logger.error(err))
+            .catch((err) => {
+                if (err instanceof Error) {
+                    logger.error(err)
+                    logger.error(`Stack Trace: ${err.stack}`);
+                } else {
+                    logger.error('Ocurrió un error desconocido al registrar los comandos');
+                }
+            })
 
 
 

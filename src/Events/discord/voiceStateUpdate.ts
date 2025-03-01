@@ -89,7 +89,9 @@ export default class VoiceStateUpdate extends BaseDiscordEvent<"voiceStateUpdate
                         : (client.channels.cache.get(player.textChannelId!) as TextChannel | undefined);
 
                     // Desconectar el reproductor
-                    await player.disconnect();
+                    // await player.disconnect();
+                    await player.destroy("Destoyed by Inactivity", true)
+
                     logger.info(`[startInactivityTimer] Reproductor desconectado para el servidor: ${guild.name}`);
 
                     // Eliminar el mensaje de control si existe

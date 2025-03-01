@@ -1,4 +1,4 @@
-import { CommandInteractionOptionResolver, EmbedBuilder, GuildMember, SlashCommandBuilder, VoiceChannel } from 'discord.js';
+import { CommandInteractionOptionResolver, EmbedBuilder, GuildMember, MessageFlags, SlashCommandBuilder, VoiceChannel } from 'discord.js';
 import { Command } from '../../class/Commands.js';
 
 import { formatMS_HHMMSS } from '../../utils/formatMS_HHMMSS.js';
@@ -41,13 +41,13 @@ export default new Command({
         if (!interaction.guildId) return;
 
         const voiceChannelID = (interaction.member as GuildMember)?.voice?.channelId;
-        if (!voiceChannelID) return interaction.reply({ embeds: [new EmbedBuilder({ description: `Unete a un canal de voz` }).setColor("Yellow")], ephemeral: true });
+        if (!voiceChannelID) return interaction.reply({ embeds: [new EmbedBuilder({ description: `Unete a un canal de voz` }).setColor("Yellow")], flags: MessageFlags.Ephemeral });
 
         const vc = (interaction.member as GuildMember)?.voice?.channel as VoiceChannel;
         if (!vc.joinable || !vc.speakable) return interaction.reply(
             {
                 embeds: [new EmbedBuilder({ description: `No me puedo unir al canal de voz o hablar por aqui.` }).setColor("Red")],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             }
         );
 
@@ -56,13 +56,13 @@ export default new Command({
 
         if (query === "nothing_found") return interaction.reply({
             embeds: [new EmbedBuilder({ description: `No se encontraron resultados` }).setColor("Yellow")],
-            ephemeral: true
+            flags: MessageFlags.Ephemeral
         });
 
         if (query === "join_vc") return interaction.reply(
             {
                 embeds: [new EmbedBuilder({ description: `Te uniste al canal de voz, pero vuelve a ejecutar el comando, por favor..` }).setColor("Yellow")],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
 
         const fromAutoComplete = (Number(query.replace("autocomplete_", "")) >= 0 && autocompleteMap.has(`${interaction.user.id}_res`)) && autocompleteMap.get(`${interaction.user.id}_res`);
@@ -88,7 +88,7 @@ export default new Command({
         if (player.voiceChannelId !== voiceChannelID) return interaction.reply(
             {
                 embeds: [new EmbedBuilder({ description: "Necesitas estar en el mismo canal que yo" })],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
 
         const res = (fromAutoComplete || await player.search({ query: query, source: src }, interaction.user)) as SearchResult;
@@ -96,7 +96,7 @@ export default new Command({
             return interaction.reply({
                 embeds: [new EmbedBuilder({ description: `No se encontraron resultados` })
                     .setColor("Red")],
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 

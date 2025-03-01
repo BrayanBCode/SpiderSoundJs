@@ -8,8 +8,8 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Instala las dependencias del proyecto
-RUN npm install -g typescript
-RUN npm install
+RUN npm install -g typescript && npm install
+
 
 # Copia los archivos del proyecto al directorio de trabajo
 COPY . .
