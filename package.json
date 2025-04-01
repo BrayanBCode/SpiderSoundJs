@@ -27,11 +27,12 @@
     "dependencies": {
         "@discordjs/voice": "^0.18.0",
         "bufferutil": "^4.0.8",
-        "discord.js": "^14.17.3",
+        "discord.js": "^14.18.0",
         "dotenv": "^16.4.7",
         "erela.js": "^2.4.0",
         "erela.js-spotify": "^1.2.0",
         "lavalink-client": "^2.4.1",
+        "pagination.djs": "^4.0.17",
         "ts-transformer-keys": "^0.4.4",
         "winston": "^3.17.0"
     }

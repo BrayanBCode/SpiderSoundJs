@@ -1,1 +1,1 @@
-export type TCommandCategoryOptions = "Misc" | "Music" | "Moderation"
+export type TCommandCategoryOptions = "Misc" | "Music" | "Moderation" | "Dev"

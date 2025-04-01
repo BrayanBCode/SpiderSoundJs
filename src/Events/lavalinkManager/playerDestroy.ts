@@ -6,9 +6,9 @@ import { BaseLavalinkManagerEvents } from "../../class/events/BaseLavalinkManage
 export default class Destroy extends BaseLavalinkManagerEvents<"playerDestroy"> {
     name: "playerDestroy" = "playerDestroy";
     execute(client: BotClient, player: Player, destroyReason?: string | undefined): void {
-        logger.info(`Se elimino un player "${client.Tools.getGuild(player.guildId).name}" razon: ${destroyReason}`)
+        logger.info(`Se elimino un player "${client.getGuild(player.guildId).name}" razon: ${destroyReason}`)
     }
-    
+
 
 
 }

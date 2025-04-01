@@ -1,6 +1,7 @@
 import { Channel, SlashCommandBuilder, VoiceChannel } from "discord.js";
 import { Command } from "../../class/Commands.js";
 import logger from "../../class/logger.js";
+import { createEmptyEmbed } from "../../utils/tools.js";
 
 export default new Command({
     data: {
@@ -14,9 +15,9 @@ export default new Command({
         if (!interaction.guildId) return;
 
         const guildID = interaction.guildId;
-        const player = client.Tools.getPlayer(guildID);
+        const player = client.getPlayer(guildID);
 
-        const embErr = client.Tools.createEmbedTemplate()
+        const embErr = createEmptyEmbed()
             .setDescription("No estoy conectado a ningun canal, utiliza /play para agregar canciones.")
             .setColor("Red");
 
@@ -24,12 +25,12 @@ export default new Command({
 
         const channel = client.channels.cache.get(player.voiceChannelId!) as VoiceChannel | undefined;
 
-        // player.disconnect()
-        await player.destroy("Destoyed by Inactivity", true)
+        await player.disconnect()
+        player.destroy("Destoyed by Inactivity", true)
             .then(async () => {
                 await interaction.reply({
                     embeds: [
-                        client.Tools.createEmbedTemplate()
+                        createEmptyEmbed()
                             .setDescription(`Me desconecte del canal de voz \`${channel ? channel.name : "Channel not found"}\``)
                             .setColor("Green")
                     ]
@@ -37,15 +38,12 @@ export default new Command({
             })
             .catch((err) => {
                 if (err instanceof Error) {
-                    logger.error(err)
+                    logger.error("[leave command]", err)
                     logger.error(`Stack Trace: ${err.stack}`);
                 } else {
                     logger.error('Ocurrió un error desconocido al registrar los comandos');
                 }
             })
-
-
-
 
     }
 })

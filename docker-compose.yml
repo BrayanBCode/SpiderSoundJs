@@ -9,6 +9,7 @@ services:
         volumes:
             - ./application.yml:/opt/Lavalink/application.yml:ro
             - ./plugins:/opt/Lavalink/plugins:ro
+        restart: always
 
     discord-bot:
         build:
@@ -20,3 +21,4 @@ services:
             - .:/usr/src/app:delegated
         depends_on:
             - lavalink # Esto asegura que Lavalink se inicie primero
+        restart: always

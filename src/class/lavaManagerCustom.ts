@@ -2,40 +2,32 @@ import { Collection, Message } from "discord.js";
 import { ManagerOptions } from "lavalink-client/dist/types";
 import { LavalinkManager } from "lavalink-client";
 import logger from "./logger.js";
+import { PlayingMessageController } from "./PlayingMessageController.js";
 
 export class lavaManagerCustom extends LavalinkManager {
 
-    messages: Collection<String, Message>
+    private _playingMessageController: PlayingMessageController
+
 
     constructor(options: ManagerOptions) {
         super(options)
-        this.messages = new Collection()
+        this._playingMessageController = new PlayingMessageController()
     }
 
-    getGuildMessage(guildId: string) {
-        if (!guildId) {
-            logger.error("ID INVALIDO");
-            return
-        }
 
-        return this.messages.get(guildId)
+    /**
+     * Utilizado en client
+     */
+    get playingMessages() {
+        return this._playingMessageController;
     }
 
-    setGuildMessage(guildId: string, msg: Message) {
-        if (!guildId) {
-            logger.error("ID INVALIDO");
-            return
-        }
-
-        this.messages.set(guildId, msg)
+    /**
+     * Remover cuando se deje de utilizar
+     */
+    get playingMessageController() {
+        return this._playingMessageController;
     }
 
-    destroyGuildMessage(guildId: string) {
-        if (!guildId) {
-            logger.error("ID INVALIDO");
-            return
-        }
-
-        this.messages.delete(guildId)
-    }
 }
+

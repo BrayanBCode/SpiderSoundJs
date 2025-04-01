@@ -12,6 +12,11 @@
         "sourceMap": true,
         "outDir": "./dist"
     },
-    "include": ["src/**/*", "launchtest.js"],
-    "exclude": ["node_modules"]
+    "include": [
+        "src/**/*",
+        "launchtest.js",
+        "deprecated/deprecated-handlers",
+        "deprecated"
+    ],
+    "exclude": ["node_modules", "**/deprecated/**"]
 }

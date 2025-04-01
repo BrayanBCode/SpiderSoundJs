@@ -1,11 +1,11 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "url";
-import { ICommand } from "../../types/Client.js";
-import { config } from "../../config/config.js";
-import { BotClient } from "../../class/BotClient.js";
+import { ICommand } from "../../../src/types/Client.js";
+import { config } from "../../../src/config/config.js";
+import { BotClient } from "../../../src/class/BotClient.js";
 import { bold, REST, Routes, SlashCommandBuilder } from "discord.js";
-import logger from "../../class/logger.js";
+import logger from "../../../src/class/logger.js";
 
 export async function getCommands(client: BotClient, subCarpet: string = "") {
     const path = join(process.cwd(), "dist", "commands", (subCarpet ? subCarpet : ""));

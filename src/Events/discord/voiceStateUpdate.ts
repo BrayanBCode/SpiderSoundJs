@@ -3,6 +3,7 @@ import { BotClient } from "../../class/BotClient.js";
 import { BaseDiscordEvent } from "../../class/events/BaseDiscordEvent.js";
 import { setTimeout } from "node:timers";
 import logger from "../../class/logger.js";
+import { createEmptyEmbed } from "../../utils/tools.js";
 
 export default class VoiceStateUpdate extends BaseDiscordEvent<"voiceStateUpdate"> {
     private inactivityTimeouts: Map<string, NodeJS.Timeout> = new Map();
@@ -83,13 +84,13 @@ export default class VoiceStateUpdate extends BaseDiscordEvent<"voiceStateUpdate
                         return;
                     }
 
-                    let msg = client.lavaManager.getGuildMessage(guild.id);
+                    let msg = client.lavaManager.playingMessageController.getMessage(guild.id);
                     const textChannel = msg
                         ? (msg.channel as TextChannel)
                         : (client.channels.cache.get(player.textChannelId!) as TextChannel | undefined);
 
                     // Desconectar el reproductor
-                    // await player.disconnect();
+                    await player.disconnect();
                     await player.destroy("Destoyed by Inactivity", true)
 
                     logger.info(`[startInactivityTimer] Reproductor desconectado para el servidor: ${guild.name}`);
@@ -107,7 +108,7 @@ export default class VoiceStateUpdate extends BaseDiscordEvent<"voiceStateUpdate
 
                     // Notificar al canal de texto
                     if (textChannel) {
-                        const embed = client.Tools.createEmbedTemplate()
+                        const embed = createEmptyEmbed()
                             .setAuthor({ name: "Desconexión por inactividad" });
                         await textChannel.send({ embeds: [embed] });
                         logger.info(`[startInactivityTimer] Notificación enviada al canal de texto en el servidor: ${guild.id}`);

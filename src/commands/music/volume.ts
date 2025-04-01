@@ -1,5 +1,6 @@
 import { CommandInteractionOptionResolver, SlashCommandBuilder } from "discord.js";
 import { Command } from "../../class/Commands.js";
+import { createEmptyEmbed } from "../../utils/tools.js";
 
 export default new Command({
     data: {
@@ -18,12 +19,12 @@ export default new Command({
     execute: async (client, interaction) => {
         if (!interaction.guildId) return;
 
-        const player = client.Tools.getPlayer(interaction.guildId);
+        const player = client.getPlayer(interaction.guildId);
 
         if (!player) {
             return await interaction.reply({
                 embeds: [
-                    client.Tools.createEmbedTemplate()
+                    createEmptyEmbed()
                         .setDescription("No hay un reproductor para este servidor, utiliza /play para crearlo")
                 ]
             });
@@ -38,7 +39,7 @@ export default new Command({
 
         await interaction.reply({
             embeds: [
-                client.Tools.createEmbedTemplate()
+                createEmptyEmbed()
                     .setAuthor({ name: "🔊 Se cambió el volumen" })
                     .addFields(
                         { name: `${PrevGreatThanCurrent ? "🔉" : "🔊"} Antes`, value: `\`${beforeVolume}\``, inline: true },

@@ -1,5 +1,6 @@
 import { SlashCommandBuilder } from "discord.js";
 import { Command } from "../../class/Commands.js";
+import { createEmptyEmbed } from "../../utils/tools.js";
 
 export default new Command({
     data: {
@@ -14,9 +15,9 @@ export default new Command({
 
         await interaction.deferReply()
 
-        const player = client.Tools.getPlayer(interaction.guildId)
+        const player = client.getPlayer(interaction.guildId)
 
-        const ErrMessage = client.Tools.createEmbedTemplate()
+        const ErrMessage = createEmptyEmbed()
             .setDescription("La lista ya esta vacia. Utiliza /play para escuchar nuevamente")
 
         if (!player) return await interaction.followUp({
@@ -28,7 +29,7 @@ export default new Command({
         player.queue.utils.destroy().then(async () => {
             await interaction.followUp({
                 embeds: [
-                    client.Tools.createEmbedTemplate()
+                    createEmptyEmbed()
                         .setDescription("🧹💨 Se borro la lista de reprodución")
                 ]
             })

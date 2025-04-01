@@ -1,5 +1,6 @@
 import { SlashCommandBuilder } from "discord.js";
 import { Command } from "../../class/Commands.js";
+import { createEmptyEmbed } from "../../utils/tools.js";
 
 export default new Command({
     data: {
@@ -25,7 +26,7 @@ export default new Command({
         await interaction.channel?.send({
             content: "Hola we",
             embeds: [
-                client.Tools.createEmbedTemplate()
+                createEmptyEmbed()
                     .setTitle("Soy un Embed")
                     .setDescription("Soy la descripción compa")
             ]

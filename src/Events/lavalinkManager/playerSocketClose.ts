@@ -6,7 +6,7 @@ import logger from "../../class/logger.js";
 export default class trackError extends BaseLavalinkManagerEvents<"playerSocketClosed"> {
     name: "playerSocketClosed" = "playerSocketClosed";
     execute(client: BotClient, player: Player, payload: WebSocketClosedEvent): void {
-        logger.warn("Player de ", client.Tools.getGuild(player.guildId).name)
+        logger.warn("Player de ", client.getGuild(player.guildId).name)
         logger.warn(payload)
     }
 

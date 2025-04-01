@@ -55,7 +55,7 @@ export default class InteractionCreate extends BaseDiscordEvent<"interactionCrea
                 return await (command as Command).autocomplete?.(client, interaction);
             }
         } catch (error) {
-            logger.error(error);
+            logger.error("[interactionCreate]", error);
             if (interaction.isAutocomplete()) return;
 
             // Envía un mensaje de error al usuario según si la interacción ya fue respondida o no

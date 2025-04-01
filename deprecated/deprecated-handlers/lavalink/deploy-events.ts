@@ -1,13 +1,13 @@
 import { EmbedBuilder, GuildMember, TextChannel } from "discord.js";
-import { BotClient } from "../../class/BotClient.js";
-import { formatMS_HHMMSS } from "../../utils/formatMS_HHMMSS.js";
-import logger from "../../class/logger.js";
+import { BotClient } from "../../../src/class/BotClient.js";
+import { formatMS_HHMMSS } from "../../../src/utils/formatMS_HHMMSS.js";
+import logger from "../../../src/class/logger.js";
 
 export function deployLavalinkEvents(client: BotClient) {
     logger.info("|| Cargando Eventos de Lavalink ||");
 
     client.on("raw", (d) => {
-        logger.debug(d)
+        // logger.debug(d)
         return client.lavaManager.sendRawData(d)
     }
     )

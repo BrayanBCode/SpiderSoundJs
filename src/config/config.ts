@@ -4,6 +4,11 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 interface Config {
+    dev: {
+        username: string,
+        id: string
+
+    },
     bot: {
         token: string;
         clientID: string;
@@ -21,6 +26,11 @@ interface Config {
 
 // Crear una configuración con las variables de entorno
 export const config: Config = {
+    dev: {
+        username: process.env.DEV_USERNAME || '',
+        id: process.env.DEV_ID || '111111111111111111'
+
+    },
     bot: {
         token: process.env.BOT_TOKEN || '',
         clientID: process.env.CLIENT_ID || '',

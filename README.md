@@ -61,6 +61,11 @@ Las prioridades se marcaran como [Baja], [Media], [Alta] de no tener prioridad s
     - [ ] Manejo de errores en el código
     - [ ] Dashboard interactiva para usuarios y para Dev's (prioridad a Dev)
 
+## Working in
+
+- /queue command - Implementación y correxion de errores
+- Sistema de desconexion
+
 ## Distribución de carpetas
 
 Tratemos de separar el codigo en subcarpetas asi mantenemos el orden por ejemplo en donde va a ir la logica de clases va en src/class lo que son eventos que el bot necesita en la carpeta src/Events y asi cualquier cosa se ve entre el equipo la distribución

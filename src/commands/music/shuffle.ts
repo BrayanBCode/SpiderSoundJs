@@ -1,5 +1,6 @@
 import { SlashCommandBuilder } from "discord.js";
 import { Command } from "../../class/Commands.js";
+import { createEmptyEmbed } from "../../utils/tools.js";
 
 export default new Command({
     data: {
@@ -11,8 +12,8 @@ export default new Command({
         if (!interaction.guildId) return;
 
         const guildID = interaction.guildId;
-        const player = client.Tools.getPlayer(guildID);
-        const embErr = client.Tools.createEmbedTemplate()
+        const player = client.getPlayer(guildID);
+        const embErr = createEmptyEmbed()
             .setDescription("No hay canciones que mezclar, utiliza /play para agregar canciones")
             .setColor("Red");
 
@@ -22,7 +23,7 @@ export default new Command({
 
         await interaction.reply({
             embeds: [
-                client.Tools.createEmbedTemplate()
+                createEmptyEmbed()
                     .setAuthor({ name: `Se mezclaron ${shuffledlenght} canciones` })
                     .setDescription("Utiliza /queue para ver la lista de reprodución")
                     .setColor("Green")

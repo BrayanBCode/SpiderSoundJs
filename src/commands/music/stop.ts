@@ -1,5 +1,6 @@
 import { SlashCommandBuilder } from "discord.js";
 import { Command } from "../../class/Commands.js";
+import { createEmptyEmbed } from "../../utils/tools.js";
 
 export default new Command({
     data: {
@@ -10,8 +11,8 @@ export default new Command({
     },
     execute: async (client, interaction) => {
         const guildID = interaction.guildId;
-        const player = client.Tools.getPlayer(guildID);
-        const embErr = client.Tools.createEmbedTemplate()
+        const player = client.getPlayer(guildID);
+        const embErr = createEmptyEmbed()
             .setDescription("No hay nada que parar de reproducir, utiliza /play para agregar canciones")
             .setColor("Red");
 
@@ -22,7 +23,7 @@ export default new Command({
 
         await interaction.reply({
             embeds: [
-                client.Tools.createEmbedTemplate()
+                createEmptyEmbed()
                     .setAuthor({ iconURL: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Stop_it.jpg/603px-Stop_it.jpg", name: "Se a detenido la reprodución" })
                     .setDescription(`De ${StopedSong.info.title}`)
                     .setColor("Green")

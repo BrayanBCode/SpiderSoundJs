@@ -51,6 +51,10 @@ export default new Command({
 
         if (!skipTo) {
             await player.skip();
+
+            client.lavaManager.playingMessageController.DeleteMessage(player.guildId, true);
+
+
             return interaction.reply({
                 embeds: [
                     new EmbedBuilder()
@@ -73,7 +77,9 @@ export default new Command({
             });
         }
 
-        await player.skip(songIndex); // Para avanzar a la canción seleccionada
+        await player.skip(songIndex); // Para avanzar a la canción sele ccionada
+
+        client.lavaManager.playingMessageController.DeleteMessage(player.guildId, true);
 
         return interaction.reply({
             embeds: [

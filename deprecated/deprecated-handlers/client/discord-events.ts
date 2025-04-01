@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, CommandInteractionOptionResolver } from "discord.js";
-import { BotClient } from "../../class/BotClient.js";
-import { Command, SubCommand } from "../../class/Commands.js";
+import { BotClient } from "../../../src/class/BotClient.js";
+import { Command, SubCommand } from "../../../src/class/Commands.js";
 
 export function deployClientEvents(client: BotClient) {
     client.once("ready", () => {

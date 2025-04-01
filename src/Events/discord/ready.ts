@@ -34,6 +34,16 @@ export default class ReadyEvent extends BaseDiscordEvent<"ready"> {
                         id: config.bot.user,
                     },
                 ],
+                autoSkip: true,
+
+                playerOptions: {
+                    defaultSearchPlatform: "ytsearch",
+                    onDisconnect: {
+                        autoReconnect: true,
+                    }
+
+                },
+
                 sendToShard: (guildId, payload) =>
                     client.guilds.cache.get(guildId)?.shard?.send(payload),
             });
@@ -48,7 +58,7 @@ export default class ReadyEvent extends BaseDiscordEvent<"ready"> {
 
             logger.info("|| Evento Raw Cargado ||");
             client.on("raw", (d) => {
-                logger.debug(d)
+                // logger.debug(d)
                 return client.lavaManager.sendRawData(d)
             })
 

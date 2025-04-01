@@ -1,6 +1,7 @@
 import { SlashCommandBuilder } from "discord.js";
 import { Command } from "../../class/Commands.js";
 import logger from "../../class/logger.js";
+import { createEmptyEmbed } from "../../utils/tools.js";
 
 export default new Command({
     data: {
@@ -13,8 +14,8 @@ export default new Command({
         if (!interaction.guildId) return;
 
         const guildID = interaction.guildId;
-        const player = client.Tools.getPlayer(guildID);
-        const embErr = client.Tools.createEmbedTemplate()
+        const player = client.getPlayer(guildID);
+        const embErr = createEmptyEmbed()
             .setDescription("No hay nada que reanudar. Usa /play para comenzar la reproducción o /pause para pausarla.");
 
         // Verificar si el reproductor existe y está pausado
@@ -31,7 +32,7 @@ export default new Command({
         if (!voiceChannel) {
             return await interaction.reply({
                 embeds: [
-                    client.Tools.createEmbedTemplate()
+                    createEmptyEmbed()
                         .setDescription("El bot no está conectado a un canal de voz.")
                 ]
             });
@@ -42,21 +43,21 @@ export default new Command({
             await player.resume();
             interaction.reply({
                 embeds: [
-                    client.Tools.createEmbedTemplate()
+                    createEmptyEmbed()
                         .setTitle("▶️ Reanudando")
                         .setDescription(player.queue.current ? player.queue.current.info.title : "Reproducción reanudada.")
                 ]
             });
         } catch (error) {
             if (error instanceof Error) {
-                logger.error(error);
+                logger.error("resume command", error);
                 logger.error(`Stack Trace: ${error.stack}`);
             } else {
                 logger.error('Ocurrió un error desconocido al registrar los comandos');
             }
             interaction.reply({
                 embeds: [
-                    client.Tools.createEmbedTemplate()
+                    createEmptyEmbed()
                         .setDescription("Hubo un error al intentar reanudar la reproducción.")
                 ]
             });
