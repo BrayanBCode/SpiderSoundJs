@@ -1,5 +1,4 @@
-import { CommandInteraction, SlashCommandBuilder } from 'discord.js';
-import { BotClient } from '../../class/BotClient.js';
+import { SlashCommandBuilder } from 'discord.js';
 import { Command } from '../../class/Commands.js';
 
 export default new Command(

@@ -1,5 +1,6 @@
-import { EmbedBuilder, EmbedData, InteractionResponse, MessageFlags } from "discord.js";
+import { EmbedBuilder, EmbedData, InteractionResponse, Message, MessageFlags } from "discord.js";
 import { ISimpleEmbedReply } from "../interface/ISimpleEmbedReply.js";
+import logger from "../class/logger.js";
 
 /**
  * Crea un embed vacío/custom usando las opciones proporcionadas.
@@ -43,6 +44,7 @@ export async function simpleEmbedReply({ interaction, embed, ephemeral = false, 
     }
 }
 
+
 export function chunkArray<T>(arr: T[], size: number): T[][] {
     const result: T[][] = [];
     for (let i = 0; i < arr.length; i += size) {
@@ -51,3 +53,35 @@ export function chunkArray<T>(arr: T[], size: number): T[][] {
     return result;
 }
 
+export function deleteAfterTimer(msg: Message | InteractionResponse<true>, ms: number): NodeJS.Timeout {
+    return setTimeout(async () => {
+        try {
+            const fetched = await msg.fetch();
+            if (fetched.deletable) {
+                logger.info(`[deleteAfterTimer] Eliminando el mensaje "${fetched.id}"`)
+                return await fetched.delete();
+            }
+            logger.warn(`[deleteAfterTimer] No se pudo eliminar el mensaje "${fetched.id}"`)
+
+        } catch (err) {
+            logger.error(`[deleteAfterTimer] ${err}`);
+
+        }
+    }, ms);
+}
+
+export function titleCleaner(title: string, artist: string): string {
+    // 1. Eliminar nombre del artista (ignorando mayúsculas/minúsculas, y espacios extras)
+    const escapedArtist = artist.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // escapamos el nombre
+    const artistRegex = new RegExp(`^\\s*${escapedArtist}\\s*[-:–—]?\\s*`, 'i');
+    title = title.replace(artistRegex, '');
+
+    // 2. Eliminar etiquetas decorativas entre paréntesis o corchetes
+    title = title.replace(/[\[\(][^)\]]*(official|video|lyric|audio|HD|4K|Visualizer|Remastered)[^)\]]*[\]\)]/gi, '');
+
+    // 3. Quitar otros posibles decoradores al final
+    title = title.replace(/\s*[\[\(][^)\]]*[\]\)]\s*$/, '');
+
+    // 4. Espacios extra
+    return title.replace(/\s{2,}/g, ' ').trim();
+}

@@ -1,9 +1,10 @@
-import { Client, EmbedBuilder, Guild } from "discord.js";
+import { ChatInputCommandInteraction, Client, EmbedBuilder, Guild, GuildMember } from "discord.js";
 import { ICommand, SubCommand } from "../types/Client.js";
 import { BotClientOptions } from "../interface/BotClientOptions.js";
 import { config } from "../config/config.js";
 import { lavaManagerCustom } from "./lavaManagerCustom.js";
 import { registerDiscordEvents } from "../handler/RegisterDiscordEvent.js";
+import logger from "./logger.js";
 
 
 
@@ -37,6 +38,35 @@ export class BotClient extends Client {
 
     getPlayer(guildId: string) {
         return this.lavaManager.getPlayer(guildId)
+    }
+
+    getPlayerOrDefault(inter: ChatInputCommandInteraction<"cached">, guildId: string) {
+        try {
+
+            let player = this.lavaManager.getPlayer(guildId)
+
+            player &&= this.lavaManager.createPlayer({
+                guildId: inter.guildId,
+                voiceChannelId: (inter.member as GuildMember).voice.channelId!,
+                textChannelId: inter.channelId,
+                selfDeaf: true,
+                selfMute: false,
+                volume: this.defaultVolume,
+                node: config.bot.user,
+                vcRegion: (inter.member).voice.channel?.rtcRegion!
+            })
+
+            return player
+        } catch (err) {
+            if (err instanceof Error) {
+                logger.error("play command", err)
+                logger.error(`Stack Trace: ${err.stack}`);
+            } else {
+                logger.error('Ocurrió un error desconocido al registrar los comandos');
+            }
+        }
+
+
     }
 
     getGuild(guildId: string) {
