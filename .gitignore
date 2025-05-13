@@ -26,6 +26,7 @@ config/
 node_modules/
 vendor/
 
+
 # Ignorar archivos de compilación/distribución
 /dist
 /build

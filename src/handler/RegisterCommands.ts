@@ -25,7 +25,7 @@ async function loadCommand(client: BotClient, filePath: string) {
 
         // Registra el comando en el cliente
         client.commands.set(command.data.command.name, command);
-        logger.info(`|| Comando **${command.data.command.name}** registrado. ||`);
+        logger.info(`|| Comando **${command.data.command.name}** registrado desde, ${fileUrl} ||`);
     } catch (err) {
         logger.error(`Error al cargar el comando en ${filePath}: ${err}`);
     }

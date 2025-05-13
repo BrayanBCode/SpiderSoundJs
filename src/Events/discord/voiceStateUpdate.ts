@@ -1,4 +1,4 @@
-import { TextChannel, VoiceState } from "discord.js";
+import { GuildMember, TextChannel, VoiceState } from "discord.js";
 import { BotClient } from "../../class/BotClient.js";
 import { BaseDiscordEvent } from "../../class/events/BaseDiscordEvent.js";
 import { setTimeout } from "node:timers";
@@ -24,7 +24,7 @@ export default class VoiceStateUpdate extends BaseDiscordEvent<"voiceStateUpdate
             logger.info(`El bot fue movido al canal ${newState.channel?.id} en el servidor: ${guild.name}`);
 
             // Verificar si el canal está vacío al momento del movimiento
-            const isNewChannelEmpty = newState.channel!.members.filter((member) => !member.user.bot).size === 0;
+            const isNewChannelEmpty = newState.channel!.members.filter((member: GuildMember) => !member.user.bot).size === 0;
 
             if (isNewChannelEmpty) {
                 logger.info(`El bot está solo en el nuevo canal. Configurando temporizador de desconexión.`);
@@ -47,7 +47,7 @@ export default class VoiceStateUpdate extends BaseDiscordEvent<"voiceStateUpdate
 
         // Verificar si el canal quedó vacío después de que un usuario se movió o desconectó
         const isChannelEmpty =
-            botChannel.members.filter((member) => !member.user.bot).size === 0;
+            botChannel.members.filter((member: GuildMember) => !member.user.bot).size === 0;
 
         if (isChannelEmpty) {
             logger.info(`[disconnectByInactivity] El canal de voz está vacío en el servidor: ${guild.name}. Configurando temporizador de desconexión.`);

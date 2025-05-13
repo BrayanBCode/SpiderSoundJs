@@ -24,4 +24,4 @@ EXPOSE 3000
 
 RUN echo "Iniciando SPIDERBOT puede tardar..."
 
-CMD ["npm", "run", "devstart"]
+CMD ["npm", "run", "dev"]

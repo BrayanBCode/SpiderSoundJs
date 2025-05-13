@@ -1,4 +1,4 @@
-import { BaseMessageOptions, Channel, ChatInputCommandInteraction, Collection, CommandInteraction, InteractionReplyOptions, Message, MessageCreateOptions, MessageEditOptions, MessagePayload, TextChannel } from "discord.js";
+import { Collection, Message, MessageEditOptions, MessagePayload, TextChannel } from "discord.js";
 import PlayerButtons from "./buttons/PlayerButtons.js";
 import { Player } from "lavalink-client/dist/types";
 import logger from "./logger.js";
@@ -89,9 +89,22 @@ export class PlayingMessageController {
 
         if (!msg) return
 
-        if (DeleteMessage) await msg.delete().then(() => logger.info(
-            `Mensaje de reproducción eliminado de **${(msg.channel as TextChannel).name}** en **${msg.guild?.name}**`
-        )).catch(err => logger.error("[PlayingMessageController]", err));
+        if (DeleteMessage) {
+            try {
+                await msg.delete();
+                logger.info(
+                    `Mensaje de reproducción eliminado de **${(msg.channel as TextChannel).name}** en **${msg.guild?.name}**`
+                );
+            } catch (err: unknown) {
+                if (err instanceof Error) {
+                    logger.error("[PlayingMessageController]", err.message);
+                } else {
+                    logger.error("[PlayingMessageController] Unknown error", err);
+                }
+            }
+        }
+
+
 
         this.MessageContainer.delete(GuildID)
 

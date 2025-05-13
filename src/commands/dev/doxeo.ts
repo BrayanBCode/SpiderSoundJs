@@ -7,7 +7,7 @@ export default new Command({
     data: {
         command: new SlashCommandBuilder()
             .setName("dev")
-            .setDescription("Comandos exclusivos para el Developer..")
+            .setDescription("Comandos exclusivos para el Developer.")
             .setDefaultMemberPermissions(0)
             .addStringOption(o =>
                 o.setName("opcion") // 🔹 Cambiado de "minecraft" a "opcion"
