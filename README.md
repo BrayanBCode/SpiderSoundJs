@@ -1,84 +1,128 @@
-# Araña Sound Development
+
+````md
+# 🕷️ Araña Sound
 
 ![logo](https://github.com/BrayanBCode/SpiderBot/assets/134159765/527b4a22-a501-4ba1-b2bf-d7eefd0e9fa4)
 
-### Warning Lib FFMPEG
+**Araña Sound** es un bot de música para Discord creado con Node.js, Discord.js y Lavalink. Reproduce música desde YouTube, maneja una cola interactiva y cuenta con controles avanzados.
 
-La libreria solo srive para windows si se quiere utilizar en linux borre este archivo o ignorelo ya que no interfiere solo ocupa espacio, Requierements.txt ya incluye una libreria compatible con linux
+---
 
-### Implementaciones y por implementar - To Do List
+## 📦 Características
 
-Las prioridades se marcaran como [Baja], [Media], [Alta] de no tener prioridad se tomara como [Baja]
+- 🎵 Reproducción de música desde YouTube
+- 📃 Sistema de cola interactiva
+- 🔄 Autoplay y loop
+- 🎚️ Controles mediante botones
+- 🧪 Modo desarrollador para pruebas y paginadores
+- ⚙️ Modular y fácil de extender
+- 🐳 Compatible con Docker
 
-- Implementaciones en General:
+---
 
-    - [ ] [baja] interfaz de desarrollador, hostear una pagina para que los owners de cada servidor tengan un dashboard interactivo.
+## 🚀 Instalación
 
-- Sección de Musica:
+### Opción 1: Ejecutar localmente
 
-    - Por implementar:
+1. Cloná el repositorio:
 
-        - [ ] [baja] Base de datos, usaremos MongoDB por ahora.
+```bash
+git clone https://github.com/BrayanBCode/SpiderBot.git
+cd SpiderBot
+````
 
-    - Comandos:
-        - [ ] [Alta] Help - Muestra la lista de comandos.
-        - [ ] [Alta] Clear - limpia la lista de reprodución.
-        - [ ] [Media] volume - Sube o baja el volumen interno del bot, el valor se debe guardar en la base de datos.
-        - [ ] [Media] loop - Reproduce en loop la cancion actual.
-        - [ ] [Alta] loopqueue - Reproduce en loop la lista de reprodución, osea al finalizar la cancion actual se debe agregar al final de la cola.
-        - [ ] [Baja] join - El bot se une al canal de voz.
-        - [ ] [baja] Revisar el tiempo de espera para la desconexion por inactividad, el bot se desconecta demaciado rapido.
-        - [ ] [Alta] Agregar try/catch a todos los comandos para evitar crasheos (utilizar logger.error() para reportar los errores)
+2. Instalá las dependencias:
 
-- Sección de Moderacion:
+```bash
+npm install
+```
 
-    - Por Implementar:
-        - [ ] [Alta] Reaction rols - Al reaccionar a cierto mensaje con un emoji espesifico el bot debe darle un rol al usuario que reacciono. (Ejemplo: si reacionas con 🟩 a X mensaje se te dara el rol "Soy Verde")
-        - [ ] [Alta] Comandos basicos de moderacion (/ban, /kick, /Timeout, /warn, /mute, /clear, etc)
-        - [ ] [Baja] AntiSpam protection - Eliminar mensajes que incluyan Links
-        - [ ] [Baja] Auto Moderación - Filtrado de insultos, texto repetido
-        - [ ] [Alta] Mensajes customs para nuevos miembros
-        - [ ] [Alta] Dar un rol a nuevos miembros
+3. Copiá y configurá el archivo `.env` (o `config.js` según tu estructura):
 
-- Sección de Musica: (Deprecated)
+```bash
+cp .env.example .env
+```
 
-    - [x] Slash Commands para sección de Musica.
-    - [x] Logica de búsqueda, reproducción y gestión de Musica.
-    - [x] Interfaz de canción en reproducción.
-    - [x] Comandos básicos de Musica.
-    - [ ] Eventos de gestion, trackEnd, trackStart, etc.
-    - [ ] Arreglar Playing message
+4. Iniciá el bot:
 
-- Sección de Bot: (Deprecated)
+```bash
+node launchtest.js
+```
 
-    - [ ] Agregar descripción personalizada al Bot
-    - [ ] Implementar compatibilidad de los comandos ya implementados (Slash Commands) con comandos Prefix
-    - [ ] Dashboard interactiva para Dev's
+---
 
-- Sección de Musica: (Deprecated)
+### Opción 2: Usar Docker
 
-    - [ ] Panel de control de reproducción - Botones en el ultimo mensaje ejemplo: Botón de Siguiente canción, pausar canción, parar reproducción, mostrar listado de canciones
-    - [ ] Manejo de errores en el código
-    - [ ] Dashboard interactiva para usuarios y para Dev's (prioridad a Dev)
+Asegurate de tener Docker y Docker Compose instalados.
 
-## Working in
+```bash
+docker-compose up --build
+```
 
-- /queue command - Implementación y correxion de errores
-- Sistema de desconexion
+---
 
-## Distribución de carpetas
+## 🧰 Requisitos
 
-Tratemos de separar el codigo en subcarpetas asi mantenemos el orden por ejemplo en donde va a ir la logica de clases va en src/class lo que son eventos que el bot necesita en la carpeta src/Events y asi cualquier cosa se ve entre el equipo la distribución
+* Node.js v18+
+* Lavalink (puede correr en contenedor o localmente)
+* Token de bot de Discord
+* YouTube API key (si usás búsquedas)
 
-Todo lo que no se vaya a utilizar pero no queremos eliminarlo le agregaremos la etiqueta (deprecated) hay varios ejemplos por el codigo xD
+---
 
-##
+## 🧪 Comandos principales
 
-## Bot de pruebas:
+| Comando   | Descripción                     |
+| --------- | ------------------------------- |
+| `/play`   | Reproduce una canción           |
+| `/queue`  | Muestra la cola de reproducción |
+| `/skip`   | Salta a la siguiente canción    |
+| `/stop`   | Detiene la música               |
+| `/pause`  | Pausa la canción actual         |
+| `/resume` | Reanuda la reproducción         |
+| `/dev`    | Comandos para el developer      |
 
-[Invita al bot ArañaBot a tu Servidor - Este es un utilizado para la prueba de codigo](https://discord.com/oauth2/authorize?client_id=1114600638043660288&permissions=8&scope=bot+applications.commands)
+---
 
-## Dev Notes
+## 🧑‍💻 Contribuir
 
-Para ejecutar el bot usar
-`node launchtest.js` o `docker-compose up --build`
+Si querés ayudar al desarrollo:
+
+1. Hacé un fork del proyecto
+2. Creá una rama (`git checkout -b feature/nombre`)
+3. Hacé tus cambios
+4. Hacé push a tu rama y creá un PR
+
+---
+
+## 📂 Estructura del proyecto (simplificada)
+
+```
+src/
+├── commands/
+│   ├── music/
+│   └── dev/
+├── class/
+├── config/
+├── utils/
+├── main.ts
+launchtest.js
+docker-compose.yml
+```
+
+---
+
+## 📄 Licencia
+
+Este proyecto está bajo la licencia [MIT](LICENSE).
+
+> Si vas a usar partes del código, por favor da créditos.
+
+---
+
+## ✨ Autor
+
+**Brayan BCode**
+🕸️ GitHub: [@BrayanBCode](https://github.com/BrayanBCode)
+
+---
