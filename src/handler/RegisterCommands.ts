@@ -77,8 +77,7 @@ export async function registerAllCommands(client: BotClient) {
         for (const cmd of client.commands.values()) {
             try {
                 const json = (cmd.data.command as SlashCommandBuilder).toJSON();
-                logger.info(`Comando válido: ${json.name}`);
-                logger.info(`|| Comando **${json.name}** registrado con exito ||`);
+                logger.info(`|| Comando **${json.name}** registrado. ||`);
 
                 commandData.push(cmd.data.command as SlashCommandBuilder);
             } catch (err) {
