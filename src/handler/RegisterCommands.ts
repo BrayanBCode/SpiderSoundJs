@@ -25,7 +25,6 @@ async function loadCommand(client: BotClient, filePath: string) {
 
         // Registra el comando en el cliente
         client.commands.set(command.data.command.name, command);
-        logger.info(`|| Comando **${command.data.command.name}** registrado desde, ${fileUrl} ||`);
     } catch (err) {
         logger.error(`Error al cargar el comando en ${fileUrl}: ${err}`);
     }
@@ -67,23 +66,27 @@ async function loadAllCommands(client: BotClient, baseDir: string) {
  * @param client - Cliente del bot.
  */
 export async function registerAllCommands(client: BotClient) {
-    const commandData: SlashCommandBuilder[] = [];
-    client.commands.forEach((cmd) => {
-        try {
-            const json = (cmd.data.command as SlashCommandBuilder).toJSON();
-            logger.info(`Comando válido: ${json.name}`);
-        } catch (err) {
-            logger.error(`Error en el comando "${cmd.data.command?.name}": ${err}`);
-        }
-        commandData.push(cmd.data.command as SlashCommandBuilder);
-    });
-
     try {
         const commandsPath = join(process.cwd(), "dist", "commands");
+
+        // Cargar todos los comandos en client.commands
         await loadAllCommands(client, commandsPath);
 
-        const rest = new REST().setToken(config.bot.token);
+        const commandData: SlashCommandBuilder[] = [];
 
+        for (const cmd of client.commands.values()) {
+            try {
+                const json = (cmd.data.command as SlashCommandBuilder).toJSON();
+                logger.info(`Comando válido: ${json.name}`);
+                logger.info(`|| Comando **${json.name}** registrado con exito ||`);
+
+                commandData.push(cmd.data.command as SlashCommandBuilder);
+            } catch (err) {
+                logger.error(`Error en el comando "${cmd.data.command?.name}": ${err}`);
+            }
+        }
+
+        const rest = new REST().setToken(config.bot.token);
 
         await rest.put(
             client.debugMode
@@ -102,3 +105,4 @@ export async function registerAllCommands(client: BotClient) {
         }
     }
 }
+

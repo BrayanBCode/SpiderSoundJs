@@ -14,6 +14,7 @@ export default new Command(
         data: {
             command: new SlashCommandBuilder()
                 .setName("play")
+                .setDescription("Inicia o agrega una cancion ala lista de reproducción.")
                 .addStringOption(
                     o => o
                         .setName("busqueda")
