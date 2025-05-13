@@ -24,6 +24,7 @@ config/
 
 # Ignorar directorios de dependencias
 node_modules/
+node_modules/*
 vendor/
 
 
