@@ -12,7 +12,6 @@ export default new Command({
 
     },
     execute: async (client, interaction) => {
-
         // Aca es como en java los condicionales llevan () los for igual
 
         // Responder al comando
@@ -31,8 +30,5 @@ export default new Command({
                     .setDescription("Soy la descripción compa")
             ]
         })
-
     }
 })
-
-

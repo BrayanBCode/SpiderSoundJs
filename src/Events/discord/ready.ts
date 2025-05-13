@@ -1,7 +1,7 @@
 import { BotClient } from "../../class/BotClient.js";
 import { BaseDiscordEvent } from "../../class/events/BaseDiscordEvent.js";
 import { config } from "../../config/config.js";
-import { lavaManagerCustom } from "../../class/lavaManagerCustom.js";
+import { LavaManagerCustom } from "../../class/lavaManagerCustom.js";
 import { registerAllCommands } from "../../handler/RegisterCommands.js";
 import { registerLavalinkEvents } from "../../handler/RegisterlavalinkManagerEvent.js";
 import { registerLavalinkNodeEvents } from "../../handler/RegisterBaseNodeManagerEvents.js";
@@ -25,7 +25,7 @@ export default class ReadyEvent extends BaseDiscordEvent<"ready"> {
         try {
             logger.info("Iniciando conexión con Lavalink...");
 
-            client.lavaManager = new lavaManagerCustom({
+            client.lavaManager = new LavaManagerCustom({
                 nodes: [
                     {
                         authorization: config.lavalink.authorization,

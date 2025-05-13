@@ -1,12 +1,13 @@
-import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, CommandInteractionOptionResolver, GuildMember, VoiceChannel } from 'discord.js';
+import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, CommandInteractionOptionResolver, GuildMember } from 'discord.js';
 
 import { formatMS_HHMMSS } from '../../utils/formatMS_HHMMSS.js';
-import { config } from '../../config/config.js';
 import { Player, SearchPlatform, SearchResult, Track } from 'lavalink-client';
-import logger from '../logger.js';
 import { createEmptyEmbed, deleteAfterTimer, simpleEmbedReply, titleCleaner } from '../../utils/tools.js';
 import { BotClient } from '../BotClient.js';
-import { checkVC } from './PlayBackStrategt.modules.js';
+import { checkUserVC, trackOptionFormat } from './PlayBackStrategy.modules.js';
+import { IAddToQueueParams } from '../../interface/IAddToQueueParams.js';
+import { errorNoMatchesFounded, warnJoinToVC, warnJoinToVCBut, warnNothingFound, warnNeedSameVC } from './PlayBackStrategy.messages.js';
+
 
 
 export abstract class PlaybackStrategy {
@@ -17,144 +18,84 @@ export abstract class PlaybackStrategy {
 
     }
 
-
     async execute(client: BotClient, inter: ChatInputCommandInteraction<"cached">) {
-        try {
-            const GuildID = inter.guildId;
-            if (!GuildID) return;
 
-            const voiceChannelID = (inter.member as GuildMember).voice.channelId;
-            if (!voiceChannelID) return simpleEmbedReply({
-                interaction: inter,
-                embed: createEmptyEmbed({ description: "Unete a un canal de voz" }).setColor("Yellow"),
-                ephemeral: true
-            });
+        const GuildID = inter.guildId;
+        if (!GuildID) return;
 
-            if (!checkVC(inter)) return
+        const voiceChannelID = (inter.member as GuildMember).voice.channelId;
+        if (!voiceChannelID) return warnJoinToVC(inter)
 
-            const src = (inter.options as CommandInteractionOptionResolver).getString("fuente") as SearchPlatform | undefined;
-            const query = (inter.options as CommandInteractionOptionResolver).getString("busqueda") as string;
+        if (!checkUserVC(inter)) return
 
-            if (query === "nothing_found") return simpleEmbedReply({
-                interaction: inter,
-                embed: createEmptyEmbed({ description: "No se encontraron resultados" }).setColor("Yellow"),
-                ephemeral: true
-            })
+        const src = (inter.options as CommandInteractionOptionResolver).getString("fuente") as SearchPlatform | undefined;
+        const query = (inter.options as CommandInteractionOptionResolver).getString("busqueda") as string;
 
-            if (query === "join_vc") return simpleEmbedReply({
-                interaction: inter,
-                embed: createEmptyEmbed({ description: "Te uniste al canal de voz, pero vuelve a ejecutar el comando, por favor.." }).setColor('Yellow'),
-                ephemeral: true
-            })
+        if (query === "nothing_found") return warnNothingFound(inter)
 
-            const userID = inter.user.id;
-            const fromAutoComplete = this.autocompleteMap.has(`${userID}_res`) && query.startsWith("autocomplete_");
-            let res: SearchResult | undefined;
+        if (query === "join_vc") return warnJoinToVCBut(inter)
 
-            if (fromAutoComplete) {
-                // Almacenamos en res la busqueda obtenida en autoComplete
-                res = this.getAutoComplete(userID)
-            }
+        const userID = inter.user.id;
+        const fromAutoComplete = this.autocompleteMap.has(`${userID}_res`) && query.startsWith("autocomplete_");
+        let res: SearchResult | undefined;
 
-            const player = client.getPlayer(GuildID) ? client.getPlayer(GuildID)! : client.lavaManager.createPlayer({
-                guildId: GuildID,
-                voiceChannelId: voiceChannelID,
-                textChannelId: inter.channelId,
-                selfDeaf: true,
-                selfMute: false,
-                volume: client.defaultVolume,
-                node: config.bot.user,
-                vcRegion: (inter.member).voice.channel?.rtcRegion!
-            })
-
-            if (!player.connected) await player.connect();
-
-            if (player.voiceChannelId !== voiceChannelID) return simpleEmbedReply({
-                interaction: inter,
-                embed: createEmptyEmbed({ description: "Necesitas estar en el mismo canal que yo" }).setColor("Yellow"),
-                ephemeral: true
-            })
-
-            // ??= solo guarda en la variable si la variable es null/undefined
-            res ??= await player.search({
-                query: query.replace("autocomplete_", ""),
-                source: src ?? "ytsearch"
-            }, inter.user) as SearchResult;
-
-
-            if (!res.tracks.length) return simpleEmbedReply({
-                interaction: inter,
-                embed: createEmptyEmbed({ description: "No se encontraron resultados" }).setColor("Red"),
-                ephemeral: true
-            })
-
-            this.addToQueue({ inter, player: player, query, res })
-
-            await this.afterAddToQueue(player)
-
-            if (!player.playing) await player.play(player.connected ? { volume: client.defaultVolume, paused: false } : undefined);
-
-        } catch (err) {
-            if (err instanceof Error) {
-                logger.error("play command", err)
-                logger.error(`Stack Trace: ${err.stack}`);
-            } else {
-                logger.error('Ocurrió un error desconocido al registrar los comandos');
-            }
+        if (fromAutoComplete) {
+            // Almacenamos en res la busqueda obtenida en autoComplete
+            res = this.getAutoComplete(userID)
         }
+
+        const player = client.getPlayerOrDefault(inter, GuildID)
+
+        if (!player.connected) await player.connect();
+
+        if (player.voiceChannelId !== voiceChannelID) return warnNeedSameVC(inter)
+
+        // ??= solo guarda en la variable si la variable es null/undefined
+        res ??= await player.search({
+            query: query.replace("autocomplete_", ""),
+            source: src ?? "ytsearch"
+        }, inter.user) as SearchResult;
+
+        if (!res.tracks.length) return errorNoMatchesFounded(inter)
+
+        this.addToQueue({ inter, player: player, query, res })
+
+        await this.afterAddToQueue(player)
+
+        if (!player.playing) await player.play(player.connected ? { volume: client.defaultVolume, paused: false } : undefined);
+
     }
 
     async autocomplete(client: BotClient, inter: AutocompleteInteraction<CacheType>) {
-        try {
 
-            const GuildID = inter.guildId;
-            if (!GuildID) return;
+        const GuildID = inter.guildId;
+        if (!GuildID) return;
 
-            const voiceChannelID = (inter.member as GuildMember).voice.channelId;
-            if (!voiceChannelID) return inter.respond([{ name: `Unete a un canal de voz`, value: "join_vc" }]);
+        const voiceChannelID = (inter.member as GuildMember).voice.channelId;
+        if (!voiceChannelID) return inter.respond([{ name: `Unete a un canal de voz`, value: "join_vc" }]);
 
-            const focussedQuery = inter.options.getFocused();
+        const focussedQuery = inter.options.getFocused();
 
-            const player = client.getPlayer(GuildID) ? client.getPlayer(GuildID)! : client.lavaManager.createPlayer({
-                guildId: GuildID,
-                voiceChannelId: voiceChannelID,
-                textChannelId: inter.channelId,
-                selfDeaf: true,
-                selfMute: false,
-                volume: client.defaultVolume,
-                node: config.bot.user,
-            })
+        const player = client.getPlayerOrDefault(inter, GuildID)
 
-            if (!player.connected) await player.connect();
+        if (!player.connected) await player.connect();
 
-            if (player.voiceChannelId !== voiceChannelID) return inter.respond([{ name: `Necesitas estar en un canal de voz`, value: "join_vc" }]);
+        if (player.voiceChannelId !== voiceChannelID) return inter.respond([{ name: `Necesitas estar en un canal de voz`, value: "join_vc" }]);
 
-            if (!focussedQuery.trim().length) return await inter.respond([{ name: `No se encontraron resultados (escribe una busqueda)`, value: "nothing_found" }]);
+        if (!focussedQuery.trim().length) return await inter.respond([{ name: `No se encontraron resultados (escribe una busqueda)`, value: "nothing_found" }]);
 
-            const src = (inter.options as CommandInteractionOptionResolver).getString("fuente") as SearchPlatform | undefined ?? "ytsearch" as SearchPlatform;
+        const src = (inter.options as CommandInteractionOptionResolver).getString("fuente") as SearchPlatform | undefined ?? "ytsearch" as SearchPlatform;
 
-            // !! NO VA ESTO
-            // if (focussedQuery.includes("https://")) focussedQuery.replace("https://", "") 
+        const res = await player.search({ query: focussedQuery, source: src }, inter.user) as SearchResult;
 
-            const res = await player.search({ query: focussedQuery, source: src }, inter.user) as SearchResult;
+        if (!res.tracks.length) return await inter.respond([{ name: `No se encontraron resultados`, value: "nothing_found" }]);
 
-            if (!res.tracks.length) return await inter.respond([{ name: `No se encontraron resultados`, value: "nothing_found" }]);
+        const userID = inter.user.id;
 
-            const userID = inter.user.id;
+        // Guardamos la busqueda en autoComplete para usarlos mas tarde
+        this.startTOAutoComplete(userID, res)
 
-            // Guardamos la busqueda en autoComplete para usarlos mas tarde
-            this.startTOAutoComplete(userID, res)
-
-            // pasar esta logica a PlayBackStrategt.modules
-            await inter.respond(this.trackOptionFormat(res));
-        } catch (err) {
-            if (err instanceof Error) {
-                logger.error("play command", err)
-                logger.error(`Stack Trace: ${err.stack}`);
-            } else {
-                logger.error('Ocurrió un error desconocido al registrar los comandos');
-            }
-        }
+        await inter.respond(trackOptionFormat(res));
     }
 
     /**
@@ -173,27 +114,6 @@ export abstract class PlaybackStrategy {
 
         return search
     }
-
-    private trackOptionFormat(res: SearchResult) {
-        const formatTrack = (track: Track, index: number) => ({
-            name: `[${formatMS_HHMMSS(track.info.duration)}] ${track.info.title}`.slice(0, 100),
-            value: `autocomplete_${index}`,
-        });
-
-        const formatPlaylistOption = (title: string, count: number) => ({
-            name: `Playlist [${count} Tracks] - ${title}`.slice(0, 100),
-            value: `autocomplete_0`,
-        });
-
-        if (res.loadType === 'playlist') {
-            const title = res.playlist?.title ?? 'Unknown Playlist';
-            const count = res.tracks.length;
-            return [formatPlaylistOption(title, count)];
-        }
-
-        return res.tracks.slice(0, 25).map(formatTrack);
-    }
-
 
     /**
      * #### start-TimeOut-AutoComplete
@@ -217,7 +137,14 @@ export abstract class PlaybackStrategy {
         }, 25000));
     }
 
-    private async addToQueue({ player, res, query, inter }: { player: Player, res: SearchResult, query: string, inter: ChatInputCommandInteraction<"cached"> }) {
+    /**
+     * Agrega los resultados a la playlist
+     * 
+     * envia el mensaje al canal de voz correspondiente
+     * 
+     * @param IAddToQueueParams 
+     */
+    private async addToQueue({ player, res, query, inter }: IAddToQueueParams) {
 
         let Msg;
 
@@ -226,7 +153,7 @@ export abstract class PlaybackStrategy {
 
             const embed = createEmptyEmbed()
                 .setAuthor({ name: `Agregando ${res.pluginInfo.type ?? "Playlist"} 🎧` })
-                .setTitle(`${res.playlist ? res.playlist.title : query}`)
+                .setTitle(`${res.playlist ? titleCleaner(res.playlist.title, res.playlist.author) : query}`)
                 .setThumbnail(res.tracks[0].info.artworkUrl)
                 .setColor('Green')
 
@@ -236,14 +163,14 @@ export abstract class PlaybackStrategy {
 
             embed.addFields({ name: `Se agregaron:`, value: `${res.tracks.length} canciones más`, inline: false });
 
-            Msg = await simpleEmbedReply({ interaction: inter, embed });
+            Msg = await (await simpleEmbedReply({ interaction: inter, embed })).fetch();
 
         } else {
             const track = res.tracks[0]
 
             await this.addTracks(player, track)
 
-            Msg = await simpleEmbedReply({
+            Msg = await (await simpleEmbedReply({
                 interaction: inter,
                 embed: createEmptyEmbed()
                     .setAuthor({ name: `Agregando ${titleCleaner(track.info.title, track.info.author)} 🎧` })
@@ -255,13 +182,11 @@ export abstract class PlaybackStrategy {
                         { name: "Fuente", value: track.info.sourceName, inline: true }
                     ),
 
-            });
+            })).fetch()
 
         }
 
-        const fetched = await Msg.fetch()
-
-        deleteAfterTimer(fetched, 5000)
+        deleteAfterTimer(Msg, 15000)
 
     }
 
@@ -276,7 +201,6 @@ export abstract class PlaybackStrategy {
     protected async addTracks(player: Player, tracks: Track | Track[]): Promise<void> {
         await player.queue.add(tracks);
     }
-
 
     protected async afterAddToQueue(player: Player): Promise<void> {
         // implementar si es necesario

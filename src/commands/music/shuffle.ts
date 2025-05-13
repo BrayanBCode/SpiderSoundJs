@@ -17,7 +17,7 @@ export default new Command({
             .setDescription("No hay canciones que mezclar, utiliza /play para agregar canciones")
             .setColor("Red");
 
-        if (!player || !player.queue.tracks.length) return await interaction.reply({ embeds: [embErr] })
+        if (!player?.queue?.tracks.length) return await interaction.reply({ embeds: [embErr] })
 
         const shuffledlenght = await player.queue.shuffle()
 

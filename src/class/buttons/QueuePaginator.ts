@@ -9,6 +9,7 @@ import logger from "../logger.js";
 export class QueuePaginator implements IClassQueuePaginator {
 
 
+
     interaction: ChatInputCommandInteraction<"cached"> | ButtonInteraction<"cached">;
     items: (Track | UnresolvedTrack)[];
     textChannel?: TextChannel;
@@ -29,7 +30,6 @@ export class QueuePaginator implements IClassQueuePaginator {
     }
 
     getButtons() {
-        const initialPage = this.pages[0];
 
         if (!this.pages.length) return undefined
 
@@ -51,7 +51,7 @@ export class QueuePaginator implements IClassQueuePaginator {
 
         if (!buttons) return await this.interaction.reply({
             embeds: [createEmptyEmbed()
-                .setDescription("No hay canciones en la cola.")
+                .setDescription("No hay canciones en la lista.")
             ]
         })
 
@@ -81,7 +81,7 @@ export class QueuePaginator implements IClassQueuePaginator {
 
         if (!buttons) return this.interaction.followUp({
             embeds: [createEmptyEmbed()
-                .setDescription("No hay canciones en la cola.")
+                .setDescription("No hay canciones en la lista.")
             ], flags: MessageFlags.Ephemeral
         })
 
@@ -112,7 +112,7 @@ export class QueuePaginator implements IClassQueuePaginator {
 
         if (!buttons) return this.interaction.followUp({
             embeds: [createEmptyEmbed()
-                .setDescription("No hay canciones en la cola.")
+                .setDescription("No hay canciones en la lista.")
             ]
         })
 
@@ -193,7 +193,6 @@ export class QueuePaginator implements IClassQueuePaginator {
                     }))
             })
         )
-
     }
 
 

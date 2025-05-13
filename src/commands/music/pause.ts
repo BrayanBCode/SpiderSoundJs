@@ -18,14 +18,12 @@ export default new Command({
         const embErr = createEmptyEmbed()
             .setDescription("No hay nada que pausar o ya está pausado. Usa /play o /resume para agregar o reanudar la reproducción.");
 
-        // Verifica si hay un reproductor activo y si no está ya pausado
         if (!player || player.paused) {
             return await interaction.reply({
                 embeds: [embErr]
             });
         }
 
-        // Asegúrate de que el bot esté en un canal de voz
         const guild = await client.guilds.fetch(guildID);
         const voiceChannel = guild.members.me?.voice.channel;
 
@@ -39,7 +37,6 @@ export default new Command({
         }
 
         try {
-            // Pausa la reproducción
             await player.pause();
             interaction.reply({
                 embeds: [

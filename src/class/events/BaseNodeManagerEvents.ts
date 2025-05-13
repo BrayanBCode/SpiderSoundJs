@@ -2,7 +2,7 @@ import { NodeManagerEvents } from "lavalink-client/dist/types";
 import { BotClient } from "../BotClient";
 
 export abstract class BaseNodeManagerEvents<K extends keyof NodeManagerEvents> {
-    eventType: String = "NodeManagerEvents"
+    eventType: string = "NodeManagerEvents"
     abstract name: K;
     once: boolean = false;
 

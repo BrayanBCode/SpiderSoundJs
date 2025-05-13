@@ -2,6 +2,7 @@ import { EmbedBuilder, EmbedData, InteractionResponse, Message, MessageFlags } f
 import { ISimpleEmbedReply } from "../interface/ISimpleEmbedReply.js";
 import logger from "../class/logger.js";
 
+
 /**
  * Crea un embed vacío/custom usando las opciones proporcionadas.
  *
@@ -11,7 +12,6 @@ import logger from "../class/logger.js";
 export function createEmptyEmbed(opt?: EmbedData) {
     return new EmbedBuilder({ ...opt })
 }
-
 
 /**
  * Envía una respuesta a una interacción con un embed y configuraciones opcionales.
@@ -44,7 +44,6 @@ export async function simpleEmbedReply({ interaction, embed, ephemeral = false, 
     }
 }
 
-
 export function chunkArray<T>(arr: T[], size: number): T[][] {
     const result: T[][] = [];
     for (let i = 0; i < arr.length; i += size) {
@@ -56,25 +55,27 @@ export function chunkArray<T>(arr: T[], size: number): T[][] {
 export function deleteAfterTimer(msg: Message | InteractionResponse<true>, ms: number): NodeJS.Timeout {
     return setTimeout(async () => {
         try {
-            const fetched = await msg.fetch();
-            if (fetched.deletable) {
-                logger.info(`[deleteAfterTimer] Eliminando el mensaje "${fetched.id}"`)
-                return await fetched.delete();
-            }
-            logger.warn(`[deleteAfterTimer] No se pudo eliminar el mensaje "${fetched.id}"`)
+            const message = typeof msg.fetch === "function" ? await msg.fetch() : msg;
 
+            if ("deletable" in message && message.deletable) {
+                logger.info(`[deleteAfterTimer] Eliminando el mensaje "${message.id}"`);
+                await message.delete();
+            } else {
+                logger.warn(`[deleteAfterTimer] No se pudo eliminar el mensaje "${message.id}"`);
+            }
         } catch (err) {
             logger.error(`[deleteAfterTimer] ${err}`);
-
         }
     }, ms);
 }
 
-export function titleCleaner(title: string, artist: string): string {
+export function titleCleaner(title: string, artist?: string): string {
     // 1. Eliminar nombre del artista (ignorando mayúsculas/minúsculas, y espacios extras)
-    const escapedArtist = artist.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // escapamos el nombre
-    const artistRegex = new RegExp(`^\\s*${escapedArtist}\\s*[-:–—]?\\s*`, 'i');
-    title = title.replace(artistRegex, '');
+    if (artist) {
+        const escapedArtist = artist.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // escapamos el nombre
+        const artistRegex = new RegExp(`^\\s*${escapedArtist}\\s*[-:–—]?\\s*`, 'i');
+        title = title.replace(artistRegex, '');
+    }
 
     // 2. Eliminar etiquetas decorativas entre paréntesis o corchetes
     title = title.replace(/[\[\(][^)\]]*(official|video|lyric|audio|HD|4K|Visualizer|Remastered)[^)\]]*[\]\)]/gi, '');

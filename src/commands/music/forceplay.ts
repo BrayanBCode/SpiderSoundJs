@@ -3,14 +3,15 @@ import { Command } from '../../class/Commands.js';
 
 import { Player, Track } from 'lavalink-client';
 import { PlaybackStrategy } from '../../class/commands/PlaybackStrategy.js';
+import logger from '../../class/logger.js';
 
 
 class PlayNext extends PlaybackStrategy {
-    protected async addTracks(player: Player, tracks: Track | Track[]): Promise<void> {
+    override async addTracks(player: Player, tracks: Track | Track[]): Promise<void> {
         await player.queue.add(tracks, 0)
     }
 
-    protected async afterAddToQueue(player: Player): Promise<void> {
+    override async afterAddToQueue(player: Player): Promise<void> {
         await player.skip()
     }
 }
@@ -28,8 +29,9 @@ export default new Command({
                     .setDescription("Introduce el nombre o URL de la canción que deseas reproducir.")
                     .setAutocomplete(true)
                     .setRequired(true))
-            .addStringOption(o =>
-                o.setName("fuente")
+            .addStringOption(
+                o => o
+                    .setName("fuente")
                     .setDescription("Elige la plataforma desde donde buscar la canción. Por defecto: YouTube.")
                     .setRequired(false)
                     .setChoices(
@@ -46,10 +48,18 @@ export default new Command({
         category: 'Music'
     },
     execute: async (client, inter) => {
-        forcePlay.execute(client, inter)
+        try {
+            await forcePlay.execute(client, inter)
+        } catch (err) {
+            logger.error(`[Foceplay Command] ${err}`)
+        }
     },
     autocomplete: async (client, inter) => {
-        forcePlay.autocomplete(client, inter)
+        try {
+            await forcePlay.autocomplete(client, inter)
+        } catch (err) {
+            logger.error(`[Foceplay Command] ${err}`)
+        }
     }
 }
 );

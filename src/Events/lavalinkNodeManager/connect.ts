@@ -1,4 +1,4 @@
-import { LavalinkNode, Player, Track, TrackStartEvent } from "lavalink-client/dist/types";
+import { LavalinkNode } from "lavalink-client/dist/types";
 import { BotClient } from "../../class/BotClient.js";
 import { BaseNodeManagerEvents } from "../../class/events/BaseNodeManagerEvents.js";
 import logger from "../../class/logger.js";

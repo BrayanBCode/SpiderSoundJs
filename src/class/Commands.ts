@@ -1,4 +1,4 @@
-import { AutocompleteInteraction, ChatInputCommandInteraction, flatten, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder, SlashCommandSubcommandBuilder, SlashCommandSubcommandGroupBuilder, SlashCommandSubcommandsOnlyBuilder } from "discord.js";
+import { AutocompleteInteraction, ChatInputCommandInteraction, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder, SlashCommandSubcommandsOnlyBuilder } from "discord.js";
 
 import { BotClient } from "./BotClient";
 import { TCommandOptions, SubCommandOptions } from "../types/CommandsOptions";

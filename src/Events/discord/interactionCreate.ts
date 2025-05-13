@@ -1,14 +1,14 @@
-import { ChatInputCommandInteraction, ClientEvents, CommandInteractionOptionResolver, Interaction, MessageFlags } from "discord.js";
+import { ChatInputCommandInteraction, CommandInteractionOptionResolver, Interaction, MessageFlags } from "discord.js";
 import { BotClient } from "../../class/BotClient.js";
 import { Command, SubCommand } from "../../class/Commands.js";
 import { BaseDiscordEvent } from "../../class/events/BaseDiscordEvent.js";
 import logger from "../../class/logger.js";
 
+
 export default class InteractionCreate extends BaseDiscordEvent<"interactionCreate"> {
     name: "interactionCreate" = "interactionCreate";
     once: boolean = false;
     async execute(client: BotClient, interaction: Interaction) {
-
 
         // Verifica si la interacción es un comando o una interacción de autocompletado
         if (!interaction.isCommand() && !interaction.isAutocomplete()) return;

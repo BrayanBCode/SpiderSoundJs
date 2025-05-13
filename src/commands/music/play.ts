@@ -1,14 +1,13 @@
-// This command is a test command to play music using the Lavalink client.
-
 import { SlashCommandBuilder } from 'discord.js';
 import { Command } from '../../class/Commands.js';
 
 import { PlaybackStrategy } from '../../class/commands/PlaybackStrategy.js';
+import logger from '../../class/logger.js';
+
 
 class Play extends PlaybackStrategy { }
 
 const play = new Play()
-
 
 export default new Command(
     {
@@ -27,20 +26,34 @@ export default new Command(
                         .setDescription("Selecciona la fuente desde la que reproducir música. Por defecto: YouTube.")
                         .setRequired(false)
                         .setChoices(
-                            { name: "Youtube", value: "ytsearch" },
-                            { name: "Youtube Music", value: "ytmsearch" },
+                            { name: "Youtube", value: "ytsearch" }, // Requires plugin on lavalink: https://github.com/lavalink-devs/youtube-source
+                            { name: "Youtube Music", value: "ytmsearch" }, // Requires plugin on lavalink: https://github.com/lavalink-devs/youtube-source
                             { name: "Spotify", value: "spsearch" }, // Requires plugin on lavalink: https://github.com/topi314/LavaSrc
-
+                            // { name: "Soundcloud", value: "scsearch" },
+                            // { name: "Deezer", value: "dzsearch" }, // Requires plugin on lavalink: https://github.com/topi314/LavaSrc
+                            // { name: "Apple Music", value: "amsearch" }, // Requires plugin on lavalink: https://github.com/topi314/LavaSrc
+                            // { name: "Bandcamp", value: "bcsearch" },
+                            // { name: "Cornhub", value: "phsearch" },
                         )),
             category: "Music"
 
         },
 
         execute: async (client, inter) => {
-            play.execute(client, inter)
+            try {
+                await play.execute(client, inter)
+
+            } catch (err) {
+                logger.error(`[Play Command] ${err}`)
+            }
         },
         autocomplete: async (client, inter) => {
-            play.autocomplete(client, inter)
+            try {
+                await play.autocomplete(client, inter)
+            } catch (err) {
+                logger.error(`[Play Command] ${err}`)
+            }
+
         }
     }
 );

@@ -1,18 +1,18 @@
-import { ChatInputCommandInteraction, Client, EmbedBuilder, Guild, GuildMember } from "discord.js";
+import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, Client, Guild, GuildMember, TextChannel } from "discord.js";
 import { ICommand, SubCommand } from "../types/Client.js";
 import { BotClientOptions } from "../interface/BotClientOptions.js";
 import { config } from "../config/config.js";
-import { lavaManagerCustom } from "./lavaManagerCustom.js";
+import { LavaManagerCustom } from "./lavaManagerCustom.js";
 import { registerDiscordEvents } from "../handler/RegisterDiscordEvent.js";
-import logger from "./logger.js";
-
+import { PlayerMessage } from "./playerMessage.js";
 
 
 export class BotClient extends Client {
-    lavaManager!: lavaManagerCustom;
+    lavaManager!: LavaManagerCustom;
     commands: Map<string, ICommand | SubCommand>;
     defaultVolume: number;
     debugMode: boolean;
+    playerMessage: PlayerMessage
 
 
     constructor(options: BotClientOptions) {
@@ -23,6 +23,8 @@ export class BotClient extends Client {
         this.defaultVolume = options.defaultVolume ?? 10.0;
         this.debugMode = options.debugMode ?? false;
 
+        this.playerMessage = new PlayerMessage(this)
+
     }
 
     /**
@@ -32,45 +34,33 @@ export class BotClient extends Client {
         return this.lavaManager.playingMessages
     }
 
-    createEmbedTemplate() {
-        return new EmbedBuilder()
-    }
-
     getPlayer(guildId: string) {
         return this.lavaManager.getPlayer(guildId)
     }
 
-    getPlayerOrDefault(inter: ChatInputCommandInteraction<"cached">, guildId: string) {
-        try {
+    getPlayerOrDefault(inter: ChatInputCommandInteraction<"cached"> | AutocompleteInteraction<CacheType>, guildId: string) {
+        let player = this.lavaManager.getPlayer(guildId)
 
-            let player = this.lavaManager.getPlayer(guildId)
+        player ??= this.lavaManager.createPlayer({
+            guildId: guildId,
+            voiceChannelId: (inter.member as GuildMember).voice.channelId!,
+            textChannelId: inter.channelId,
+            selfDeaf: true,
+            selfMute: false,
+            volume: this.defaultVolume,
+            node: config.bot.user,
+            vcRegion: (inter.member as GuildMember)?.voice.channel?.rtcRegion!
+        })
 
-            player &&= this.lavaManager.createPlayer({
-                guildId: inter.guildId,
-                voiceChannelId: (inter.member as GuildMember).voice.channelId!,
-                textChannelId: inter.channelId,
-                selfDeaf: true,
-                selfMute: false,
-                volume: this.defaultVolume,
-                node: config.bot.user,
-                vcRegion: (inter.member).voice.channel?.rtcRegion!
-            })
-
-            return player
-        } catch (err) {
-            if (err instanceof Error) {
-                logger.error("play command", err)
-                logger.error(`Stack Trace: ${err.stack}`);
-            } else {
-                logger.error('Ocurrió un error desconocido al registrar los comandos');
-            }
-        }
-
-
+        return player
     }
 
     getGuild(guildId: string) {
-        return this.guilds.cache.get(guildId) as Guild
+        return this.guilds.cache.get(guildId) as Guild | undefined
+    }
+
+    getTextChannel(channelID: string) {
+        return this.channels.cache.get(channelID) as TextChannel | undefined;
     }
 
     async init() {

@@ -1,10 +1,8 @@
-import { Collection, Message } from "discord.js";
 import { ManagerOptions } from "lavalink-client/dist/types";
 import { LavalinkManager } from "lavalink-client";
-import logger from "./logger.js";
 import { PlayingMessageController } from "./PlayingMessageController.js";
 
-export class lavaManagerCustom extends LavalinkManager {
+export class LavaManagerCustom extends LavalinkManager {
 
     private _playingMessageController: PlayingMessageController
 

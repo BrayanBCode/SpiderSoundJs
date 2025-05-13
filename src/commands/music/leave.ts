@@ -1,4 +1,4 @@
-import { Channel, SlashCommandBuilder, VoiceChannel } from "discord.js";
+import { SlashCommandBuilder, VoiceChannel } from "discord.js";
 import { Command } from "../../class/Commands.js";
 import logger from "../../class/logger.js";
 import { createEmptyEmbed } from "../../utils/tools.js";
@@ -21,7 +21,7 @@ export default new Command({
             .setDescription("No estoy conectado a ningun canal, utiliza /play para agregar canciones.")
             .setColor("Red");
 
-        if (!player || !player.connected) return interaction.reply({ embeds: [embErr] })
+        if (!player?.connected) return interaction.reply({ embeds: [embErr] })
 
         const channel = client.channels.cache.get(player.voiceChannelId!) as VoiceChannel | undefined;
 

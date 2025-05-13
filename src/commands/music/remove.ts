@@ -1,4 +1,4 @@
-import { CommandInteractionOptionResolver, EmbedBuilder, SlashCommandBuilder } from "discord.js";
+import { CommandInteractionOptionResolver, SlashCommandBuilder } from "discord.js";
 import { Command } from "../../class/Commands.js";
 import { createEmptyEmbed } from "../../utils/tools.js";
 import { formatMS_HHMMSS } from "../../utils/formatMS_HHMMSS.js";
@@ -19,6 +19,7 @@ export default new Command({
 
         category: "Music"
     },
+    // TODO: Utilizar FocusQuery para obtener el numero de playlist y sugerir posibles canciones a remover por ejemplo obtenemos pos 7 sugeriremos canciones de 5 - 7 a 7 + 5
     execute: async (client, interaction) => {
 
         const GuildID = interaction.guildId
@@ -28,8 +29,6 @@ export default new Command({
         const player = client.getPlayer(GuildID)
 
         const pos = (interaction.options as CommandInteractionOptionResolver).getString("posicion") as string;
-
-
 
         if (!player || pos == "no_tracks") return await interaction.reply({
             embeds: [
@@ -58,7 +57,7 @@ export default new Command({
 
         const removeSuggestions = tracks.slice(0, 25).map((track: any, index: number) => (
             {
-                name: `${index + 1} - [${formatMS_HHMMSS(track.info.duration)}] ${track.info.title} - ${track.info.author || 'Autor desconocido'}`.substring(0, 100),
+                name: `${index + 1} - [${formatMS_HHMMSS(track.info.duration)}] ${track.info.title} - ${track.info.author ?? 'Autor desconocido'}`.substring(0, 100),
                 value: `autocomplete_${index}`
             }
         ))
@@ -67,5 +66,3 @@ export default new Command({
 
     }
 })
-
-

@@ -1,4 +1,4 @@
-import { AutocompleteInteraction, EmbedBuilder, GuildMember, MessageFlags, SlashCommandBuilder } from "discord.js";
+import { EmbedBuilder, GuildMember, MessageFlags, SlashCommandBuilder } from "discord.js";
 import { formatMS_HHMMSS } from "../../utils/formatMS_HHMMSS.js";
 import { Command } from "../../class/Commands.js";
 import logger from "../../class/logger.js";

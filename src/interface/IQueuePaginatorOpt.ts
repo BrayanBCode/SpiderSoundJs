@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, ButtonInteraction, TextChannel, Message } from "discord.js"
+import { ChatInputCommandInteraction, ButtonInteraction, TextChannel } from "discord.js"
 import { Track, UnresolvedTrack } from "lavalink-client/dist/types"
 
 export interface IQueuePaginatorOpt {

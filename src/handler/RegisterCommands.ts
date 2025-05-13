@@ -1,7 +1,7 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "url";
-import { bold, REST, Routes, SlashCommandBuilder } from "discord.js";
+import { REST, Routes, SlashCommandBuilder } from "discord.js";
 import { BotClient } from "../class/BotClient.js";
 import { ICommand } from "../types/Client.js";
 import { config } from "../config/config.js";

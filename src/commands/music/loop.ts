@@ -11,7 +11,7 @@ export default new Command({
             .setDescription("Activa o desactiva el loop.")
             .addStringOption(
                 o => o
-                    .setName("loop")
+                    .setName("mode")
                     .setDescription("Elije que modo quieres 😎")
                     .addChoices(
                         { name: "🔂 Cancion actual", value: "track" },
@@ -30,7 +30,7 @@ export default new Command({
 
             if (!guildId) return
 
-            const loopSettings = (inter.options as CommandInteractionOptionResolver).getString("loop") as RepeatMode
+            const loopSettings = (inter.options as CommandInteractionOptionResolver).getString("mode") as RepeatMode
 
             const player = client.getPlayer(guildId)
 
@@ -42,7 +42,7 @@ export default new Command({
 
             await player.setRepeatMode(loopSettings)
 
-            player.play({})
+            // player.play({})
 
             if (loopSettings === "queue") {
                 return await inter.reply({

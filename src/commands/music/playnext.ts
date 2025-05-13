@@ -3,9 +3,10 @@ import { Command } from '../../class/Commands.js';
 
 import { PlaybackStrategy } from '../../class/commands/PlaybackStrategy.js';
 import { Player, Track } from 'lavalink-client/dist/types/index.js';
+import logger from '../../class/logger.js';
 
 class PlayNext extends PlaybackStrategy {
-    protected async addTracks(player: Player, tracks: Track | Track[]): Promise<void> {
+    override async addTracks(player: Player, tracks: Track | Track[]): Promise<void> {
         await player.queue.add(tracks, 0)
     }
 }
@@ -24,8 +25,8 @@ export default new Command(
                         .setDescription("Que ponemos chee?")
                         .setAutocomplete(true)
                         .setRequired(true))
-                .addStringOption(o =>
-                    o.setName("fuente")
+                .addStringOption(
+                    o => o.setName("fuente")
                         .setDescription("Desde que fuente quieres reproducir?")
                         .setRequired(false)
                         .setChoices(
@@ -41,10 +42,18 @@ export default new Command(
             category: 'Music'
         },
         execute: async (client, inter) => {
-            playnext.execute(client, inter)
+            try {
+                await playnext.execute(client, inter)
+            } catch (err) {
+                logger.error(`[Playnext Command] ${err}`)
+            }
         },
         autocomplete: async (client, inter) => {
-            playnext.autocomplete(client, inter)
+            try {
+                await playnext.autocomplete(client, inter)
+            } catch (err) {
+                logger.error(`[Playnext Command] ${err}`)
+            }
         }
     }
 );

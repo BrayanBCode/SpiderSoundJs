@@ -29,6 +29,7 @@ vendor/
 # Ignorar archivos de compilación/distribución
 /dist
 /build
+/deprecated
 
 # Ignorar archivos de IDE y editores de texto
 .idea/

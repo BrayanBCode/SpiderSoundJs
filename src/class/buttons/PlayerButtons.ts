@@ -6,6 +6,8 @@ import { formatMS_HHMMSS } from "../../utils/formatMS_HHMMSS.js";
 import { createEmptyEmbed } from "../../utils/tools.js";
 import { QueuePaginator } from "./QueuePaginator.js";
 
+
+//deprecated
 export default async ({ time = undefined, player, TextChannel, client }: IPlayerButtons) => {
     try {
         if (!TextChannel) throw new Error("[PlayerButtons]: Invalid parameters");

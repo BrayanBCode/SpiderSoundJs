@@ -1,10 +1,9 @@
 import { Player, Track, UnresolvedTrack, TrackExceptionEvent } from "lavalink-client/dist/types";
 import { BotClient } from "../../class/BotClient.js";
 import { BaseLavalinkManagerEvents } from "../../class/events/BaseLavalinkManagerEvents.js";
-import { TextChannel, User } from "discord.js";
+import { TextChannel } from "discord.js";
 import logger from "../../class/logger.js";
 import { createEmptyEmbed } from "../../utils/tools.js";
-import { formatMS_HHMMSS } from "../../utils/formatMS_HHMMSS.js";
 
 type LavalinkErrorType =
     | "COPYRIGHT"
