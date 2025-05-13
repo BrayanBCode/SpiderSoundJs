@@ -6,7 +6,7 @@ export default new Command({
     data: {
         command: new SlashCommandBuilder()
             .setName("clear")
-            .setDescription("Limpia la lista de reprodución"),
+            .setDescription("Limpia la lista de reproducción"),
 
         category: "Music"
     },

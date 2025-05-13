@@ -27,7 +27,7 @@ async function loadCommand(client: BotClient, filePath: string) {
         client.commands.set(command.data.command.name, command);
         logger.info(`|| Comando **${command.data.command.name}** registrado desde, ${fileUrl} ||`);
     } catch (err) {
-        logger.error(`Error al cargar el comando en ${filePath}: ${err}`);
+        logger.error(`Error al cargar el comando en ${fileUrl}: ${err}`);
     }
 }
 
@@ -67,16 +67,23 @@ async function loadAllCommands(client: BotClient, baseDir: string) {
  * @param client - Cliente del bot.
  */
 export async function registerAllCommands(client: BotClient) {
+    const commandData: SlashCommandBuilder[] = [];
+    client.commands.forEach((cmd) => {
+        try {
+            const json = (cmd.data.command as SlashCommandBuilder).toJSON();
+            logger.info(`Comando válido: ${json.name}`);
+        } catch (err) {
+            logger.error(`Error en el comando "${cmd.data.command?.name}": ${err}`);
+        }
+        commandData.push(cmd.data.command as SlashCommandBuilder);
+    });
+
     try {
         const commandsPath = join(process.cwd(), "dist", "commands");
         await loadAllCommands(client, commandsPath);
 
         const rest = new REST().setToken(config.bot.token);
-        const commandData: SlashCommandBuilder[] = [];
 
-        client.commands.forEach((cmd) => {
-            commandData.push(cmd.data.command as SlashCommandBuilder);
-        });
 
         await rest.put(
             client.debugMode
