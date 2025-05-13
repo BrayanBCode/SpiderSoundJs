@@ -179,7 +179,7 @@ export abstract class PlaybackStrategy {
                     .setColor('Green')
                     .addFields(
                         { name: "Duración", value: formatMS_HHMMSS(track.info.duration), inline: true },
-                        { name: "Fuente", value: track.info.sourceName, inline: true }
+                        { name: "Artista", value: track.info.author, inline: true }
                     ),
 
             })).fetch()
