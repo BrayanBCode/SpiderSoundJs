@@ -1,0 +1,93 @@
+server:
+    port: 2333
+
+lavalink:
+    plugins:
+        - dependency: 'com.github.topi314.lavasrc:lavasrc-plugin:4.6.0'
+        - dependency: 'dev.lavalink.youtube:youtube-plugin:1.13.2'
+          snapshot: true
+        # - dependency: 'com.github.topi314.lavasearch:lavasearch-plugin:1.0.0'
+
+    #   repository: "https://maven.lavalink.dev/releases"
+
+    server:
+        password: 'password'
+        sources:
+            # The default Youtube source is now deprecated and won't receive further updates. Please use https://github.com/lavalink-devs/youtube-source#plugin instead.
+            youtube: false
+            bandcamp: true
+            soundcloud: true
+            twitch: true
+            vimeo: true
+            nico: true
+            http: true # warning: keeping HTTP enabled without a proxy configured could expose your server's IP address.
+            local: true
+            filters: # All filters are enabled by default
+            volume: true
+            equalizer: false
+            karaoke: false
+            timescale: false
+            tremolo: false
+            vibrato: false
+            distortion: false
+            rotation: false
+            channelMix: false
+            lowPass: false
+            nonAllocatingFrameBuffer: false # Setting to true reduces the number of allocations made by each player at the expense of frame rebuilding (e.g. non-instantaneous volume changes)
+            bufferDurationMs: 400 # The duration of the NAS buffer. Higher values fare better against longer GC pauses. Duration <= 0 to disable JDA-NAS. Minimum of 40ms, lower values may introduce pauses.
+            frameBufferDurationMs: 5000 # How many milliseconds of audio to keep buffered
+            opusEncodingQuality: 10 # Opus encoder quality. Valid values range from 0 to 10, where 10 is best quality but is the most expensive on the CPU.
+            resamplingQuality: LOW # Quality of resampling operations. Valid values are LOW, MEDIUM and HIGH, where HIGH uses the most CPU.
+            trackStuckThresholdMs: 10000 # The threshold for how long a track can be stuck. A track is stuck if does not return any audio data.
+            useSeekGhosting: true # Seek ghosting is the effect where whilst a seek is in progress, the audio buffer is read from until empty, or until seek is ready.
+            youtubePlaylistLoadLimit: 10 # Number of pages at 100 each
+            playerUpdateInterval: 5 # How frequently to send player updates to clients, in seconds
+            youtubeSearchEnabled: true
+            soundcloudSearchEnabled: true
+            gc-warnings: true
+plugins:
+    youtube:
+        enabled: true # Whether this source can be used.
+        allowSearch: true # Whether "ytsearch:" and "ytmsearch:" can be used.
+        allowDirectVideoIds: true # Whether just video IDs can match. If false, only complete URLs will be loaded.
+        allowDirectPlaylistIds: true # Whether just playlist IDs can match. If false, only complete URLs will be loaded.
+        # The clients to use for track loading. See below for a list of valid clients.
+        # Clients are queried in the order they are given (so the first client is queried first and so on...)
+        clients:
+            - TV
+            - MUSIC
+            - ANDROID_VR
+            - WEB
+            - WEBEMBEDDED
+    lavasrc:
+        # providers: # Custom providers for track loading. This is the default
+        #     # - "dzisrc:%ISRC%" # Deezer ISRC provider
+        #     # - "dzsearch:%QUERY%" # Deezer search provider
+        #     - 'ytsearch:"%ISRC%"' # Will be ignored if track does not have an ISRC. See https://en.wikipedia.org/wiki/International_Standard_Recording_Code
+        #     - 'ytsearch:%QUERY%' # Will be used if track has no ISRC or no track could be found for the ISRC
+        # #you can add multiple other fallback sources here
+        sources:
+            spotify: true # Enable Spotify source
+            applemusic: false # Enable Apple Music source
+            deezer: false # Enable Deezer source
+            yandexmusic: false # Enable Yandex Music source
+            flowerytts: false # Enable Flowery TTs source
+            youtube: true # Enable YouTube search source (https://github.com/topi314/LavaSearch)
+            vkmusic: false # Enable Vk Music source
+        lyrics-sources:
+            spotify: true # Enable Spotify lyrics source
+            deezer: false # Enable Deezer lyrics source
+            youtube: false # Enable YouTube lyrics source
+            yandexmusic: false # Enable Yandex Music lyrics source
+            vkmusic: false # Enable Vk Music lyrics source
+        spotify:
+            clientId: '3fef53a7e8224487b126a59c23938e4e'
+            clientSecret: '18981d7890de4e9eaf391b4954cbb734'
+            # spDc: "your sp dc cookie" # the sp dc cookie used for accessing the spotify lyrics api
+            countryCode: 'US' # the country code you want to use for filtering the artists top tracks. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
+            playlistLoadLimit: 6 # The number of pages at 100 tracks each
+            albumLoadLimit: 6 # The number of pages at 50 tracks each
+            localFiles: true #  Enable local files support with Spotify playlists. Please note `uri` & `isrc` will be `null` & `identifier` will be `"local"`
+
+        youtube:
+            countryCode: 'US' # the country code you want to use for searching lyrics via ISRC. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2

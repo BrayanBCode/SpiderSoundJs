@@ -1,0 +1,24 @@
+services:
+    lavalink:
+        image: ghcr.io/lavalink-devs/lavalink:4.0.8
+
+        ports:
+            - '2333:2333'
+        environment:
+            - LAVALINK_PASSWORD="password"
+        volumes:
+            - ./application.yml:/opt/Lavalink/application.yml:ro
+            - ./plugins:/opt/Lavalink/plugins:ro
+        restart: always
+
+    discord-bot:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        ports:
+            - '3000:3000'
+        volumes:
+            - .:/usr/src/app:delegated
+        depends_on:
+            - lavalink # Esto asegura que Lavalink se inicie primero
+        restart: always
