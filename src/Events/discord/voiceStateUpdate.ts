@@ -1,4 +1,4 @@
-import { GuildMember, TextChannel, VoiceState } from "discord.js";
+import { Guild, GuildMember, TextChannel, VoiceState } from "discord.js";
 import { BotClient } from "../../class/BotClient.js";
 import { BaseDiscordEvent } from "../../class/events/BaseDiscordEvent.js";
 import { setTimeout } from "node:timers";
@@ -92,6 +92,7 @@ export default class VoiceStateUpdate extends BaseDiscordEvent<"voiceStateUpdate
                     // Desconectar el reproductor
                     await player.disconnect();
                     await player.destroy("Destoyed by Inactivity", true)
+                    client.playerMessage.delete(player.guildId)
 
                     logger.info(`[startInactivityTimer] Reproductor desconectado para el servidor: ${guild.name}`);
 
@@ -111,6 +112,7 @@ export default class VoiceStateUpdate extends BaseDiscordEvent<"voiceStateUpdate
                         const embed = createEmptyEmbed()
                             .setAuthor({ name: "Desconexión por inactividad" });
                         await textChannel.send({ embeds: [embed] });
+
                         logger.info(`[startInactivityTimer] Notificación enviada al canal de texto en el servidor: ${guild.id}`);
                     }
                 } catch (error) {

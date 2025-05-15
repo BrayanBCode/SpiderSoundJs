@@ -65,7 +65,6 @@ export class PlayerMessage {
         return msg
     }
 
-    // TODO: Mediante esta funcion eliminar el mensaje con col.stop() para evitar error 
     async delete(guildID: string) {
 
         const data = this.MessageContainer.get(guildID)
