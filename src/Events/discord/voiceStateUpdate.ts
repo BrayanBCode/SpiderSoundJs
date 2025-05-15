@@ -92,7 +92,7 @@ export default class VoiceStateUpdate extends BaseDiscordEvent<"voiceStateUpdate
                     // Desconectar el reproductor
                     await player.disconnect();
                     await player.destroy("Destoyed by Inactivity", true)
-                    client.playerMessage.delete(player.guildId)
+                    // client.playerMessage.delete(player.guildId)
 
                     logger.info(`[startInactivityTimer] Reproductor desconectado para el servidor: ${guild.name}`);
 
