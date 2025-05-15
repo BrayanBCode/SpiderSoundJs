@@ -12,7 +12,7 @@
 
 - 🎵 Reproducción de música desde YouTube
 - 📃 Sistema de cola interactiva
-- 🔄 Autoplay y loop
+- 🔄 Autoplay (sin implementar) y loop
 - 🎚️ Controles mediante botones
 - 🧪 Modo desarrollador para pruebas y paginadores
 - ⚙️ Modular y fácil de extender
