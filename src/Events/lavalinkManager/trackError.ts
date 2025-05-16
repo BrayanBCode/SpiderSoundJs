@@ -58,7 +58,7 @@ export default class trackError extends BaseLavalinkManagerEvents<"trackError"> 
                 ]
             })
 
-            setTimeout(() => msg.delete(), 15000)
+            setTimeout(() => msg.delete().catch(() => { }), 15000)
 
             // await player.skip()
             // if (!player.playing) await player.play(player.connected ? { volume: client.defaultVolume, paused: false } : undefined);

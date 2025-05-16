@@ -59,7 +59,7 @@ export function deleteAfterTimer(msg: Message | InteractionResponse<true>, ms: n
 
             if ("deletable" in message && message.deletable) {
                 logger.info(`[deleteAfterTimer] Eliminando el mensaje "${message.id}"`);
-                await message.delete();
+                await message.delete().catch(() => { });
             } else {
                 logger.warn(`[deleteAfterTimer] No se pudo eliminar el mensaje "${message.id}"`);
             }

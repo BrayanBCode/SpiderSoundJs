@@ -1,4 +1,4 @@
-import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, Client, Guild, GuildMember, TextChannel } from "discord.js";
+import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, Client, Guild, GuildMember, TextChannel, VoiceChannel } from "discord.js";
 import { ICommand, SubCommand } from "../types/Client.js";
 import { BotClientOptions } from "../interface/BotClientOptions.js";
 import { config } from "../config/config.js";
@@ -61,6 +61,10 @@ export class BotClient extends Client {
 
     getTextChannel(channelID: string) {
         return this.channels.cache.get(channelID) as TextChannel | undefined;
+    }
+
+    getVoiceChannel(channelID: string) {
+        return this.channels.cache.get(channelID) as VoiceChannel | undefined
     }
 
     async init() {

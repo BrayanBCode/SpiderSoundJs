@@ -9,6 +9,8 @@ import { BotClient } from "./BotClient.js";
 import logger from "./logger.js";
 
 
+// TODO: Crear metodo para limpiar el registro de un servidor mediante GuildID
+// Se utiliza mucho esta linea client.playerMessage.MessageContainer.delete() acortar a funcion publica de clase
 export class PlayerMessage {
     MessageContainer: Map<string, {
         channel: TextChannel,
@@ -81,9 +83,11 @@ export class PlayerMessage {
             return false
         }
 
-        await message.delete()
+        await message.delete().catch(() => {
+            logger.error(`[PlayerMessage] No se puede eliminar el mensaje`)
+        })
 
-        logger.info(`[PlayerMessage] El mensaje "${message.id}" fue eliminado con eito`)
+        logger.info(`[PlayerMessage] El mensaje "${message.id}" fue eliminado con exito`)
         return true
     }
 
