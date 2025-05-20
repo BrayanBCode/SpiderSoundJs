@@ -4,6 +4,7 @@
 *.env.*.local
 config.json
 secret.json
+application.yml
 
 # Ignorar directorios que pueden contener archivos sensibles
 secrets/
