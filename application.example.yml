@@ -12,7 +12,7 @@ lavalink:
 
     server:
         # Cambia la contraseña a la dada en .env
-        password: 'SpiderBotDevelopmentPass'
+        password: 'password'
         sources:
             # The default Youtube source is now deprecated and won't receive further updates. Please use https://github.com/lavalink-devs/youtube-source#plugin instead.
             youtube: false
