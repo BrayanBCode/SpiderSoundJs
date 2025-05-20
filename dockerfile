@@ -21,7 +21,4 @@ COPY . .
 EXPOSE 3000
 
 # Comando para ejecutar tu bot con ts-node
-
-RUN echo "Iniciando SPIDERBOT puede tardar..."
-
 CMD ["npm", "run", "dev"]
