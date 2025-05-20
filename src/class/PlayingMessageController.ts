@@ -7,16 +7,19 @@ import { BotClient } from "./BotClient.js";
 /**
  * The `PlayingMessageController` class manages the sending, updating, and deletion of messages
  * related to a player in a Discord guild. It maintains a collection of messages indexed by guild ID.
+ * @DEPRECATED This CLASS is deprecated and will be removed in a future release.
  */
 export class PlayingMessageController {
 
     /**
      * A collection that stores messages indexed by guild ID.
+     * @DEPRECATED This method is deprecated and will be removed in a future release.
      */
     MessageContainer: Collection<string, Message>;
 
     /**
      * Constructs a new instance of the `PlayingMessageController` class.
+     * @DEPRECATED This method is deprecated and will be removed in a future release.
      */
     constructor() {
 
@@ -26,6 +29,7 @@ export class PlayingMessageController {
 
     /**
      * Envia el mensaje relacionado con el player al servidor de discord y guarda en la coleción.
+     * @DEPRECATED This method is deprecated and will be removed in a future release.
      */
     async SendMessage({ player, client, reSend = false }: { player: Player, client: BotClient, reSend?: boolean }) {
         if (!player || !client) throw new Error("[PlayingMessageController] Valores invalidos");
@@ -55,33 +59,13 @@ export class PlayingMessageController {
         return msg
     }
 
-
-    // async SendMessage(
-    //     player: Player,
-    //     TextChannel: TextChannel,
-    //     client: BotClient
-    // ) {
-    //     if (!player || !TextChannel || !client) throw new Error('[PlayingMessageController] Valores invalidos')
-
-    //     if (this.getMessage(player.guildId)) await this.DeleteMessage(player.guildId, true)
-
-    //     // Logica para enviar mensaje
-    //     const msg = await PlayerButtons({ player, TextChannel, client }).catch(err => { throw new Error(err) })
-
-    //     // Guardar mensaje en la coleccion
-    //     if (msg) {
-    //         this.MessageContainer.set(player.guildId, msg);
-    //     } else {
-    //         throw new Error('[PlayingMessageController] Failed to send message');
-    //     }
-    // }
-
     /**
      * Deletes a message from the collection and optionally deletes it from the Discord guild.
      * 
      * @param GuildID - The ID of the guild from which to delete the message.
      * @param DeleteMessage - A boolean indicating whether to delete the message from the guild.
      * @throws Will throw an error if the guild ID is invalid.
+     * @DEPRECATED This method is deprecated and will be removed in a future release.
      */
     async DeleteMessage(GuildID: string, DeleteMessage: boolean = false) {
         if (!GuildID) throw new Error('[PlayingMessageController] Valor invalido')
@@ -117,7 +101,7 @@ export class PlayingMessageController {
      * @param GuildID - The ID of the guild for which to update the message.
      * @param Message - The new message content or options.
      * @throws Will throw an error if the guild ID is invalid.
-     * @deprecated This method is deprecated and will be removed in a future release.
+     * @DEPRECATED This method is deprecated and will be removed in a future release.
      */
     async UpdateMessage(GuildID: string, Message: string | MessageEditOptions | MessagePayload) {
         if (!GuildID) throw new Error('[PlayingMessageController] Valor invalido')
@@ -125,7 +109,9 @@ export class PlayingMessageController {
         this.MessageContainer.get(GuildID)?.edit(Message)
 
     }
-
+    /**
+     * DEPRECATED
+     */
     getMessage(GuildID: string) {
         return this.MessageContainer.get(GuildID)
     }
