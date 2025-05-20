@@ -91,6 +91,10 @@ export class PlayerMessage {
         return true
     }
 
+    deleteData(guilId: string) {
+        this.MessageContainer.delete(guilId)
+    }
+
     private getPlayingEmbed(track: Track, player: Player) {
         return createEmptyEmbed()
             .setAuthor({
@@ -230,7 +234,7 @@ export class PlayerMessage {
                     }
 
                     await player.skip()
-                    col.stop("[PlayerMessage - nextBtn] Track skiped")
+                    // col.stop("[PlayerMessage - nextBtn] Track skiped")
 
                     // await client.playerMessage.send(inter.guildId, inter.channelId)
 
