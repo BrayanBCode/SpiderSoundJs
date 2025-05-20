@@ -82,8 +82,8 @@ plugins:
             yandexmusic: false # Enable Yandex Music lyrics source
             vkmusic: false # Enable Vk Music lyrics source
         spotify:
-            clientId: '3fef53a7e8224487b126a59c23938e4e'
-            clientSecret: '18981d7890de4e9eaf391b4954cbb734'
+            clientId: ''
+            clientSecret: ''
             # spDc: "your sp dc cookie" # the sp dc cookie used for accessing the spotify lyrics api
             countryCode: 'US' # the country code you want to use for filtering the artists top tracks. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
             playlistLoadLimit: 6 # The number of pages at 100 tracks each
