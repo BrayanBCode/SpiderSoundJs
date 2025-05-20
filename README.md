@@ -16,13 +16,13 @@
 - 🎚️ Controles mediante botones
 - 🧪 Modo desarrollador para pruebas y paginadores
 - ⚙️ Modular y fácil de extender
-- 🐳 Compatible con Docker
+- 🐳 Utilizar con Docker
 
 ---
 
 ## 🚀 Instalación
 
-### Opción 1: Ejecutar localmente
+### Usar Docker
 
 1. Cloná el repositorio:
 
@@ -41,19 +41,10 @@ npm install
 
 ```bash
 cp .env.example .env
+cp application.example.yml application.yml
 ```
 
 4. Iniciá el bot:
-
-```bash
-node launchtest.js
-```
-
----
-
-### Opción 2: Usar Docker
-
-Asegurate de tener Docker y Docker Compose instalados.
 
 ```bash
 docker-compose up --build
@@ -64,9 +55,9 @@ docker-compose up --build
 ## 🧰 Requisitos
 
 * Node.js v18+
-* Lavalink (puede correr en contenedor o localmente)
+* Lavalink (correr en contenedor)
 * Token de bot de Discord
-* YouTube API key (si usás búsquedas)
+* YouTube API key (No necesario)
 
 ---
 
@@ -80,7 +71,6 @@ docker-compose up --build
 | `/stop`   | Detiene la música               |
 | `/pause`  | Pausa la canción actual         |
 | `/resume` | Reanuda la reproducción         |
-| `/dev`    | Comandos para el developer      |
 
 ---
 
