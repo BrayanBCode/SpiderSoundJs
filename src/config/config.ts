@@ -34,11 +34,11 @@ export const config: Config = {
     bot: {
         token: process.env.BOT_TOKEN || '',
         clientID: process.env.CLIENT_ID || '',
-        user: process.env.USER_NAME || 'Araña Sound', // Valor por defecto si no está definido en .env
+        user: process.env.USER_NAME || 'MusicBot', // Valor por defecto si no está definido en .env
         devGuild: process.env.DEV_GUILD || '',
     },
     lavalink: {
-        authorization: process.env.LAVALINK_AUTHORIZATION || 'password', // Valor por defecto
+        authorization: process.env.LAVALINK_AUTHORIZATION || '', // Valor por defecto
         host: process.env.LAVALINK_HOST || 'lavalink', // Valor por defecto
         port: parseInt(process.env.LAVALINK_PORT || '2333', 10), // Convierte a número
         id: process.env.LAVALINK_ID || 'testnode', // Valor por defecto
