@@ -79,7 +79,7 @@ export default new Command({
 
         await player.skip(songIndex); // Para avanzar a la canción sele ccionada
 
-        client.lavaManager.playingMessageController.DeleteMessage(player.guildId, true);
+        // client.lavaManager.playingMessageController.DeleteMessage(player.guildId, true);
 
         return interaction.reply({
             embeds: [
