@@ -16,10 +16,17 @@ export default new Command({
             .setDescription("No hay nada que parar de reproducir, utiliza /play para agregar canciones")
             .setColor("Red");
 
-        if (!player || !player.queue.current) return await interaction.reply({ embeds: [embErr] })
+        if (!player?.queue.current) return await interaction.reply({ embeds: [embErr] })
 
         const StopedSong = player.queue.current
         await player.stopPlaying(false)
+
+        setTimeout(() => {
+            const player = client.getPlayer(guildID);
+            if (player && player.queue.tracks.length === 0) {
+                player.disconnect()
+            }
+        }, 15000)
 
         await interaction.reply({
             embeds: [

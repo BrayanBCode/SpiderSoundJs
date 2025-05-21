@@ -84,7 +84,7 @@ export class PlayerMessage {
         }
 
         await message.delete().catch(() => {
-            logger.error(`[PlayerMessage] No se puede eliminar el mensaje`)
+            logger.error(`[PlayerMessage][ignorable] No se puede eliminar el mensaje`)
         })
 
         logger.info(`[PlayerMessage] El mensaje "${message.id}" fue eliminado con exito`)
@@ -190,8 +190,18 @@ export class PlayerMessage {
                             .setDescription("🛑 Se detuvo la reproducción")
                             .setColor("Blue")
                     })
+                    try {
+                        col.stop("Track Stopped")
+                    } catch (err) {
+                        logger.error('col.stop("Track Stopped"): ' + err)
+                    }
 
-                    col.stop("Trank Stopped")
+                    setTimeout(() => {
+                        const player = client.getPlayer(inter.guildId);
+                        if (player && player.queue.tracks.length === 0) {
+                            player.disconnect()
+                        }
+                    }, 15000)
 
                     deleteAfterTimer(stopMsg, 10000)
                 }),
