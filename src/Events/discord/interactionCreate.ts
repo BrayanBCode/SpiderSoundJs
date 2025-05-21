@@ -21,7 +21,7 @@ export default class InteractionCreate extends BaseDiscordEvent<"interactionCrea
 
         if (!command) return logger.error(`[interactionCreate] No se encontró un comando que coincida con ${interaction.commandName}.`);
 
-        logger.debug(`[interactionCreate] Se utilizo el comando **${interaction.commandName}** en ${interaction.guild?.name}`)
+        // logger.debug(`[interactionCreate] Se utilizo el comando **${interaction.commandName}** en ${interaction.guild?.name}`)
 
         try {
             if (interaction.isCommand()) {
