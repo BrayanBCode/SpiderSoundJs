@@ -171,7 +171,7 @@ export default class VoiceStateUpdate extends BaseDiscordEvent<"voiceStateUpdate
         const isBot = this.isBot(client, newState);
 
         const leftChannel = oldState.channelId && !newState.channelId;
-        const switchedChannel = oldState.channelId && newState.channelId && oldState.channelId !== newState.channelId;
+        const switchedChannel = oldState.channelId && newState.channelId && oldState.channelId !== newState.channelId && isBot;
 
         if (switchedChannel) {
             logger.info(`[SwitchedChannel] Moviéndome de "${oldState.channel?.name}" a "${newState.channel?.name}"`)
