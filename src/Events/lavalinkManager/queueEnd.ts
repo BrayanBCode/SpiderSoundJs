@@ -23,6 +23,13 @@ export default class queueEnd extends BaseLavalinkManagerEvents<"queueEnd"> {
             ]
         })
 
+        setTimeout(() => {
+            const gettedPlayer = client.getPlayer(player.guildId);
+            if (gettedPlayer && gettedPlayer.queue.tracks.length === 0) {
+                gettedPlayer.disconnect()
+            }
+        }, 15000)
+
 
 
         await client.playerMessage.delete(player.guildId)
