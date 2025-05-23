@@ -72,7 +72,7 @@ export class PlayerMessage {
         const data = this.MessageContainer.get(guildID)
 
         if (!data) {
-            logger.error(`[PlayerMessage] No se pudo obtener ningun dato`)
+            logger.error(`[PlayerMessage][Ignorable] No se pudo obtener ningun dato`)
             return false
         }
 
@@ -84,7 +84,7 @@ export class PlayerMessage {
         }
 
         await message.delete().catch(() => {
-            logger.error(`[PlayerMessage][ignorable] No se puede eliminar el mensaje`)
+            logger.error(`[PlayerMessage][Ignorable] No se puede eliminar el mensaje`)
         })
 
         logger.info(`[PlayerMessage] El mensaje "${message.id}" fue eliminado con exito`)
