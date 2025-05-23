@@ -112,7 +112,7 @@ Este proyecto está bajo la licencia [MIT](LICENSE).
 
 ## ✨ Autor
 
-**Brayan BCode**
+**BrayanBCode**
 🕸️ GitHub: [@BrayanBCode](https://github.com/BrayanBCode)
 
 ---
