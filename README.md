@@ -37,7 +37,7 @@ cd SpiderBot
 npm install
 ```
 
-3. Copiá y configurá el archivo `.env` (o `config.js` según tu estructura):
+3. Copiá y configurá los archivos `.env` y `application.yml` (o `config.js` según tu estructura):
 
 ```bash
 cp .env.example .env
@@ -101,8 +101,20 @@ docker-compose.yml
 ```
 
 ---
+## Problemas con el servidor Lavalink
+Ante problemas como "Encuentra la música pero no reproduce" o "No encuentra resultados" revisa los logs y verifica que no haya salido alguna version del plugin youtube-plugin
 
-## 📄 Licencia
+Los logs pueden no mostrar dicho error ya que el error puede ser reciente e indocumentado recomiendo revisar el servidor de discord de [Lavalink](https://discord.gg/7mZuAGQdBH) donde se reportan y publican las actualizaciones de dicho plugin
+
+Al cambiar el plugin no basta solo con reemplazar el archivo además debes modificar el archivo `application.yml` y modificar la línea con la version actual del plugin
+```yml
+- dependency: 'dev.lavalink.youtube:youtube-plugin:1.13.2'
+```
+
+Suelo estar atento a dichos cambios por ende revisen los lanzamientos recientes
+
+---
+## 📄 Licencia 
 
 Este proyecto está bajo la licencia [MIT](LICENSE).
 
