@@ -1,6 +1,7 @@
 import { EmbedBuilder, EmbedData, InteractionResponse, Message, MessageFlags } from "discord.js";
-import { ISimpleEmbedReply } from "../interface/ISimpleEmbedReply.js";
-import logger from "../class/logger.js";
+
+import logger from "../bot/logger.js";
+import { ISimpleEmbedReply } from "../types/interface/ISimpleEmbedReply.js";
 
 
 /**
@@ -85,4 +86,8 @@ export function titleCleaner(title: string, artist?: string): string {
 
     // 4. Espacios extra
     return title.replace(/\s{2,}/g, ' ').trim();
+}
+
+export function stringPathToSegmentedString(path: string) {
+    return path.split('/')
 }

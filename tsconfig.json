@@ -1,22 +1,22 @@
 {
     "compilerOptions": {
+        "useDefineForClassFields": true,
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
         "target": "ESNext",
-        "module": "ESNext",
-        "moduleResolution": "node",
         "strict": true,
         "esModuleInterop": true,
-        "allowSyntheticDefaultImports": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
-        "resolveJsonModule": true,
-        "sourceMap": true,
-        "outDir": "./dist"
+        "noUnusedParameters": false,
+        "noFallthroughCasesInSwitch": true,
+        "outDir": "./dist",
+
+        "baseUrl": "./",
+        "paths": {
+            "@/*": ["src/*"]
+        }
     },
-    "include": [
-        "src/**/*",
-        "launchtest.js",
-        "deprecated/deprecated-handlers",
-        "deprecated"
-    ],
-    "exclude": ["node_modules", "**/deprecated/**"]
+    "include": ["src/**/*.ts", "src/folderTest.ts"],
+    "exclude": ["node_modules"]
 }

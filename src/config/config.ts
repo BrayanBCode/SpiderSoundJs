@@ -21,7 +21,18 @@ interface Config {
         port: number;
         id: string;
     };
-    commandFolders: string[];
+    handlersFolders: {
+
+        discord: {
+            commands: string,
+            events: string
+        },
+        lavalink: {
+            manager: string,
+            node: string
+        }
+
+    };
 }
 
 // Crear una configuración con las variables de entorno
@@ -29,7 +40,6 @@ export const config: Config = {
     dev: {
         username: process.env.DEV_USERNAME || '',
         id: process.env.DEV_ID || '111111111111111111'
-
     },
     bot: {
         token: process.env.BOT_TOKEN || '',
@@ -43,5 +53,14 @@ export const config: Config = {
         port: parseInt(process.env.LAVALINK_PORT || '2333', 10), // Convierte a número
         id: process.env.LAVALINK_ID || 'testnode', // Valor por defecto
     },
-    commandFolders: process.env.COMMAND_FOLDERS ? process.env.COMMAND_FOLDERS.split(',') : ['misc', 'music'],
+    handlersFolders: {
+        discord: {
+            commands: 'src/core/commands',
+            events: 'src/core/events/discord'
+        },
+        lavalink: {
+            manager: "src/core/events/lavalinkManager",
+            node: "src/core/events/lavalinkNodeManager"
+        }
+    }
 };

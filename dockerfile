@@ -1,24 +1,11 @@
-# Usa una imagen base de Node.js versión 22
-FROM node:22-slim
-
-# Establece el directorio de trabajo en el contenedor
+FROM node:23-slim
 WORKDIR /usr/src/app
 
-# Copia el package.json y el package-lock.json al directorio de trabajo
-COPY package*.json ./
+COPY package*.json ./  
 
-# Instala las dependencias del proyecto
-RUN npm install -g typescript && npm install
+RUN npm install        
+RUN npm install -g tsx        
 
+COPY . .             
 
-# Copia los archivos del proyecto al directorio de trabajo
-COPY . .
-
-# Instala ts-node globalmente para ejecutar TypeScript directamente
-# RUN npm install -g ts-node
-
-# Expone el puerto en el que se ejecuta tu bot (si es necesario)
-EXPOSE 3000
-
-# Comando para ejecutar tu bot con ts-node
-CMD ["npm", "run", "dev"]
+CMD ["tsx", "./src/index.ts"] 
