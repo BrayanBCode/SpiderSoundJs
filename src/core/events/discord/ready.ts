@@ -2,7 +2,7 @@ import { BotClient } from "@/bot/BotClient.js";
 import logger from "@/bot/logger.js";
 import { config } from "@/config/config.js";
 import { registerLavalinkNodeEvents } from "@/core/handler/RegisterBaseNodeManagerEvents.js";
-import { registerAllCommands } from "@/core/handler/RegisterCommands.js";
+import { registerCommands } from "@/core/handler/RegisterCommands.js";
 import { registerLavalinkEvents } from "@/core/handler/RegisterlavalinkManagerEvent.js";
 import { LavaManagerCustom } from "@/lavalink/lavaManagerCustom.js";
 import { BaseDiscordEvent } from "@/structures/events/BaseDiscordEvent.js";
@@ -25,8 +25,8 @@ export default class ReadyEvent extends BaseDiscordEvent<"ready"> {
 
         // Ejecuta todas las tareas de inicialización de forma paralela
         await Promise.all([
-            this.initializeLavaManager(client),        // Conecta con el servidor Lavalink
-            registerAllCommands(client),              // Registra todos los comandos disponibles
+            this.initializeLavaManager(client),       // Conecta con el servidor Lavalink
+            registerCommands(client),                 // Registra todos los comandos disponibles
             registerLavalinkEvents(client),           // Registra eventos personalizados para Lavalink
             registerLavalinkNodeEvents(client)        // Registra eventos base del nodo Lavalink
         ]);

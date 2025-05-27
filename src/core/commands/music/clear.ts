@@ -1,17 +1,12 @@
-import { Command } from "@/structures/commands/Commands.js"
+import { SlashCommand } from "@/structures/commands/SlashCommand.js"
 import { createEmptyEmbed } from "@/utils/tools.js"
-import { SlashCommandBuilder } from "discord.js"
 
 
-export default new Command({
-    data: {
-        command: new SlashCommandBuilder()
-            .setName("clear")
-            .setDescription("Limpia la lista de reproducción"),
-
-        category: "Music"
-    },
-    execute: async (client, interaction) => {
+export default new SlashCommand()
+    .setName("clear")
+    .setDescription("Limpia la lista de reproducción")
+    .setCategory("Music")
+    .setExecute(async (client, interaction) => {
         if (!interaction.guildId) return
 
         await interaction.deferReply()
@@ -36,6 +31,5 @@ export default new Command({
             })
         })
 
-    }
+    })
 
-})

@@ -72,7 +72,6 @@ export default async ({ time = undefined, player, TextChannel, client }: IPlayer
                             });
                         }
 
-                        await client.lavaManager.playingMessageController.SendMessage({ player, client });
 
                         const queue = player.queue.tracks;
 
@@ -141,7 +140,6 @@ export default async ({ time = undefined, player, TextChannel, client }: IPlayer
                     try {
                         await player.skip();
 
-                        await client.lavaManager.playingMessageController.SendMessage({ player, client });
                         const msg = i.followUp({ embeds: [createEmptyEmbed().setDescription(`⏭️ Canción saltada`)] });
 
                         setTimeout(() => {

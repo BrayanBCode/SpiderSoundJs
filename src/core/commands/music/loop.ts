@@ -1,30 +1,15 @@
 import logger from "@/bot/logger.js"
-import { Command } from "@/structures/commands/Commands.js"
+import { SlashCommand } from "@/structures/commands/SlashCommand.js"
 import { createEmptyEmbed } from "@/utils/tools.js"
-import { SlashCommandBuilder, CommandInteractionOptionResolver, GuildMember } from "discord.js"
+import { CommandInteractionOptionResolver, GuildMember } from "discord.js"
 import { RepeatMode } from "lavalink-client"
 
 
-export default new Command({
-    data: {
-        command: new SlashCommandBuilder()
-            .setName("loop")
-            .setDescription("Activa o desactiva el loop.")
-            .addStringOption(
-                o => o
-                    .setName("mode")
-                    .setDescription("Elije que modo quieres 😎")
-                    .addChoices(
-                        { name: "🔂 Cancion actual", value: "track" },
-                        { name: "🔁 Lista de reproducción", value: "queue" },
-                        { name: "❌ Desactivar", value: "off" }
-                    )
-                    .setRequired(true)
-            ),
-
-        category: "Music"
-    },
-    execute: async (client, inter) => {
+export default new SlashCommand()
+    .setName("loop")
+    .setDescription("Activa o desactiva el loop.")
+    .setCategory("Music")
+    .setExecute(async (client, inter) => {
         try {
 
             const guildId = inter.guildId
@@ -79,8 +64,16 @@ export default new Command({
             }
         }
 
+    })
+    .addStringOption(
+        o => o
+            .setName("mode")
+            .setDescription("Elije que modo quieres 😎")
+            .addChoices(
+                { name: "🔂 Cancion actual", value: "track" },
+                { name: "🔁 Lista de reproducción", value: "queue" },
+                { name: "❌ Desactivar", value: "off" }
+            )
+            .setRequired(true))
 
-    },
 
-
-}) 

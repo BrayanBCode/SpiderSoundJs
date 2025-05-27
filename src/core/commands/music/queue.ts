@@ -1,18 +1,15 @@
 import { QueuePaginator } from "@/modules/buttons/QueuePaginator.js";
-import { Command } from "@/structures/commands/Commands.js";
+import { SlashCommand } from "@/structures/commands/SlashCommand.js";
 import { createEmptyEmbed } from "@/utils/tools.js";
-import { SlashCommandBuilder } from "discord.js";
 
 
-export default new Command({
-    data: {
-        command: new SlashCommandBuilder()
-            .setName("queue")
-            .setDescription("Muestra el listado de canciones en la cola de reproducción."),
-        category: 'Music'
-    },
+export default new SlashCommand()
+    .setName("queue")
+    .setDescription("Muestra el listado de canciones en la cola de reproducción.")
+    .setCategory("Music")
 
-    execute: async (client, interaction) => {
+
+    .setExecute(async (client, interaction) => {
         if (!interaction.guildId) return;
 
         const player = client.getPlayer(interaction.guildId);
@@ -26,5 +23,4 @@ export default new Command({
 
         const paginator = new QueuePaginator({ interaction, items: player.queue.tracks })
         await paginator.reply(true)
-    },
-});
+    })

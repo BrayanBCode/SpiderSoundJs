@@ -1,20 +1,17 @@
 import { config } from "@/config/config.js";
 import { CustomButtonBuilder } from "@/modules/buttons/ButtonBuilder.js";
 import { DisplayButtonsBuilder } from "@/modules/buttons/DisplayButtonsBuilder.js";
-import { Command } from "@/structures/commands/Commands.js";
+import { SlashCommand } from "@/structures/commands/SlashCommand.js";
 import { createEmptyEmbed } from "@/utils/tools.js";
-import { SlashCommandBuilder, MessageFlags, ButtonStyle } from "discord.js";
+import { MessageFlags, ButtonStyle } from "discord.js";
 
 
 
-export default new Command({
-    data: {
-        command: new SlashCommandBuilder()
-            .setName("test")
-            .setDescription("testing"),
-        category: "Misc"
-    },
-    execute: async (client, inter) => {
+export default new SlashCommand()
+    .setName("test")
+    .setDescription("testing")
+    .setCategory("Dev")
+    .setExecute(async (client, inter) => {
         if (!inter.guildId) return;
 
         if (inter.user.id !== config.dev.id) {
@@ -40,7 +37,5 @@ export default new Command({
         )
 
         view.reply(inter, [createEmptyEmbed().setDescription("Botone")])
-    }
-
-})
+    })
 

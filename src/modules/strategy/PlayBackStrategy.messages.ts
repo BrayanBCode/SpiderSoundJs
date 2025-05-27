@@ -1,7 +1,5 @@
 import { interactionCommandType } from "@/types/types/interactionCommandType.js";
 import { simpleEmbedReply, createEmptyEmbed } from "@/utils/tools.js";
-
-
 // eafrm
 
 

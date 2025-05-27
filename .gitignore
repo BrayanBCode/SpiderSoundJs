@@ -42,3 +42,4 @@ vendor/
 *.pyc
 /node_modules
 
+src/core/commands/dev/Minecraft.ts

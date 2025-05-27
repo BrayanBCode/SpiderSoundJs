@@ -1,16 +1,12 @@
-import { Command } from "@/structures/commands/Commands.js";
+import { SlashCommand } from "@/structures/commands/SlashCommand.js";
 import { createEmptyEmbed } from "@/utils/tools.js";
-import { SlashCommandBuilder } from "discord.js";
 
 
-export default new Command({
-    data: {
-        command: new SlashCommandBuilder()
-            .setName("stop")
-            .setDescription("Detiene y borra la cola de reprodución"),
-        category: 'Music'
-    },
-    execute: async (client, interaction) => {
+export default new SlashCommand()
+    .setName("stop")
+    .setDescription("Detiene y borra la cola de reprodución")
+    .setCategory("Music")
+    .setExecute(async (client, interaction) => {
         const guildID = interaction.guildId;
         const player = client.getPlayer(guildID);
         const embErr = createEmptyEmbed()
@@ -37,5 +33,4 @@ export default new Command({
                     .setColor("Green")
             ]
         })
-    }
-})
+    })

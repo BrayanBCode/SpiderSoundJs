@@ -1,18 +1,17 @@
-import { SubCommand } from "@/structures/commands/Commands.js";
 import { registerDiscordEvents } from "@/core/handler/RegisterDiscordEvent.js";
 import { LavaManagerCustom } from "@/lavalink/lavaManagerCustom.js";
 import { BotClientOptions } from "@/types/interface/BotClientOptions.js";
-import { ICommand } from "@/types/types/Client.js";
 import { Client, ChatInputCommandInteraction, AutocompleteInteraction, CacheType, GuildMember, Guild, TextChannel, VoiceChannel } from "discord.js";
 import { PlayerMessage } from "@/modules/messages/playerMessage.js";
 import { config } from "@/config/config.js";
+import { SlashCommand } from "@/structures/commands/SlashCommand.js";
 
 
 
 
 export class BotClient extends Client {
     lavaManager!: LavaManagerCustom;
-    commands: Map<string, ICommand | SubCommand>;
+    commands: Map<string, SlashCommand>;
     defaultVolume: number;
     debugMode: boolean;
     playerMessage: PlayerMessage
@@ -28,13 +27,6 @@ export class BotClient extends Client {
 
         this.playerMessage = new PlayerMessage(this)
 
-    }
-
-    /**
-     * Adaptar el codigo a este getter
-     */
-    get playingMessage() {
-        return this.lavaManager.playingMessages
     }
 
     getPlayer(guildId: string) {

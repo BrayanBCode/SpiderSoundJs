@@ -1,18 +1,17 @@
-import { Command } from "@/structures/commands/Commands.js";
+import { SlashCommand } from "@/structures/commands/SlashCommand.js";
 import { createEmptyEmbed } from "@/utils/tools.js";
-import { SlashCommandBuilder } from "discord.js";
 
 
-export default new Command({
-    data: {
-        command: new SlashCommandBuilder()
-            .setName("help")
-            .setDescription("Te dice trola"),
+export default new SlashCommand()
+    .setName("help")
+    .setDescription("Te dice trola")
+    .setCategory("Misc")
+    .setExecute(async (_client, interaction) => {
+        await interaction.reply({
+            embeds: [
+                createEmptyEmbed()
+                    .setDescription("❌ Sin implementar")
+                    .setColor("Red")]
+        })
 
-        category: "Misc",
-
-    },
-    execute: async (_client, interaction) => {
-        await interaction.reply({ embeds: [createEmptyEmbed().setDescription("❌ Sin implementar").setColor("Red")] })
-    }
-})
+    })

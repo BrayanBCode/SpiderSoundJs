@@ -1,109 +1,59 @@
 import { BotClient } from "@/bot/BotClient.js";
 import logger from "@/bot/logger.js";
 import { config } from "@/config/config.js";
-import { ICommand } from "@/types/types/Client.js";
+import { SlashCommand } from "@/structures/commands/SlashCommand.js";
 import { stringPathToSegmentedString } from "@/utils/tools.js";
-import { SlashCommandBuilder, REST, Routes } from "discord.js";
+import { REST, Routes } from "discord.js";
 import { readdirSync } from "fs";
 import { join } from "path";
-import { pathToFileURL } from "url";
 
 
-/**
- * Carga y valida un comando desde un archivo.
- * @param client - Cliente del bot.
- * @param filePath - Ruta al archivo del comando.
- */
-async function loadCommand(client: BotClient, filePath: string) {
-    const fileUrl = pathToFileURL(filePath).href;
+export async function registerCommands(client: BotClient) {
+    const stringPath = join(process.cwd(), ...stringPathToSegmentedString(config.handlersFolders.discord.commands))
+    const commandsFolders = readdirSync(stringPath, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory());
+
+    const commandsStringPath = commandsFolders.map((folder) => {
+        const files = readdirSync(join(stringPath, folder.name)).filter(file => file.endsWith(".ts") || file.endsWith(".js"))
+
+        return files.map((file) => {
+            return join(stringPath, folder.name, file)
+        })
+
+    }).flat()
 
     try {
-        const command = await import(fileUrl).then((mod) => mod.default) as ICommand;
+        for (const filePath of commandsStringPath) {
+            const SlashCmd = await import(filePath).then((mod) => mod.default) as SlashCommand;
 
-        if (!command || !command.data || !command.execute) {
-            logger.warn(`El archivo ${filePath} no contiene propiedades "data" o "execute".`);
-            return;
-        }
-
-        // Registra el comando en el cliente
-        client.commands.set(command.data.command.name, command);
-    } catch (err) {
-        logger.error(`Error al cargar el comando en ${fileUrl}: ${err}`);
-    }
-}
-
-/**
- * Carga todos los comandos desde una carpeta.
- * @param client - Cliente del bot.
- * @param commandsDir - Directorio donde están los archivos de comandos.
- */
-async function loadCommandsFromDir(client: BotClient, commandsDir: string) {
-    const files = readdirSync(commandsDir).filter((file) => file.endsWith(".ts") || file.endsWith(".js"));
-
-    for (const file of files) {
-        const filePath = join(commandsDir, file);
-        await loadCommand(client, filePath);
-    }
-}
-
-/**
- * Carga comandos de subcarpetas y carpetas principales.
- * @param client - Cliente del bot.
- * @param baseDir - Carpeta base de comandos.
- */
-async function loadAllCommands(client: BotClient, baseDir: string) {
-    const folders = readdirSync(baseDir, { withFileTypes: true }).filter((entry) => entry.isDirectory());
-
-    for (const folder of folders) {
-        const folderPath = join(baseDir, folder.name);
-        await loadCommandsFromDir(client, folderPath);
-    }
-
-    // Finalmente, carga los comandos directamente en la carpeta base
-    await loadCommandsFromDir(client, baseDir);
-}
-
-/**
- * Registra todos los comandos en Discord.
- * @param client - Cliente del bot.
- */
-export async function registerAllCommands(client: BotClient) {
-    try {
-        const commandsPath = join(process.cwd(), ...stringPathToSegmentedString(config.handlersFolders.discord.commands));
-
-        // Cargar todos los comandos en client.commands
-        await loadAllCommands(client, commandsPath);
-
-        const commandData: SlashCommandBuilder[] = [];
-
-        for (const cmd of client.commands.values()) {
             try {
-                const json = (cmd.data.command as SlashCommandBuilder).toJSON();
-                logger.info(`|| Comando **${json.name}** registrado. ||`);
+                SlashCmd.toJSON()
 
-                commandData.push(cmd.data.command as SlashCommandBuilder);
+                client.commands.set(SlashCmd.name, SlashCmd)
+
+                logger.debug(`[RegisterCommands] || Comando ${SlashCmd.name} verificado. ||`);
             } catch (err) {
-                logger.error(`Error en el comando "${cmd.data.command?.name}": ${err}`);
+                logger.error(`[RegisterCommands] Error en el comando ${SlashCmd.name}: ${err}`)
             }
-        }
 
-        const rest = new REST().setToken(config.bot.token);
-
-        await rest.put(
-            client.debugMode
-                ? Routes.applicationGuildCommands(config.bot.clientID, config.bot.devGuild)
-                : Routes.applicationCommands(config.bot.clientID),
-            { body: commandData }
-        );
-
-        logger.info("|| Todos los comandos fueron registrados con éxito ||");
-    } catch (err) {
-        if (err instanceof Error) {
-            logger.error(`Falló el registro de los comandos: ${err.message}`);
-            logger.error(`Stack Trace: ${err.stack}`);
-        } else {
-            logger.error('Ocurrió un error desconocido al registrar los comandos');
         }
     }
-}
+    catch (error) {
+        logger.error(`[RegisterCommands] Error al registrar los comandos: ${error}`);
+    }
+    const rest = new REST().setToken(config.bot.token);
 
+    const commandsArray = Array.from(client.commands.values()).map(cmd => {
+        const command = cmd.toJSON()
+        logger.info(`|| Comando ${cmd.name} registrado con exito ||`)
+        return command
+    });
+
+    await rest.put(
+        client.debugMode
+            ? Routes.applicationGuildCommands(config.bot.clientID, config.bot.devGuild)
+            : Routes.applicationCommands(config.bot.clientID),
+        { body: commandsArray }
+    );
+
+}

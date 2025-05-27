@@ -1,18 +1,13 @@
-import { Command } from "@/structures/commands/Commands.js"
-import { SlashCommandBuilder } from "discord.js"
+import { SlashCommand } from "@/structures/commands/SlashCommand.js"
 
 
-export default new Command(
-    {
-        data: {
-            command: new SlashCommandBuilder()
-                .setName("ping")
-                .setDescription("Responde Pong!"),
+export default new SlashCommand()
+    .setName("ping")
+    .setDescription("Responde Pong!")
+    .setCategory("Misc")
 
-            category: 'Misc'
-        },
-        execute: (client, interaction) => {
+    .setExecute(
+        async (client, interaction) => {
             interaction.reply("Pong! " + client.user?.username)
-        }
-    }
-)
+        })
+

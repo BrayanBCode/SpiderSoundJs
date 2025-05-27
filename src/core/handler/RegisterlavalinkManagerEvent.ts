@@ -10,9 +10,9 @@ import { join } from "path";
 
 export async function registerLavalinkEvents(client: BotClient): Promise<void> {
     const eventsPath: string = join(process.cwd(), ...stringPathToSegmentedString(config.handlersFolders.lavalink.manager));
-    logger.debug(eventsPath)
+    // logger.debug(eventsPath)
     const files = readdirSync(eventsPath).filter(file => file.endsWith(".ts") || file.endsWith(".js"));
-    logger.debug(files)
+    // logger.debug(files)
     for (const file of files) {
         const filePath = join(eventsPath, file);
 

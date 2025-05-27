@@ -1,19 +1,15 @@
 import logger from "@/bot/logger.js";
-import { Command } from "@/structures/commands/Commands.js";
+import { SlashCommand } from "@/structures/commands/SlashCommand.js";
 import { createEmptyEmbed } from "@/utils/tools.js";
-import { SlashCommandBuilder, VoiceChannel } from "discord.js";
+import { VoiceChannel } from "discord.js";
 
 
 
-export default new Command({
-    data: {
-        command: new SlashCommandBuilder()
-            .setName("leave")
-            .setDescription("Me desconecta del canal de voz"),
-        category: "Music"
-    },
-
-    execute: async (client, interaction) => {
+export default new SlashCommand()
+    .setName("leave")
+    .setDescription("Me desconecta del canal de voz")
+    .setCategory("Music")
+    .setExecute(async (client, interaction) => {
         if (!interaction.guildId) return;
 
         const guildID = interaction.guildId;
@@ -47,5 +43,4 @@ export default new Command({
                 }
             })
 
-    }
-})
+    })

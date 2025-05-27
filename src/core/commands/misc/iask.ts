@@ -1,33 +1,41 @@
-import { Command } from "@/structures/commands/Commands.js";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommand } from "@/structures/commands/SlashCommand.js";
+import { ChatInputCommandInteraction } from "discord.js";
 
+export default new SlashCommand()
+    .setName("iask")
+    .setDescription("Respuesta generada por la IA")
+    .setCategory("Misc")
+    .setExecute(
+        async (_client, interaction: ChatInputCommandInteraction) => {
+            await interaction.deferReply();
 
-export default new Command(
-    {
-        data: {
-            command: new SlashCommandBuilder()
-                .setName("iask")
-                .setDescription("Respuesta generada por la IA")
-                .addStringOption(o =>
-                    o.setName("pregunta")
-                        .setDescription("Que te pinta preguntar che?")
-                        .setRequired(true)),
-            category: 'Misc'
-        },
+            const ask = interaction.options.getString("pregunta", true); // `true` lo hace obligatorio (evita el if manual)
 
-        execute: async (_client, interaction) => {
-            await interaction.deferReply()
-            let ask = interaction.options.getString('pregunta');
+            const prompt = `${ask}, en menos de 2000 letras`;
 
-            if (!ask) return await interaction.reply("No entendi la pregunta")
+            try {
+                const response = await fetch(`https://gemini-rest.vercel.app/api/?prompt=${encodeURIComponent(prompt)}`);
 
-            ask += ", en menos de 2000 letras"
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.statusText}`);
+                }
 
-            const response = await fetch(`https://gemini-rest.vercel.app/api/?prompt=${encodeURIComponent(ask)}`);
-            const data = await response.json();
+                const data = await response.json();
 
+                if (!data?.response) {
+                    throw new Error("Respuesta de la IA inválida o vacía.");
+                }
 
-            await interaction.followUp(data.response.substring(0, 2000));
+                await interaction.followUp(data.response.substring(0, 2000));
+            } catch (error) {
+                console.error("Error en el comando /iask:", error);
+                await interaction.followUp("❌ Hubo un error al procesar tu pregunta. Intenta nuevamente más tarde.");
+            }
         }
-    }
-);
+    )
+    .addStringOption(option =>
+        option
+            .setName("pregunta")
+            .setDescription("¿Qué te pinta preguntar, che?")
+            .setRequired(true)
+    );
