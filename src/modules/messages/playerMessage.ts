@@ -1,7 +1,7 @@
 import { BotClient } from "@/bot/BotClient.js"
 import logger from "@/bot/logger.js"
 import { formatMS_HHMMSS } from "@/utils/formatMS_HHMMSS.js"
-import { createEmptyEmbed, titleCleaner, simpleEmbedReply, deleteAfterTimer } from "@/utils/tools.js"
+import { createEmptyEmbed, titleCleaner, replyEmbed, deleteAfterTimer } from "@/utils/tools.js"
 import { TextChannel, Message, User, ButtonStyle, MessageFlags, ButtonInteraction } from "discord.js"
 import { Track, Player } from "lavalink-client"
 import { CustomButtonBuilder } from "../buttons/ButtonBuilder.js"
@@ -165,7 +165,7 @@ export class PlayerMessage {
 
                     await player.play({ track: player.queue.previous[0] });
 
-                    const prevMsg = await simpleEmbedReply({
+                    const prevMsg = await replyEmbed({
                         interaction: inter as ButtonInteraction<"cached">,
                         embed: createEmptyEmbed()
                             .setDescription(`Reproduciendo: **${player.queue.previous[0].info.title}**`)
@@ -183,7 +183,7 @@ export class PlayerMessage {
 
                     await player.stopPlaying(true)
 
-                    const stopMsg = await simpleEmbedReply({
+                    const stopMsg = await replyEmbed({
                         interaction: (inter as ButtonInteraction<"cached">),
                         embed: createEmptyEmbed()
                             .setDescription("🛑 Se detuvo la reproducción")
@@ -214,7 +214,7 @@ export class PlayerMessage {
 
                     player.playing ? await player.pause() : await player.resume();
 
-                    const ResumePlayMsg = await simpleEmbedReply({
+                    const ResumePlayMsg = await replyEmbed({
                         interaction: inter as ButtonInteraction<"cached">,
                         embed: createEmptyEmbed()
                             .setDescription(`Reproducción ${player.playing ? "⏸️" : "▶️"}`)
@@ -231,7 +231,7 @@ export class PlayerMessage {
                     const player = client.getPlayer(inter.guildId)!
 
                     if (!player.queue.tracks.length) {
-                        const emptyQueue = await simpleEmbedReply({
+                        const emptyQueue = await replyEmbed({
                             interaction: inter as ButtonInteraction<"cached">,
                             embed: createEmptyEmbed()
                                 .setDescription("❌ No hay suficientes canciones en la lista")
@@ -247,7 +247,7 @@ export class PlayerMessage {
 
                     // await client.playerMessage.send(inter.guildId, inter.channelId)
 
-                    const nextMsg = await simpleEmbedReply({
+                    const nextMsg = await replyEmbed({
                         interaction: inter as ButtonInteraction<"cached">,
                         embed: createEmptyEmbed()
                             .setDescription(`⏭️ Canción saltada`)

@@ -16,34 +16,38 @@ export function createEmptyEmbed(opt?: EmbedData) {
 
 /**
  * Envía una respuesta a una interacción con un embed y configuraciones opcionales.
- * Se utiliza para agilizar el envío de respuestas simples y monotonas, suele ser utilizado en conjunto con {@link createEmptyEmbed}.
  * 
+ * Esta función simplifica respuestas comunes a comandos de slash usando un embed. 
+ * Puede ser utilizada junto con {@link createEmptyEmbed} para generar respuestas rápidas.
+ * También soporta respuestas efímeras y `followUp` cuando ya se ha respondido previamente.
  * 
- * @param {ISimpleEmbedReply} params - Los parámetros para la respuesta.
- * @param {Interaction} params.interaction - La interacción a la que se responde.
- * @param {Embed} [params.embed] - El embed a incluir en la respuesta.
- * @param {boolean} [params.ephemeral=false] - Si la respuesta debe ser efímera (solo visible para el usuario).
- * @param {Object} [params.options] - Opciones adicionales para la respuesta.
+ * @param {ISimpleEmbedReply} params - Parámetros para configurar la respuesta.
+ * @param {Interaction} params.interaction - La interacción de Discord a la que se desea responder.
+ * @param {EmbedBuilder} [params.embed] - El embed que se incluirá en la respuesta.
+ * @param {boolean} [params.ephemeral=false] - Define si la respuesta será efímera (solo visible para el usuario).
+ * @param {BaseMessageOptions} [params.options] - Opciones personalizadas para la respuesta (sobrescribe `embed` y `ephemeral`).
+ * @param {boolean} [params.followUp] - Si la respuesta debe enviarse como un `followUp` en vez de `reply`.
  *
- * @returns {Promise<Message>} El mensaje que fue enviado como respuesta.
+ * @returns {Promise<InteractionResponse<true> | Message>} El mensaje enviado como respuesta o seguimiento.
  * 
  * @example
- * simpleEmbedReply(
-    interaction: inter,
-    embed: createEmptyEmbed({ description: "No se encontraron resultados" }).setColor("Yellow"),
-    ephemeral: true
-    })
+ * await replyEmbed({
+ *   interaction,
+ *   embed: createEmptyEmbed({ description: "No se encontraron resultados." }).setColor("Yellow"),
+ *   ephemeral: true
+ * });
  */
-export async function simpleEmbedReply({ interaction, embed, ephemeral = false, options }: ISimpleEmbedReply): Promise<InteractionResponse<true>> {
-    if (options) {
-        return await interaction.reply({ ...options });
-    } else {
-        return await interaction.reply({
-            embeds: embed ? [embed] : [],
-            flags: ephemeral ? MessageFlags.Ephemeral : undefined
-        });
-    }
+export async function replyEmbed({ interaction, embed, ephemeral = false, options, followUp }: ISimpleEmbedReply) {
+    const payload = options ?? {
+        embeds: embed ? [embed] : [],
+        flags: ephemeral ? MessageFlags.Ephemeral : undefined
+    };
+
+    return followUp
+        ? await interaction.followUp(payload)
+        : await interaction.reply(payload);
 }
+
 
 export function chunkArray<T>(arr: T[], size: number): T[][] {
     const result: T[][] = [];
@@ -53,6 +57,25 @@ export function chunkArray<T>(arr: T[], size: number): T[][] {
     return result;
 }
 
+/**
+ * Elimina un mensaje automáticamente después de un tiempo especificado.
+ * 
+ * Esta función es útil para eliminar respuestas temporales como notificaciones,
+ * advertencias, o mensajes de comandos que no deben permanecer visibles.
+ * 
+ * Soporta tanto mensajes comunes como respuestas a interacciones (`InteractionResponse<true>`).
+ *
+ * @param {Message | InteractionResponse<true>} msg - El mensaje que se desea eliminar.
+ * @param {number} ms - El tiempo en milisegundos que debe esperar antes de eliminar el mensaje.
+ * 
+ * @returns {NodeJS.Timeout} El identificador del temporizador (`setTimeout`) que se puede usar para cancelar la operación si es necesario.
+ *
+ * @example
+ * const msg = await interaction.reply({ content: "Esto se eliminará pronto", fetchReply: true });
+ * deleteAfterTimer(msg, 5000); // elimina el mensaje después de 5 segundos
+ * 
+ * @deprecated TODO: Reemplazar por una función más robusta que maneje mejor los errores y casos especiales.
+ */
 export function deleteAfterTimer(msg: Message | InteractionResponse<true>, ms: number): NodeJS.Timeout {
     return setTimeout(async () => {
         try {

@@ -5,5 +5,6 @@ export interface ISimpleEmbedReply {
     embed?: EmbedBuilder;
     ephemeral?: boolean;
     options?: InteractionReplyOptions
+    followUp?: boolean;
 
 }

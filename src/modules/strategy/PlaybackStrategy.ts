@@ -1,7 +1,7 @@
 import { BotClient } from "@/bot/BotClient.js";
 import { IAddToQueueParams } from "@/types/interface/IAddToQueueParams.js";
 import { formatMS_HHMMSS } from "@/utils/formatMS_HHMMSS.js";
-import { createEmptyEmbed, titleCleaner, simpleEmbedReply, deleteAfterTimer } from "@/utils/tools.js";
+import { createEmptyEmbed, titleCleaner, replyEmbed, deleteAfterTimer } from "@/utils/tools.js";
 import { ChatInputCommandInteraction, GuildMember, CommandInteractionOptionResolver, AutocompleteInteraction, CacheType } from "discord.js";
 import { SearchPlatform, SearchResult, Player, Track } from "lavalink-client";
 import { warnJoinToVC, warnNothingFound, warnJoinToVCBut, warnNeedSameVC, errorNoMatchesFounded } from "./PlayBackStrategy.messages.js";
@@ -161,14 +161,14 @@ export abstract class PlaybackStrategy {
 
             embed.addFields({ name: `Se agregaron:`, value: `${res.tracks.length} canciones más`, inline: false });
 
-            Msg = await (await simpleEmbedReply({ interaction: inter, embed })).fetch();
+            Msg = await (await replyEmbed({ interaction: inter, embed })).fetch();
 
         } else {
             const track = res.tracks[0]
 
             await this.addTracks(player, track)
 
-            Msg = await (await simpleEmbedReply({
+            Msg = await (await replyEmbed({
                 interaction: inter,
                 embed: createEmptyEmbed()
                     .setAuthor({ name: `Agregando ${titleCleaner(track.info.title, track.info.author)} 🎧` })

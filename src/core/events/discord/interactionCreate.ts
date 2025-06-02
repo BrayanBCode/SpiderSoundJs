@@ -1,6 +1,5 @@
 import { BotClient } from "@/bot/BotClient.js";
 import logger from "@/bot/logger.js";
-import { SlashCommand } from "@/structures/commands/SlashCommand.js";
 import { BaseDiscordEvent } from "@/structures/events/BaseDiscordEvent.js";
 import { Interaction, ChatInputCommandInteraction, MessageFlags } from "discord.js";
 
@@ -18,16 +17,17 @@ export default class InteractionCreate extends BaseDiscordEvent<"interactionCrea
 
         if (!command) return logger.error(`[interactionCreate] No se encontró un comando que coincida con ${interaction.commandName}.`);
 
-
         try {
             if (interaction.isCommand() && command.execute) {
                 // Si no hay subcomando, ejecuta el comando principal
+                logger.debug(`[interactionCreate] Ejecutando el comando: ${interaction.commandName}`);
                 return await command.execute(client, interaction as ChatInputCommandInteraction<"cached">);
             }
 
             if (interaction.isAutocomplete() && command.autocomplete) {
                 // Ejecuta la función de autocompletado del comando principal
-                return await command.autocomplete?.(client, interaction);
+                logger.debug(`[interactionCreate] Ejecutando el autocompletado del comando: ${interaction.commandName}`);
+                return await command.autocomplete(client, interaction);
             }
 
         } catch (error) {
