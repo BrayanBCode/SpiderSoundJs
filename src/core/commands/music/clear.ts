@@ -22,7 +22,7 @@ export default new SlashCommand()
             ]
         })
 
-        player.queue.utils.destroy().then(async () => {
+        player.queue.remove(player.queue.tracks).then(async () => {
             await interaction.followUp({
                 embeds: [
                     createEmptyEmbed()
