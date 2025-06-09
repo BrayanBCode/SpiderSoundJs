@@ -14,6 +14,7 @@ interface Config {
         clientID: string;
         user: string;
         devGuild: string;
+        debugMode: boolean;
     };
     lavalink: {
         authorization: string;
@@ -46,6 +47,8 @@ export const config: Config = {
         clientID: process.env.CLIENT_ID || '',
         user: process.env.USER_NAME || 'MusicBot', // Valor por defecto si no está definido en .env
         devGuild: process.env.DEV_GUILD || '',
+
+        debugMode: process.env.DEBUG_MODE === 'true' // Convierte a booleano
     },
     lavalink: {
         authorization: process.env.LAVALINK_AUTHORIZATION || '', // Valor por defecto

@@ -7,15 +7,11 @@ import { config } from "@/config/config.js";
 import { SlashCommand } from "@/structures/commands/SlashCommand.js";
 
 
-
-
 export class BotClient extends Client {
     lavaManager!: LavaManagerCustom;
     commands: Map<string, SlashCommand>;
     defaultVolume: number;
-    debugMode: boolean;
-    playerMessage: PlayerMessage
-
+    playerMessage: PlayerMessage;
 
     constructor(options: BotClientOptions) {
         const intents = options.intents;
@@ -23,10 +19,8 @@ export class BotClient extends Client {
 
         this.commands = options.commands ?? new Map();
         this.defaultVolume = options.defaultVolume ?? 10.0;
-        this.debugMode = options.debugMode ?? false;
 
         this.playerMessage = new PlayerMessage(this)
-
     }
 
     getPlayer(guildId: string) {

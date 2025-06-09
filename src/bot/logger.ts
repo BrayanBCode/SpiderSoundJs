@@ -1,3 +1,4 @@
+import { config } from '@/config/config.js';
 import { createLogger, format, transports, addColors } from 'winston';
 
 const { combine, timestamp, printf, colorize } = format;
@@ -16,7 +17,7 @@ addColors(customColors);
 
 // Formato personalizado para los logs
 const logFormat = printf(({ level, message, timestamp }) => {
-    return `[${timestamp}] [${level}] ${message}`;
+    return `[${timestamp}] [ ${level} ] ${message}`;
 });
 
 // Configuración del logger
@@ -28,10 +29,10 @@ const logger = createLogger({
         http: 3,
         debug: 4,
     },
-    level: "debug", // Cambia a 'info' en producción si quieres menos detalles
+    level: config.bot.debugMode ? "debug" : "info", // Cambia a 'info' en producción si quieres menos detalles
     format: combine(
-        timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        colorize({ all: true }), // Aplica colores a todo el log
+        timestamp({ format: 'YYYY-MM-DD ss:mm:HH' }),
+        colorize({ all: true }),
         logFormat
     ),
     transports: [
