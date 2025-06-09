@@ -9,7 +9,7 @@ const play = new Play()
 
 export default new SlashCommand()
     .setName("play")
-    .setDescription("Inicia o agrega una cancion ala lista de reproducción.")
+    .setDescription("Inicia o agrega una cancion a la lista de reproducción.")
     .setCategory("Music")
     .setExecute(
         async (client, inter) => {
