@@ -9,12 +9,13 @@ export default class queueEnd extends BaseLavalinkManagerEvents<"queueEnd"> {
     name: "queueEnd" = "queueEnd";
 
     async execute(client: BotClient, player: Player, track: Track | UnresolvedTrack | null, payload: TrackEndEvent | TrackStuckEvent | TrackExceptionEvent): Promise<void> {
-        const channel = client.playerMessage.MessageContainer.get(player.guildId)?.channel
+        const channel = client.playerMessage.getData(player.guildId)?.channel
 
         if (!channel) {
             logger.error(`[queueEnd] No se encontro el canal de texto`)
             return
         }
+
 
         const emptyMsg = await channel.send({
             embeds: [
@@ -24,13 +25,13 @@ export default class queueEnd extends BaseLavalinkManagerEvents<"queueEnd"> {
             ]
         })
 
+
         setTimeout(() => {
             const gettedPlayer = client.getPlayer(player.guildId);
             if (gettedPlayer && gettedPlayer.queue.tracks.length === 0) {
                 gettedPlayer.disconnect()
             }
         }, 15000)
-
 
 
         await client.playerMessage.delete(player.guildId)

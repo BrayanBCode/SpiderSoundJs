@@ -16,7 +16,7 @@ export default class trackStart extends BaseLavalinkManagerEvents<"trackStart"> 
         const channel = client.channels.cache.get(player.textChannelId!) as TextChannel | undefined;
 
         logger.info(`Reproduciendo **${track?.info.title}** en **${client.getGuild(player.guildId)?.name}**`);
+        await client.playerMessage.delete(player.guildId)
         await client.playerMessage.send(player.guildId, channel?.id)
-
     };
 }

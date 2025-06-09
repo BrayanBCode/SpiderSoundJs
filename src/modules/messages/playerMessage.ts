@@ -5,15 +5,35 @@ import { createEmptyEmbed, titleCleaner, replyEmbed, deleteAfterTimer } from "@/
 import { TextChannel, Message, User, ButtonStyle, MessageFlags, ButtonInteraction } from "discord.js"
 import { Track, Player } from "lavalink-client"
 import { CustomButtonBuilder } from "../buttons/ButtonBuilder.js"
-import { DisplayButtonsBuilder } from "../buttons/DisplayButtonsBuilder.js"
 import { QueuePaginator } from "../buttons/QueuePaginator.js"
+import { DisplayButtonsBuilder } from "../buttons/DisplayButtonsBuilder.js"
+import { IButtonInteraction } from "@/types/interface/IButtonInteraction.js"
 
 
-// Se utiliza mucho esta linea client.playerMessage.MessageContainer.delete() acortar a una funcion publica de la clase
+class PlayingButtons extends DisplayButtonsBuilder {
+
+    protected handleCollector(message: Message, col: IButtonInteraction): void {
+
+        col.on("end", async () => {
+            logger.info(`[PlayingButtons] Collector finalizado para el mensaje ${message.id} en el canal ${message.channelId}`)
+            await message.delete().catch((err) => {
+                logger.warn(`[PlayingButtons] El mensaje ya fue eliminado o no se puede eliminar: ${err}`)
+            })
+
+            logger.info(`[PlayingButtons] Mensaje ${message.id} eliminado correctamente`)
+
+        })
+
+    }
+
+}
+
+
 export class PlayerMessage {
     MessageContainer: Map<string, {
         channel: TextChannel,
-        Message: Message
+        Message: Message,
+        deleted: boolean
     }>
     client: BotClient
 
@@ -40,14 +60,14 @@ export class PlayerMessage {
         }
 
         let channel = channelID ? this.client.getTextChannel(channelID) : undefined
-        channel ??= this.MessageContainer.get(guildID)?.channel
+        channel ??= this.getData(guildID)?.channel
 
         if (!channel) {
             logger.error(`[PlayerMessage] No se encontro un canal de texto para enviar el mensaje`)
             return undefined
         }
 
-        const view = new DisplayButtonsBuilder(this.client)
+        const view = new PlayingButtons(this.client, guildID)
         view.addButtons(...this.getButtons())
 
         const prevButton = view.actionRow.components.find((btn) => btn.custom_id === "prev")!
@@ -60,7 +80,8 @@ export class PlayerMessage {
 
         this.MessageContainer.set(guildID, {
             channel: channel,
-            Message: msg
+            Message: msg,
+            deleted: false
         })
 
         return msg
@@ -68,24 +89,36 @@ export class PlayerMessage {
 
     async delete(guildID: string) {
 
-        const data = this.MessageContainer.get(guildID)
+        const data = this.getData(guildID)
 
         if (!data) {
-            logger.error(`[PlayerMessage][Ignorable] No se pudo obtener ningun dato`)
+            // logger.error(`[PlayerMessage][Ignorable] No se pudo obtener ningun dato`)
             return false
         }
 
-        let message = await data.Message.fetch()
+        if (data.deleted) {
+            logger.warn(`[PlayerMessage] El mensaje ya fue eliminado`)
+            return false
+        }
 
-        if (!message.deletable) {
+        let message;
+
+        try {
+            message = await data.Message.fetch()
+        } catch (err) {
+            logger.error(`[PlayerMessage] Error al eliminar el mensaje: ${err}`)
+            return false
+        }
+
+        message.delete().catch(() => {
             logger.warn(`[PlayerMessage] No se puede eliminar el mensaje o ya fue eliminado`)
             return false
-        }
-
-        await message.delete().catch(() => {
-            logger.error(`[PlayerMessage][Ignorable] No se puede eliminar el mensaje`)
         })
 
+        data.deleted = true
+        // data.Message = null as any // Clear the message reference to free memory
+
+        this.MessageContainer.set(guildID, data)
         logger.info(`[PlayerMessage] El mensaje "${message.id}" fue eliminado con exito`)
         return true
     }
@@ -94,13 +127,19 @@ export class PlayerMessage {
         this.MessageContainer.delete(guilId)
     }
 
+    getData(guildID: string) {
+        return this.MessageContainer.get(guildID)
+    }
+
     private getPlayingEmbed(track: Track, player: Player) {
+        const user = (track.requester as User)
+        const userDisplay = typeof user.displayAvatarURL === "function" ? user.displayAvatarURL() : this.client.user?.displayAvatarURL() ?? ""
+
         return createEmptyEmbed()
             .setAuthor({
                 name: `Escuchando 🎧`,
-                iconURL: (track.requester as User).displayAvatarURL()
+                iconURL: userDisplay
             })
-            // .setTitle("Escuchando ")
             .setDescription(`[${titleCleaner(track.info.title)}](${track.info.uri})`)
             .addFields(
                 { name: "Artista", value: `\`${track.info.author}\``, inline: true },
@@ -116,6 +155,7 @@ export class PlayerMessage {
                     inline: true
                 },
             )
+
             .setColor("NotQuiteBlack")
             // .setImage(`https://img.youtube.com/vi/${track.info.identifier}/hqdefault.jpg`)
             .setThumbnail(`${track.info.artworkUrl}`)
