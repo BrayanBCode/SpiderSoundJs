@@ -9,7 +9,6 @@ export async function warnNoChannelAcces(inter: interactionCommandType) {
         embed: createEmptyEmbed({ description: "No puedo unirme o reproducir en este canal" }),
         ephemeral: true
     })
-
 }
 
 export async function warnJoinToVC(inter: interactionCommandType) {
@@ -26,7 +25,6 @@ export async function warnNothingFound(inter: interactionCommandType) {
         embed: createEmptyEmbed({ description: "No se encontraron resultados" }).setColor("Yellow"),
         ephemeral: true
     })
-
 }
 
 export async function warnJoinToVCBut(inter: interactionCommandType) {
@@ -43,7 +41,6 @@ export async function warnNeedSameVC(inter: interactionCommandType) {
         embed: createEmptyEmbed({ description: "Necesitas estar en el mismo canal que yo para agregar/reproducir " }).setColor("Yellow"),
         ephemeral: true
     })
-
 }
 
 export async function errorNoMatchesFounded(inter: interactionCommandType) {

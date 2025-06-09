@@ -8,7 +8,6 @@ import { readdirSync } from "fs";
 import { join } from "path";
 
 
-
 export async function registerDiscordEvents(client: BotClient): Promise<void> {
 
     const eventsPath: string = join(process.cwd(), ...stringPathToSegmentedString(config.handlersFolders.discord.events))
