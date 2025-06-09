@@ -19,7 +19,7 @@ export default class trackError extends BaseLavalinkManagerEvents<"trackError"> 
     name: "trackError" = "trackError";
     async execute(client: BotClient, player: Player, track: Track | UnresolvedTrack | null, payload: TrackExceptionEvent) {
 
-        const ErrorType = classifyLavalinkError(payload.exception?.message)
+        const ErrorType = classifyLavalinkErrors(payload.exception?.message)
 
         if (ErrorType === "COPYRIGHT" && track) {
             // const res = await player.search({ query: `${track.info.title} lyrics`, source: "ytsearch" }, client.user)
@@ -70,7 +70,7 @@ export default class trackError extends BaseLavalinkManagerEvents<"trackError"> 
 
 }
 
-function classifyLavalinkError(exceptionMessage: string = ""): LavalinkErrorType {
+function classifyLavalinkErrors(exceptionMessage: string = ""): LavalinkErrorType {
     const message = exceptionMessage.toLowerCase();
 
     if (message.includes("contains content from") || message.includes("blocked") || message.includes("copyright")) {
