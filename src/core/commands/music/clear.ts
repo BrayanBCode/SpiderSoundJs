@@ -1,5 +1,6 @@
+import logger from "@/bot/logger.js"
 import { SlashCommand } from "@/structures/commands/SlashCommand.js"
-import { createEmptyEmbed } from "@/utils/tools.js"
+import { createEmptyEmbed, deleteAfterTimer } from "@/utils/tools.js"
 
 
 export default new SlashCommand()
@@ -22,13 +23,16 @@ export default new SlashCommand()
             ]
         })
 
-        player.queue.remove(player.queue.tracks).then(async () => {
-            await interaction.followUp({
+        player.queue.splice(0, player.queue.tracks.length).then(async () => {
+            logger.debug(`[Music] ${interaction.user.tag} cleared the queue in ${interaction.guildId} (${interaction.guild.name})`)
+            const msg = await interaction.followUp({
                 embeds: [
                     createEmptyEmbed()
                         .setDescription("🧹💨 Se borro la lista de reprodución")
                 ]
             })
+
+            deleteAfterTimer(msg, 5000)
         })
 
     })
