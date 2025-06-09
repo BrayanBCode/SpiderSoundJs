@@ -7,104 +7,129 @@ import { ActionRowBuilder, Message, TextChannel, EmbedBuilder } from "discord.js
 import { CustomButtonBuilder } from "./ButtonBuilder.js"
 
 
+/**
+ * Clase encargada de construir y manejar un grupo de botones personalizados para mostrar en un mensaje,
+ * con soporte para interacción por componentes.
+ */
 export class DisplayButtonsBuilder {
 
+    // Fila de botones que se mostrará en el mensaje
     actionRow: ActionRowBuilder<CustomButtonBuilder>
+
+    // Instancia del cliente del bot, para poder acceder a sus propiedades/métodos
     client: BotClient
 
-    constructor(client: BotClient) {
+    // ID del servidor (guild) donde se enviarán los botones
+    guildId: string
+
+    constructor(client: BotClient, guildId: string) {
         this.actionRow = new ActionRowBuilder<CustomButtonBuilder>()
         this.client = client
+        this.guildId = guildId
     }
 
-
+    /**
+     * Crea un colector de interacciones para el mensaje dado y lo asocia a los botones agregados.
+     * @param message Mensaje en el que se desea activar el colector de botones
+     */
     private createCollector(message: Message) {
         const collector = message.createMessageComponentCollector()
-
         this.interactionHandler(message, collector)
     }
 
     /**
-     * Activa y ejecuta las interaciones con los botones
-     * @description
-     * ejecuta el comportamiento establecido por cada boton agregado
+     * Activa y gestiona las interacciones con los botones agregados.
+     * Ejecuta el comportamiento definido por cada botón cuando se presiona.
      * 
-     * Revisa {@link handleCollector} para mas informacion
+     * Revisa {@link handleCollector} para modificar el comportamiento de finalización.
      * 
-     * @param message 
-     * @param col 
+     * @param message Mensaje que contiene los botones
+     * @param col Colector de interacciones generado
      */
     private interactionHandler(message: Message, col: collectorType) {
-
         logger.debug(`interactionHandler created`)
 
         col.on("collect", (inter) => {
             this.execute(inter as interactionButtonType, col)
         })
 
-        // agregar logica de Stop, poner una funcion overraidabe (sobreescribible) para controlar el caso de remover botones y o el mensaje 
+        // Permite sobreescribir el comportamiento al finalizar la colección
         this.handleCollector(message, col)
-
     }
 
     /**
-     * Se encarga de escuchar los eventos, por defecto elimina el mensaje al terminar el uso con col.stop()
+     * Maneja los eventos al finalizar la recolección de interacciones con botones.
      * 
-     * Sobreescribe esta funcion para modificar el comportamiento
+     * Por defecto, elimina el mensaje al terminar.
+     * Puedes sobreescribir esta función para personalizar ese comportamiento.
      * 
      * @example
      * col.on("end", () => {
-     *       message.delete().catch(() => { logger.error("[DisplayButtonsBuilder] Error al eliminar el mensaje") })
-     *  })
+     *     message.delete().catch(() => {
+     *         logger.error("Error al eliminar el mensaje")
+     *     })
+     * })
      * 
-     * @param message
-     * @param col 
+     * @param message Mensaje que contiene los botones
+     * @param col Colector activo de interacciones
      */
     protected handleCollector(message: Message, col: IButtonInteraction) {
-
         col.on("end", () => {
             message.delete().catch(() => {
-                // Este error es esperado si eliminas el mensaje por otro metodo que no sea col.stop()
-                // Tal vez agrege un metodo publico que solo haga col.stop(), pd: no quiero guardar en una variable collection
+                // Este error puede ocurrir si el mensaje ya fue eliminado por otro medio
                 logger.warn("[DisplayButtonsBuilder] Error al eliminar el mensaje")
             })
         })
-
     }
 
     /**
-     * Ejecuta el comportamiento del boton pulsado
+     * Ejecuta la acción correspondiente al botón presionado.
      * 
-     * @param inter 
-     * @param col 
+     * @param inter Interacción generada por el botón
+     * @param col Colector de interacciones activo
      */
     private execute(inter: interactionButtonType, col: collectorType) {
         for (const button of this.actionRow.components) {
+            if (inter.customId !== button.custom_id) continue
 
-            if (inter.customId != button.custom_id) {
-                // logger.debug(`Posible interación ${inter.customId}`)
-                continue
-            }
-
-            logger.debug(`Ejecutando interación de ${inter.customId}`);
+            logger.debug(`Ejecutando interación de ${inter.customId}`)
             button.execute(this.client, inter, col, button)
         }
-
     }
 
+    /**
+     * Agrega uno o más botones a la fila de componentes.
+     * 
+     * @param components Botones personalizados a agregar
+     */
     public addButtons(...components: CustomButtonBuilder[]) {
         this.actionRow.addComponents(components)
     }
 
+    /**
+     * Envía un mensaje con los botones al canal especificado.
+     * 
+     * @param channel Canal donde se enviará el mensaje
+     * @param embeds Embeds a incluir en el mensaje
+     * @returns Mensaje enviado
+     */
     public async send(channel: TextChannel, ...embeds: EmbedBuilder[]) {
         const msg = await channel.send({
-            embeds, components: [this.actionRow]
+            embeds,
+            components: [this.actionRow]
         })
 
         this.createCollector(msg)
         return msg
     }
 
+    /**
+     * Envía una respuesta posterior (followUp) a una interacción, con los botones.
+     * 
+     * @param inter Interacción que se está respondiendo
+     * @param embeds Embeds a incluir en la respuesta
+     * @returns Mensaje enviado
+     */
     public async followUp(inter: interactionCommandType, embeds: EmbedBuilder[]) {
         const msg = await inter.followUp({ embeds, components: [this.actionRow] })
 
@@ -112,6 +137,13 @@ export class DisplayButtonsBuilder {
         return msg
     }
 
+    /**
+     * Responde directamente a una interacción con botones.
+     * 
+     * @param inter Interacción que se está respondiendo
+     * @param embeds Embeds a incluir en la respuesta
+     * @returns Mensaje enviado
+     */
     public async reply(inter: interactionCommandType, embeds: EmbedBuilder[]) {
         const msg = await (await inter.reply({ embeds, components: [this.actionRow] })).fetch()
 
@@ -120,4 +152,5 @@ export class DisplayButtonsBuilder {
     }
 
 }
+
 
