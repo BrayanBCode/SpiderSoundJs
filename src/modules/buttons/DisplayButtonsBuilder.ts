@@ -14,7 +14,7 @@ import { CustomButtonBuilder } from "./ButtonBuilder.js"
 export class DisplayButtonsBuilder {
 
     // Fila de botones que se mostrará en el mensaje
-    actionRow: ActionRowBuilder<CustomButtonBuilder>
+    actionRows: ActionRowBuilder<CustomButtonBuilder>[]
 
     // Instancia del cliente del bot, para poder acceder a sus propiedades/métodos
     client: BotClient
@@ -23,7 +23,7 @@ export class DisplayButtonsBuilder {
     guildId: string
 
     constructor(client: BotClient, guildId: string) {
-        this.actionRow = new ActionRowBuilder<CustomButtonBuilder>()
+        this.actionRows = []
         this.client = client
         this.guildId = guildId
     }
@@ -48,14 +48,12 @@ export class DisplayButtonsBuilder {
      */
     private interactionHandler(message: Message, col: collectorType) {
         logger.debug(`interactionHandler created`)
-
-        col.on("collect", (inter) => {
-            this.execute(inter as interactionButtonType, col)
-        })
+        col.on("collect", (inter) => this.execute(inter as interactionButtonType, col))
 
         // Permite sobreescribir el comportamiento al finalizar la colección
         this.handleCollector(message, col)
     }
+
 
     /**
      * Maneja los eventos al finalizar la recolección de interacciones con botones.
@@ -76,7 +74,6 @@ export class DisplayButtonsBuilder {
     protected handleCollector(message: Message, col: IButtonInteraction) {
         col.on("end", () => {
             message.delete().catch(() => {
-                // Este error puede ocurrir si el mensaje ya fue eliminado por otro medio
                 logger.warn("[DisplayButtonsBuilder] Error al eliminar el mensaje")
             })
         })
@@ -89,11 +86,14 @@ export class DisplayButtonsBuilder {
      * @param col Colector de interacciones activo
      */
     private execute(inter: interactionButtonType, col: collectorType) {
-        for (const button of this.actionRow.components) {
-            if (inter.customId !== button.custom_id) continue
+        for (const row of this.actionRows) {
+            for (const button of row.components) {
+                if (inter.customId !== button.custom_id) continue
 
-            logger.debug(`Ejecutando interación de ${inter.customId}`)
-            button.execute(this.client, inter, col, button)
+                logger.debug(`Ejecutando interación de ${inter.customId}`)
+                button.execute(this.client, inter, col, button)
+                return
+            }
         }
     }
 
@@ -103,7 +103,14 @@ export class DisplayButtonsBuilder {
      * @param components Botones personalizados a agregar
      */
     public addButtons(...components: CustomButtonBuilder[]) {
-        this.actionRow.addComponents(components)
+        this.actionRows = [] // Reiniciar filas
+
+        for (let i = 0; i < components.length; i += 5) {
+            const row = new ActionRowBuilder<CustomButtonBuilder>().addComponents(
+                ...components.slice(i, i + 5)
+            )
+            this.actionRows.push(row)
+        }
     }
 
     /**
@@ -116,7 +123,7 @@ export class DisplayButtonsBuilder {
     public async send(channel: TextChannel, ...embeds: EmbedBuilder[]) {
         const msg = await channel.send({
             embeds,
-            components: [this.actionRow]
+            components: this.actionRows
         })
 
         this.createCollector(msg)
@@ -131,7 +138,10 @@ export class DisplayButtonsBuilder {
      * @returns Mensaje enviado
      */
     public async followUp(inter: interactionCommandType, embeds: EmbedBuilder[]) {
-        const msg = await inter.followUp({ embeds, components: [this.actionRow] })
+        const msg = await inter.followUp({
+            embeds,
+            components: this.actionRows
+        })
 
         this.createCollector(msg)
         return msg
@@ -145,7 +155,10 @@ export class DisplayButtonsBuilder {
      * @returns Mensaje enviado
      */
     public async reply(inter: interactionCommandType, embeds: EmbedBuilder[]) {
-        const msg = await (await inter.reply({ embeds, components: [this.actionRow] })).fetch()
+        const msg = await (await inter.reply({
+            embeds,
+            components: this.actionRows
+        })).fetch()
 
         this.createCollector(msg)
         return msg

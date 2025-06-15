@@ -8,8 +8,9 @@ declare type AutoCompleteExecuteFN = (client: BotClient, interaction: Autocomple
 
 
 export class SlashCommand extends SlashCommandBuilder {
-    execute?: InteractionExecuteFN
-    autocomplete?: AutoCompleteExecuteFN
+    private type: "slash" = "slash"
+    private execute?: InteractionExecuteFN
+    private autocomplete?: AutoCompleteExecuteFN
     private _category?: TCommandCategoryOptions
 
     public setExecute(method: InteractionExecuteFN) {
@@ -33,8 +34,13 @@ export class SlashCommand extends SlashCommandBuilder {
     public get getAutocomplete() {
         return this.autocomplete
     }
+
     public get getCategory() {
         return this._category
+    }
+
+    public get getType() {
+        return this.type
     }
 
 }

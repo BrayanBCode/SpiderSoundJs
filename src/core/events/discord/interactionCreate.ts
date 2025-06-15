@@ -13,21 +13,21 @@ export default class InteractionCreate extends BaseDiscordEvent<"interactionCrea
         if (!interaction.isCommand() && !interaction.isAutocomplete()) return;
 
         // Busca el comando en la colección de comandos registrados
-        const command = client.commands.get(interaction.commandName);
+        const command = client.slashCommands.get(interaction.commandName);
 
         if (!command) return logger.error(`[interactionCreate] No se encontró un comando que coincida con ${interaction.commandName}.`);
 
         try {
-            if (interaction.isCommand() && command.execute) {
+            if (interaction.isCommand() && command.getExecute) {
                 // Si no hay subcomando, ejecuta el comando principal
                 logger.debug(`[interactionCreate] Ejecutando el comando: ${interaction.commandName}`);
-                return await command.execute(client, interaction as ChatInputCommandInteraction<"cached">);
+                return await command.getExecute(client, interaction as ChatInputCommandInteraction<"cached">);
             }
 
-            if (interaction.isAutocomplete() && command.autocomplete) {
+            if (interaction.isAutocomplete() && command.getAutocomplete) {
                 // Ejecuta la función de autocompletado del comando principal
                 logger.debug(`[interactionCreate] Ejecutando el autocompletado del comando: ${interaction.commandName}`);
-                return await command.autocomplete(client, interaction);
+                return await command.getAutocomplete(client, interaction);
             }
 
         } catch (error) {

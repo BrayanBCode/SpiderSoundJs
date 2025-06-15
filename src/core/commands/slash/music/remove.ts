@@ -2,7 +2,7 @@ import { CustomButtonBuilder } from "@/modules/buttons/ButtonBuilder.js";
 import { DisplayButtonsBuilder } from "@/modules/buttons/DisplayButtonsBuilder.js";
 import { SlashCommand } from "@/structures/commands/SlashCommand.js";
 import { formatMS_HHMMSS } from "@/utils/formatMS_HHMMSS.js";
-import { createEmptyEmbed, replyEmbed } from "@/utils/tools.js";
+import { createEmptyEmbed, deleteAfterTimer, replyEmbed } from "@/utils/tools.js";
 import { ButtonStyle, CommandInteractionOptionResolver } from "discord.js";
 
 
@@ -26,11 +26,11 @@ export default new SlashCommand()
                 });
             }
 
-            if (pos > player.queue.tracks.length - 1 || pos < 0) return replyEmbed({
+            if (pos > player.queue.tracks.length || pos < 0) return deleteAfterTimer(await replyEmbed({
                 interaction: i,
                 embed: createEmptyEmbed()
-                    .setDescription(`La posición debe estar entre 0 y ${player.queue.tracks.length - 1}.`)
-            })
+                    .setDescription(`La posición debe estar entre 0 y ${player.queue.tracks.length}.`)
+            }), 5000)
 
             const track = player.queue.tracks[Number(pos) - 1];
 

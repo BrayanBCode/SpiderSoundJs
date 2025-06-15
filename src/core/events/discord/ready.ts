@@ -2,7 +2,7 @@ import { BotClient } from "@/bot/BotClient.js";
 import logger from "@/bot/logger.js";
 import { config } from "@/config/config.js";
 import { registerLavalinkNodeEvents } from "@/core/handler/RegisterBaseNodeManagerEvents.js";
-import { registerCommands } from "@/core/handler/RegisterCommands.js";
+import { registerCommands } from "@/core/handler/RegisterSlashCommands.js";
 import { registerLavalinkEvents } from "@/core/handler/RegisterlavalinkManagerEvent.js";
 import { LavaManagerCustom } from "@/lavalink/lavaManagerCustom.js";
 import { BaseDiscordEvent } from "@/structures/events/BaseDiscordEvent.js";

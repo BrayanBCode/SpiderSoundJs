@@ -5,11 +5,13 @@ import { Client, ChatInputCommandInteraction, AutocompleteInteraction, CacheType
 import { PlayerMessage } from "@/modules/messages/playerMessage.js";
 import { config } from "@/config/config.js";
 import { SlashCommand } from "@/structures/commands/SlashCommand.js";
+import { PrefixCommand } from "@/structures/commands/PrefixCommand.js";
 
 
 export class BotClient extends Client {
     lavaManager!: LavaManagerCustom;
-    commands: Map<string, SlashCommand>;
+    slashCommands: Map<string, SlashCommand>;
+    prefixCommands: Map<string, PrefixCommand>;
     defaultVolume: number;
     playerMessage: PlayerMessage;
 
@@ -17,7 +19,8 @@ export class BotClient extends Client {
         const intents = options.intents;
         super({ intents });
 
-        this.commands = options.commands ?? new Map();
+        this.slashCommands = options.slashCommands ?? new Map();
+        this.prefixCommands = options.prefixCommands ?? new Map();
         this.defaultVolume = options.defaultVolume ?? 10.0;
 
         this.playerMessage = new PlayerMessage(this)
@@ -62,4 +65,3 @@ export class BotClient extends Client {
     }
 
 }
-

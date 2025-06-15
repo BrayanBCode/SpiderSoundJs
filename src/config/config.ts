@@ -15,6 +15,7 @@ interface Config {
         user: string;
         devGuild: string;
         debugMode: boolean;
+        prefix: string;
     };
     lavalink: {
         authorization: string;
@@ -25,7 +26,8 @@ interface Config {
     handlersFolders: {
 
         discord: {
-            commands: string,
+            slashCommands: string,
+            prefixCommands: string,
             events: string
         },
         lavalink: {
@@ -45,8 +47,9 @@ export const config: Config = {
     bot: {
         token: process.env.BOT_TOKEN || '',
         clientID: process.env.CLIENT_ID || '',
-        user: process.env.USER_NAME || 'MusicBot', // Valor por defecto si no está definido en .env
+        user: process.env.USER_NAME || 'MusicBot',
         devGuild: process.env.DEV_GUILD || '',
+        prefix: process.env.PREFIX || '!',
 
         debugMode: process.env.DEBUG_MODE === 'true' // Convierte a booleano
     },
@@ -58,7 +61,8 @@ export const config: Config = {
     },
     handlersFolders: {
         discord: {
-            commands: 'src/core/commands',
+            slashCommands: 'src/core/commands/slash',
+            prefixCommands: 'src/core/commands/prefix',
             events: 'src/core/events/discord'
         },
         lavalink: {

@@ -74,7 +74,7 @@ export function chunkArray<T>(arr: T[], size: number): T[][] {
  * const msg = await interaction.reply({ content: "Esto se eliminará pronto", fetchReply: true });
  * deleteAfterTimer(msg, 5000); // elimina el mensaje después de 5 segundos
  * 
- * @deprecated TODO: Reemplazar por una función más robusta que maneje mejor los errores y casos especiales.
+ * TODO: Reemplazar por una función más robusta que maneje mejor los errores y casos especiales.
  */
 export function deleteAfterTimer(msg: Message | InteractionResponse<true>, ms: number): NodeJS.Timeout {
     return setTimeout(async () => {

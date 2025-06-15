@@ -70,11 +70,12 @@ export class PlayerMessage {
         const view = new PlayingButtons(this.client, guildID)
         view.addButtons(...this.getButtons())
 
-        const prevButton = view.actionRow.components.find((btn) => btn.custom_id === "prev")!
+        const prevButton = view.actionRows[0].components.find((btn) => btn.custom_id === "prev")
 
-        if (!player.queue.previous[0]) prevButton.setDisabled(true)
-        else prevButton.setDisabled(false)
-
+        if (prevButton) {
+            if (!player.queue.previous[0]) prevButton.setDisabled(true)
+            else prevButton.setDisabled(false)
+        }
 
         const msg = await view.send(channel, this.getPlayingEmbed(currentTrack, player))
 
@@ -194,10 +195,11 @@ export class PlayerMessage {
                     });
 
                     return paginator.reply();
-                }),
+                }
+            ),
             new CustomButtonBuilder({
                 custom_id: "prev",
-                label: "⏪",
+                label: "⏮️",
                 style: ButtonStyle.Secondary
             },
                 async (client, inter) => {
@@ -212,7 +214,132 @@ export class PlayerMessage {
                     });
 
                     deleteAfterTimer(prevMsg, 10000)
-                }),
+                }
+            ),
+
+            new CustomButtonBuilder({
+                custom_id: "resume/pause",
+                label: "⏯️",
+                style: ButtonStyle.Secondary
+            },
+                async (client, inter, col) => {
+                    const player = client.getPlayer(inter.guildId)!
+
+                    player.playing ? await player.pause() : await player.resume();
+
+                    const ResumePlayMsg = await replyEmbed({
+                        interaction: inter as ButtonInteraction<"cached">,
+                        embed: createEmptyEmbed()
+                            .setDescription(`Reproducción ${player.playing ? "⏸️" : "▶️"}`)
+                    });
+
+                    deleteAfterTimer(ResumePlayMsg, 5000)
+                }
+            ),
+            new CustomButtonBuilder({
+                custom_id: "next",
+                label: "⏭️",
+                style: ButtonStyle.Secondary
+            },
+                async (client, inter, col) => {
+                    const player = client.getPlayer(inter.guildId)!
+
+                    if (!player.queue.tracks.length) {
+                        const emptyQueue = await replyEmbed({
+                            interaction: inter as ButtonInteraction<"cached">,
+                            embed: createEmptyEmbed()
+                                .setDescription("❌ No hay suficientes canciones en la lista")
+                                .setColor("Yellow")
+                        })
+
+                        deleteAfterTimer(emptyQueue, 10000)
+                        return
+                    }
+
+                    await player.skip()
+                    // col.stop("[PlayerMessage - nextBtn] Track skiped")
+
+                    // await client.playerMessage.send(inter.guildId, inter.channelId)
+
+                    const nextMsg = await replyEmbed({
+                        interaction: inter as ButtonInteraction<"cached">,
+                        embed: createEmptyEmbed()
+                            .setDescription(`⏭️ Canción saltada`)
+                    });
+
+                    deleteAfterTimer(nextMsg, 10000)
+                }
+            ),
+            new CustomButtonBuilder({
+                custom_id: "lyrics",
+                label: "📜",
+                style: ButtonStyle.Secondary,
+                disabled: true // Botón de relleno para mantener el diseño
+            }, () => {
+                //TODO: Implementar el botón de letras 
+            }),
+            new CustomButtonBuilder({
+                custom_id: "loop",
+                label: "🔁",
+                style: ButtonStyle.Secondary
+            },
+                async (client, inter, col) => {
+                    const player = client.getPlayer(inter.guildId)!
+
+                    if (player.repeatMode === "off") {
+                        await player.setRepeatMode("track");
+                        await inter.reply({
+                            embeds: [
+                                createEmptyEmbed()
+                                    .setDescription("🔁 Repetición de la **canción** activada")
+                                    .setColor("Green")
+                            ],
+                            flags: MessageFlags.Ephemeral
+                        });
+                    } else if (player.repeatMode === "track") {
+                        await player.setRepeatMode("queue");
+                        await inter.reply({
+                            embeds: [
+                                createEmptyEmbed()
+                                    .setDescription("🔂 Repetición de la **cola** activada")
+                                    .setColor("Green")
+                            ],
+                            flags: MessageFlags.Ephemeral
+                        });
+                    } else {
+                        await player.setRepeatMode("off");
+                        await inter.reply({
+                            embeds: [
+                                createEmptyEmbed()
+                                    .setDescription("🔁 Repetición desactivada")
+                                    .setColor("Green")
+                            ],
+                            flags: MessageFlags.Ephemeral
+                        });
+                    }
+                }
+            ),
+            new CustomButtonBuilder({
+                custom_id: "b10s",
+                label: "⏪",
+                style: ButtonStyle.Secondary
+            },
+                async (client, inter, col) => {
+                    const player = client.getPlayer(inter.guildId)!
+
+                    await player.seek(player.position - (10 * 1_000));
+
+                    deleteAfterTimer(
+                        await inter.reply({
+                            embeds: [
+                                createEmptyEmbed()
+                                    .setDescription("⏪ Retrocediendo 10 segundos")
+                                    .setColor("Green")
+                            ],
+                            flags: MessageFlags.Ephemeral
+                        }), 1000)
+                }
+            ),
             new CustomButtonBuilder({
                 custom_id: "stop",
                 label: "⏹️",
@@ -243,28 +370,31 @@ export class PlayerMessage {
                     }, 15000)
 
                     deleteAfterTimer(stopMsg, 10000)
-                }),
+                }
+            ),
             new CustomButtonBuilder({
-                custom_id: "resume/pause",
-                label: "⏯️",
+                custom_id: "f15s",
+                label: "⏩",
                 style: ButtonStyle.Secondary
             },
                 async (client, inter, col) => {
                     const player = client.getPlayer(inter.guildId)!
 
-                    player.playing ? await player.pause() : await player.resume();
-
-                    const ResumePlayMsg = await replyEmbed({
-                        interaction: inter as ButtonInteraction<"cached">,
-                        embed: createEmptyEmbed()
-                            .setDescription(`Reproducción ${player.playing ? "⏸️" : "▶️"}`)
-                    });
-
-                    deleteAfterTimer(ResumePlayMsg, 5000)
-                }),
+                    await player.seek(player.position + (15 * 1_000));
+                    deleteAfterTimer(
+                        await inter.reply({
+                            embeds: [
+                                createEmptyEmbed()
+                                    .setDescription("⏩ Avanzando 15 segundos")
+                                    .setColor("Green")
+                            ],
+                            flags: MessageFlags.Ephemeral
+                        }), 1000)
+                }
+            ),
             new CustomButtonBuilder({
-                custom_id: "next",
-                label: "⏩",
+                custom_id: "shuffle",
+                label: "🔀",
                 style: ButtonStyle.Secondary
             },
                 async (client, inter, col) => {
@@ -274,7 +404,7 @@ export class PlayerMessage {
                         const emptyQueue = await replyEmbed({
                             interaction: inter as ButtonInteraction<"cached">,
                             embed: createEmptyEmbed()
-                                .setDescription("❌ No hay suficientes canciones en la lista")
+                                .setDescription("❌ No hay canciones en la lista para mezclar")
                                 .setColor("Yellow")
                         })
 
@@ -282,19 +412,17 @@ export class PlayerMessage {
                         return
                     }
 
-                    await player.skip()
-                    // col.stop("[PlayerMessage - nextBtn] Track skiped")
-
-                    // await client.playerMessage.send(inter.guildId, inter.channelId)
-
-                    const nextMsg = await replyEmbed({
-                        interaction: inter as ButtonInteraction<"cached">,
-                        embed: createEmptyEmbed()
-                            .setDescription(`⏭️ Canción saltada`)
+                    await player.queue.shuffle();
+                    await inter.reply({
+                        embeds: [
+                            createEmptyEmbed()
+                                .setDescription("🔀 Lista mezclada")
+                                .setColor("Green")
+                        ],
+                        flags: MessageFlags.Ephemeral
                     });
-
-                    deleteAfterTimer(nextMsg, 10000)
-                }),
+                }
+            ),
         ]
     }
 

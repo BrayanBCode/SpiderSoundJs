@@ -21,19 +21,28 @@ export default new SlashCommand()
             });
         }
 
-        const view = new DisplayButtonsBuilder(client)
+        const view = new DisplayButtonsBuilder(client, inter.guildId)
 
         view.addButtons(
             new CustomButtonBuilder({
                 custom_id: "test",
                 label: "test",
                 style: ButtonStyle.Secondary
-            }, (cli, inter) => { inter.reply({ embeds: [createEmptyEmbed().setDescription("Que mira bobo")] }) }),
+            },
+                (cli, inter) => {
+                    inter.reply({ embeds: [createEmptyEmbed().setDescription("Que mira bobo")] })
+                }),
             new CustomButtonBuilder({
                 custom_id: "test2",
                 label: "test2",
                 style: ButtonStyle.Secondary
-            }, (cli, inter) => { inter.reply({ embeds: [createEmptyEmbed().setDescription("Tonto el que toca")] }) })
+            },
+                (cli, inter) => {
+                    inter.reply({
+                        embeds: [createEmptyEmbed().setDescription("Tonto el que toca")]
+
+                    })
+                })
         )
 
         view.reply(inter, [createEmptyEmbed().setDescription("Botone")])

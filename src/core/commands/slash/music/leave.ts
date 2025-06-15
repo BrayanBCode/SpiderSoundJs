@@ -4,7 +4,6 @@ import { createEmptyEmbed } from "@/utils/tools.js";
 import { VoiceChannel } from "discord.js";
 
 
-
 export default new SlashCommand()
     .setName("leave")
     .setDescription("Me desconecta del canal de voz")

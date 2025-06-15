@@ -9,7 +9,7 @@ import { join } from "path";
 
 
 export async function registerCommands(client: BotClient) {
-    const stringPath = join(process.cwd(), ...stringPathToSegmentedString(config.handlersFolders.discord.commands))
+    const stringPath = join(process.cwd(), ...stringPathToSegmentedString(config.handlersFolders.discord.slashCommands))
     const commandsFolders = readdirSync(stringPath, { withFileTypes: true })
         .filter((entry) => entry.isDirectory());
 
@@ -29,28 +29,28 @@ export async function registerCommands(client: BotClient) {
             try {
                 SlashCmd.toJSON()
 
-                client.commands.set(SlashCmd.name, SlashCmd)
+                client.slashCommands.set(SlashCmd.name, SlashCmd)
 
-                logger.debug(`[RegisterCommands] || Comando ${SlashCmd.name} verificado. ||`);
+                logger.debug(`[RegisterSlashCommands] || Comando ${SlashCmd.name} verificado. ||`);
             } catch (err) {
-                logger.error(`[RegisterCommands] Error en el comando ${SlashCmd.name}: ${err}`)
+                logger.error(`[RegisterSlashCommands] Error en el comando ${SlashCmd.name}: ${err}`)
             }
 
         }
     }
     catch (error) {
-        logger.error(`[RegisterCommands] Error al registrar los comandos: ${error}`);
+        logger.error(`[RegisterSlashCommands] Error al registrar los comandos: ${error}`);
     }
     const rest = new REST().setToken(config.bot.token);
 
-    const commandsArray = Array.from(client.commands.values()).map(cmd => {
+    const commandsArray = Array.from(client.slashCommands.values()).map(cmd => {
         const command = cmd.toJSON()
-        logger.info(`|| Comando ${cmd.name} registrado con exito ||`)
+        logger.info(`|| Slash command ${cmd.name} registrado con exito ||`)
         return command
     });
 
     await rest.put(
-        client.debugMode
+        config.bot.debugMode
             ? Routes.applicationGuildCommands(config.bot.clientID, config.bot.devGuild)
             : Routes.applicationCommands(config.bot.clientID),
         { body: commandsArray }
