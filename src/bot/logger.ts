@@ -31,7 +31,7 @@ const logger = createLogger({
     },
     level: config.bot.debugMode ? "debug" : "info", // Cambia a 'info' en producción si quieres menos detalles
     format: combine(
-        timestamp({ format: 'YYYY-MM-DD ss:mm:HH' }),
+        timestamp({ format: 'DD-MM-YYYY HH:mm' }), // " HH:mm:ss " para incluir segundos
         colorize({ all: true }),
         logFormat
     ),
