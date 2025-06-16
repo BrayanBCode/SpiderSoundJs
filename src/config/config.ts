@@ -57,7 +57,7 @@ export const config: Config = {
         authorization: process.env.LAVALINK_AUTHORIZATION || '', // Valor por defecto
         host: process.env.LAVALINK_HOST || 'lavalink', // Valor por defecto
         port: parseInt(process.env.LAVALINK_PORT || '2333', 10), // Convierte a número
-        id: process.env.LAVALINK_ID || 'testnode', // Valor por defecto
+        id: process.env.CLIENT_ID || 'testnode', // Valor por defecto
     },
     handlersFolders: {
         discord: {
