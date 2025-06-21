@@ -1,10 +1,11 @@
-import { BotClient } from "@/bot/BotClient.js";
+import { PrefixCommandExecute } from "@/types/types/TPrefixCommand.js";
+
 
 export class PrefixCommand {
     private type: "prefix" = "prefix";
     private _name?: string;
     private _description?: string;
-    private _execute?: (client: BotClient, message: any) => Promise<void>;
+    private _execute?: PrefixCommandExecute;
 
     setName(name: string): this {
         this._name = name;
@@ -16,7 +17,7 @@ export class PrefixCommand {
         return this;
     }
 
-    setExecute(execute: (client: any, message: any) => Promise<void>): this {
+    setExecute(execute: PrefixCommandExecute): this {
         this._execute = execute;
         return this;
     }

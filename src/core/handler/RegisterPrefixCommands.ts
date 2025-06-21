@@ -7,7 +7,7 @@ import { readdirSync } from "fs";
 import { join } from "path";
 
 
-export async function registerCommands(client: BotClient) {
+export async function registerPrefixCommands(client: BotClient) {
     const stringPath = join(process.cwd(), ...stringPathToSegmentedString(config.handlersFolders.discord.prefixCommands))
     const commandsFolders = readdirSync(stringPath, { withFileTypes: true })
         .filter((entry) => entry.isDirectory());
@@ -21,6 +21,8 @@ export async function registerCommands(client: BotClient) {
 
     }).flat()
 
+    logger.debug(commandsStringPath)
+
     try {
         for (const filePath of commandsStringPath) {
             const PrefixCmd = await import(filePath).then((mod) => mod.default) as PrefixCommand;
@@ -30,7 +32,7 @@ export async function registerCommands(client: BotClient) {
 
                 client.prefixCommands.set(jsonCmd.name, PrefixCmd)
 
-                logger.debug(`[RegisterPrefixCommands] || Prefix command ${jsonCmd.name} verificado. ||`);
+                logger.debug(`|| Prefix command ${jsonCmd.name} registrado. ||`);
             } catch (err) {
                 logger.error(`[RegisterPrefixCommands] Error en el comando "${PrefixCmd.name}": ${err}`)
             }
@@ -38,7 +40,7 @@ export async function registerCommands(client: BotClient) {
         }
     }
     catch (error) {
-        logger.error(`[RegisterCommands] Error al registrar los comandos: ${error}`);
+        logger.error(`[RegisterPrefixCommands] Error al registrar los comandos: ${error}`);
     }
 
 
