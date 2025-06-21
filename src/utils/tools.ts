@@ -13,6 +13,9 @@ import { ISimpleEmbedReply } from "../types/interface/ISimpleEmbedReply.js";
 export function createEmptyEmbed(opt?: EmbedData) {
     return new EmbedBuilder({ ...opt })
 }
+export function EmptyEmbed(opt?: EmbedData) {
+    return new EmbedBuilder({ ...opt })
+}
 
 /**
  * Envía una respuesta a una interacción con un embed y configuraciones opcionales.
