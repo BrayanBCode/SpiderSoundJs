@@ -6,7 +6,8 @@ dotenv.config();
 interface Config {
     dev: {
         username: string,
-        id: string
+        id: string,
+        coDevs: string[] // Lista de IDs de co-desarrolladores
 
     },
     bot: {
@@ -42,7 +43,8 @@ interface Config {
 export const config: Config = {
     dev: {
         username: process.env.DEV_USERNAME || '',
-        id: process.env.DEV_ID || '111111111111111111'
+        id: process.env.DEV_ID || '111111111111111111',
+        coDevs: process.env.DEV_CO_DEVS_ID ? process.env.DEV_CO_DEVS_ID.split(',') : []
     },
     bot: {
         token: process.env.BOT_TOKEN || '',
