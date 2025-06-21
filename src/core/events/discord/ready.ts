@@ -2,7 +2,8 @@ import { BotClient } from "@/bot/BotClient.js";
 import logger from "@/bot/logger.js";
 import { config } from "@/config/config.js";
 import { registerLavalinkNodeEvents } from "@/core/handler/RegisterBaseNodeManagerEvents.js";
-import { registerCommands } from "@/core/handler/RegisterSlashCommands.js";
+import { registerPrefixCommands } from "@/core/handler/RegisterPrefixCommands.js";
+import { registerSlashCommands } from "@/core/handler/RegisterSlashCommands.js";
 import { registerLavalinkEvents } from "@/core/handler/RegisterlavalinkManagerEvent.js";
 import { LavaManagerCustom } from "@/lavalink/lavaManagerCustom.js";
 import { BaseDiscordEvent } from "@/structures/events/BaseDiscordEvent.js";
@@ -26,7 +27,8 @@ export default class ReadyEvent extends BaseDiscordEvent<"ready"> {
         // Ejecuta todas las tareas de inicialización de forma paralela
         await Promise.all([
             this.initializeLavaManager(client),       // Conecta con el servidor Lavalink
-            registerCommands(client),                 // Registra todos los comandos disponibles
+            registerSlashCommands(client),            // Registra todos los comandos slash disponibles
+            registerPrefixCommands(client),           // Registra todos los comandos prefix disponibles
             registerLavalinkEvents(client),           // Registra eventos personalizados para Lavalink
             registerLavalinkNodeEvents(client)        // Registra eventos base del nodo Lavalink
         ]);
@@ -49,7 +51,7 @@ export default class ReadyEvent extends BaseDiscordEvent<"ready"> {
                         authorization: config.lavalink.authorization,  // Token de autenticación
                         host: config.lavalink.host,                    // Dirección del servidor
                         port: config.lavalink.port,                    // Puerto del servidor
-                        id: config.bot.user,                           // Identificador del nodo
+                        id: config.lavalink.id,                        // Identificador del nodo, se utiliza el clienteID del bot
                     },
                 ],
                 autoSkip: true, // Hace que las canciones se salten automáticamente si fallan
