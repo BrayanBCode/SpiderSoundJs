@@ -26,7 +26,7 @@ export default new SlashCommand()
                 });
             }
 
-            if (pos > player.queue.tracks.length || pos < 0) return deleteAfterTimer(await replyEmbed({
+            if (pos > player.queue.tracks.length + 1 || pos < 0) return deleteAfterTimer(await replyEmbed({
                 interaction: i,
                 embed: createEmptyEmbed()
                     .setDescription(`La posición debe estar entre 0 y ${player.queue.tracks.length}.`)
