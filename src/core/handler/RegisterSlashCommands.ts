@@ -8,7 +8,7 @@ import { readdirSync } from "fs";
 import { join } from "path";
 
 
-export async function registerCommands(client: BotClient) {
+export async function registerSlashCommands(client: BotClient) {
     const stringPath = join(process.cwd(), ...stringPathToSegmentedString(config.handlersFolders.discord.slashCommands))
     const commandsFolders = readdirSync(stringPath, { withFileTypes: true })
         .filter((entry) => entry.isDirectory());
@@ -31,7 +31,7 @@ export async function registerCommands(client: BotClient) {
 
                 client.slashCommands.set(SlashCmd.name, SlashCmd)
 
-                logger.debug(`[RegisterSlashCommands] || Comando ${SlashCmd.name} verificado. ||`);
+                // logger.debug(`[RegisterSlashCommands] || Comando ${SlashCmd.name} verificado. ||`);
             } catch (err) {
                 logger.error(`[RegisterSlashCommands] Error en el comando ${SlashCmd.name}: ${err}`)
             }
