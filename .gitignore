@@ -43,3 +43,6 @@ vendor/
 /node_modules
 
 src/core/commands/dev/Minecraft.ts
+.env.testing
+.env.production
+DCompose.dev
