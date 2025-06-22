@@ -10,8 +10,7 @@ import { join } from "path";
 
 export async function registerSlashCommands(client: BotClient) {
     const stringPath = join(process.cwd(), ...stringPathToSegmentedString(config.handlersFolders.discord.slashCommands))
-    const commandsFolders = readdirSync(stringPath, { withFileTypes: true })
-        .filter((entry) => entry.isDirectory());
+    const commandsFolders = readdirSync(stringPath, { withFileTypes: true }).filter((entry) => entry.isDirectory());
 
     const commandsStringPath = commandsFolders.map((folder) => {
         const files = readdirSync(join(stringPath, folder.name)).filter(file => file.endsWith(".ts") || file.endsWith(".js"))
