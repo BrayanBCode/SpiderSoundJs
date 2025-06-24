@@ -144,7 +144,7 @@ export class PlayerMessage {
             .setDescription(`[${titleCleaner(track.info.title)}](${track.info.uri})`)
             .addFields(
                 { name: "Artista", value: `\`${track.info.author}\``, inline: true },
-                { name: "Volumen", value: `\`${player.volume}\``, inline: true },
+                { name: "Volumen", value: `\`${player.volume}%\``, inline: true },
                 { name: "Duración", value: `\`${formatMS_HHMMSS(track.info.duration)}\``, inline: true },
                 { name: "En cola", value: `\`${player.queue.tracks.length}\``, inline: true },
                 { name: "Loop", value: `\`${player.repeatMode}\``, inline: true },
