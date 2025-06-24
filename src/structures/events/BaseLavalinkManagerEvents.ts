@@ -3,7 +3,7 @@ import { LavalinkManagerEvents } from "lavalink-client";
 
 
 export abstract class BaseLavalinkManagerEvents<K extends keyof LavalinkManagerEvents> {
-    eventType: String = "LavalinkManagerEvents"
+    eventType: string = "LavalinkManagerEvents"
     abstract name: K;
     once: boolean = false;
 

@@ -30,7 +30,7 @@ export async function registerSlashCommands(client: BotClient) {
 
                 client.slashCommands.set(SlashCmd.name, SlashCmd)
 
-                // logger.debug(`[RegisterSlashCommands] || Comando ${SlashCmd.name} verificado. ||`);
+                logger.debug(`[RegisterSlashCommands] || Comando ${SlashCmd.name} verificado. ||`);
             } catch (err) {
                 logger.error(`[RegisterSlashCommands] Error en el comando ${SlashCmd.name}: ${err}`)
             }
