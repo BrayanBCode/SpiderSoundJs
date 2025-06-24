@@ -31,7 +31,7 @@
         "@discordjs/util": "^1.1.1",
         "@discordjs/voice": "^0.18.0",
         "bufferutil": "^4.0.9",
-        "discord.js": "^14.19.3",
+        "discord.js": "^14.20.0",
         "dotenv": "^16.5.0",
         "erela.js": "^2.4.0",
         "erela.js-spotify": "^1.2.0",
