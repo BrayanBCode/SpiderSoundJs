@@ -2,6 +2,7 @@ import { formatMS_HHMMSS } from "@/utils/formatMS_HHMMSS.js";
 import { ChatInputCommandInteraction, GuildMember, VoiceChannel } from "discord.js";
 import { SearchResult, Track } from "lavalink-client";
 import { warnNoChannelAcces } from "./PlayBackStrategy.messages.js";
+import logger from "@/bot/logger.js";
 
 
 // pasar a PlayBackStrategt.modules
@@ -33,6 +34,9 @@ export function trackOptionFormat(res: SearchResult) {
         const count = res.tracks.length;
         return [formatPlaylistOption(title, count)];
     }
+
+    // logger.debug(`TrackOptionFormat: ${res.tracks.length} tracks found`);
+    // logger.debug(`${res.tracks.map((track, index) => `${index} - ${track.info.title}`).join(', ')}`);
 
     return res.tracks.slice(0, 25).map(formatTrack);
 }
