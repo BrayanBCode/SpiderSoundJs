@@ -1,7 +1,6 @@
 import { BotClient } from "@/bot/BotClient.js";
 import logger from "@/bot/logger.js";
 import { config } from "@/config/config.js";
-import { registerLavalinkNodeEvents } from "@/core/handler/RegisterBaseNodeManagerEvents.js";
 import { registerPrefixCommands } from "@/core/handler/RegisterPrefixCommands.js";
 import { registerSlashCommands } from "@/core/handler/RegisterSlashCommands.js";
 import { registerLavalinkEvents } from "@/core/handler/RegisterlavalinkManagerEvent.js";
@@ -17,7 +16,7 @@ export default class ReadyEvent extends BaseDiscordEvent<"ready"> {
 
     /**
      * Ejecutado cuando el bot está completamente listo.
-     * Registra comandos, eventos de Lavalink y establece la conexión con LavaManager.
+     * Registra comandos, eventos de Lavalink y establece la conexión con manager.
      *
      * @param client Cliente del bot.
      */
@@ -30,12 +29,12 @@ export default class ReadyEvent extends BaseDiscordEvent<"ready"> {
             registerSlashCommands(client),            // Registra todos los comandos slash disponibles
             registerPrefixCommands(client),           // Registra todos los comandos prefix disponibles
             registerLavalinkEvents(client),           // Registra eventos personalizados para Lavalink
-            registerLavalinkNodeEvents(client)        // Registra eventos base del nodo Lavalink
+            // registerLavalinkNodeEvents(client)        // Registra eventos base del nodo Lavalink
         ]);
     }
 
     /**
-     * Inicializa LavaManager para gestionar la reproducción de música.
+     * Inicializa manager para gestionar la reproducción de música.
      * Establece conexión con el servidor Lavalink, define opciones y registra el evento `raw`.
      * 
      * @param client Cliente del bot.
@@ -45,7 +44,7 @@ export default class ReadyEvent extends BaseDiscordEvent<"ready"> {
             logger.info("[Ready Event] Iniciando conexión con Lavalink...");
 
             // Crea una nueva instancia de LavaManagerCustom con configuración personalizada
-            client.lavaManager = new LavaManagerCustom({
+            client.manager = new LavaManagerCustom({
                 nodes: [
                     {
                         authorization: config.lavalink.authorization,  // Token de autenticación
@@ -69,22 +68,22 @@ export default class ReadyEvent extends BaseDiscordEvent<"ready"> {
             });
 
             // Inicializa la conexión con Lavalink
-            await client.lavaManager.init({
+            await client.manager.init({
                 id: config.bot.clientID,
                 username: client.user?.tag
             }).catch((err) => {
-                logger.error("[Ready Event] Error al iniciar LavaManager:", err);
+                logger.error("[Ready Event] Error al iniciar manager:", err);
             });
 
             // Registra el evento "raw" de Discord para enviar datos a Lavalink
             logger.info("|| Evento Raw Cargado ||");
             client.on("raw", (d) => {
-                return client.lavaManager.sendRawData(d)
+                return client.manager.sendRawData(d)
             });
 
-            logger.info("[Ready Event] LavaManager inicializado.");
+            logger.info("[Ready Event] manager inicializado.");
         } catch (err) {
-            logger.error("[Ready Event] Error al inicializar LavaManager:", err);
+            logger.error("[Ready Event] Error al inicializar manager:", err);
         }
     }
 }

@@ -29,11 +29,11 @@ export async function registerLavalinkNodeEvents(client: BotClient): Promise<voi
             const eventInstance = new EventClass();
 
             if (eventInstance.once) {
-                client.lavaManager.nodeManager.once(eventInstance.name, (...args: Parameters<NodeManagerEvents[typeof eventInstance.name]>) => {
+                client.manager.nodeManager.once(eventInstance.name, (...args: Parameters<NodeManagerEvents[typeof eventInstance.name]>) => {
                     eventInstance.execute(client, ...args);
                 });
             } else {
-                client.lavaManager.nodeManager.on(eventInstance.name, (...args: Parameters<NodeManagerEvents[typeof eventInstance.name]>) => {
+                client.manager.nodeManager.on(eventInstance.name, (...args: Parameters<NodeManagerEvents[typeof eventInstance.name]>) => {
                     eventInstance.execute(client, ...args);
                 });
             }

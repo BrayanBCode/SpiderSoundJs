@@ -30,11 +30,11 @@ export async function registerLavalinkEvents(client: BotClient): Promise<void> {
             const eventInstance = new EventClass();
 
             if (eventInstance.once) {
-                client.lavaManager.once(eventInstance.name, (...args: Parameters<LavalinkManagerEvents[typeof eventInstance.name]>) => {
+                client.manager.once(eventInstance.name, (...args: Parameters<LavalinkManagerEvents[typeof eventInstance.name]>) => {
                     eventInstance.execute(client, ...args);
                 });
             } else {
-                client.lavaManager.on(eventInstance.name, (...args: Parameters<LavalinkManagerEvents[typeof eventInstance.name]>) => {
+                client.manager.on(eventInstance.name, (...args: Parameters<LavalinkManagerEvents[typeof eventInstance.name]>) => {
                     eventInstance.execute(client, ...args);
                 });
             }

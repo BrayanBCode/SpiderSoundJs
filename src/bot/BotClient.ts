@@ -9,7 +9,7 @@ import { PrefixCommand } from "@/structures/commands/PrefixCommand.js";
 
 
 export class BotClient extends Client {
-    lavaManager!: LavaManagerCustom;
+    manager!: LavaManagerCustom;
     slashCommands: Map<string, SlashCommand>;
     prefixCommands: Map<string, PrefixCommand>;
     defaultVolume: number;
@@ -27,13 +27,13 @@ export class BotClient extends Client {
     }
 
     getPlayer(guildId: string) {
-        return this.lavaManager.getPlayer(guildId)
+        return this.manager.getPlayer(guildId)
     }
 
     getPlayerOrDefault(inter: ChatInputCommandInteraction<"cached"> | AutocompleteInteraction<CacheType>, guildId: string) {
-        let player = this.lavaManager.getPlayer(guildId)
+        let player = this.manager.getPlayer(guildId)
 
-        player ??= this.lavaManager.createPlayer({
+        player ??= this.manager.createPlayer({
             guildId: guildId,
             voiceChannelId: (inter.member as GuildMember).voice.channelId!,
             textChannelId: inter.channelId,
