@@ -33,9 +33,7 @@
         "bufferutil": "^4.0.9",
         "discord.js": "^14.20.0",
         "dotenv": "^16.5.0",
-        "erela.js": "^2.4.0",
-        "erela.js-spotify": "^1.2.0",
-        "lavalink-client": "^2.5.1",
+        "lavalink-client": "^2.5.7",
         "pagination.djs": "^4.0.18",
         "ts-transformer-keys": "^0.4.4",
         "winston": "^3.17.0"
