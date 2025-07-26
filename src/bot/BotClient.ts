@@ -1,11 +1,11 @@
 import { registerDiscordEvents } from "@/core/handler/RegisterDiscordEvent.js";
 import { LavaManagerCustom } from "@/lavalink/lavaManagerCustom.js";
-import { BotClientOptions } from "@/types/interface/BotClientOptions.js";
 import { Client, ChatInputCommandInteraction, AutocompleteInteraction, CacheType, GuildMember, Guild, TextChannel, VoiceChannel } from "discord.js";
 import { PlayerMessage } from "@/modules/messages/playerMessage.js";
 import { config } from "@/config/config.js";
 import { SlashCommand } from "@/structures/commands/SlashCommand.js";
 import { PrefixCommand } from "@/structures/commands/PrefixCommand.js";
+import { BotClientOptions } from "@/types/interface/IClient.js";
 
 
 export class BotClient extends Client {
