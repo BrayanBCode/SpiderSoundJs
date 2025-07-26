@@ -18,7 +18,7 @@ export default new SlashCommand()
 
             logger.debug(`SkipCommand option **canción** value: ${skipTo}`)
 
-            const player = client.lavaManager?.getPlayer(interaction.guildId);
+            const player = client.manager?.getPlayer(interaction.guildId);
             const voiceChannelID = (interaction.member as GuildMember).voice.channelId;
 
             if (!player || (!player.queue.tracks.length && !player.playing)) {
@@ -86,7 +86,7 @@ export default new SlashCommand()
     .setAutoComplete(async (client, interaction) => {
         if (!interaction.guildId) return;
 
-        const player = client.lavaManager.getPlayer(interaction.guildId);
+        const player = client.manager.getPlayer(interaction.guildId);
 
         if (!player || player.queue.tracks.length === 0) {
             return interaction.respond([{ name: 'No hay canciones en la cola', value: 'no_tracks' }]);
