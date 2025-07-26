@@ -1,5 +1,4 @@
 import { BotClient } from "@/bot/BotClient.js";
-import { IAddToQueueParams } from "@/types/interface/IAddToQueueParams.js";
 import { formatMS_HHMMSS } from "@/utils/formatMS_HHMMSS.js";
 import { createEmptyEmbed, titleCleaner, replyEmbed, deleteAfterTimer } from "@/utils/tools.js";
 import { ChatInputCommandInteraction, GuildMember, CommandInteractionOptionResolver, AutocompleteInteraction, CacheType } from "discord.js";
@@ -7,6 +6,8 @@ import { warnJoinToVC, warnNothingFound, warnJoinToVCBut, warnNeedSameVC, errorN
 import { checkUserVC } from "./PlayBackStrategy.modules.js";
 import logger from "@/bot/logger.js";
 import { Player, SearchPlatform, SearchResult, Track } from "lavalink-client";
+import { queryErrors } from "@/types/enums/EQueryErrors.js";
+import { IAddToQueueParams } from "@/types/interface/IQueuePaginator.js";
 
 
 export abstract class PlaybackStrategy {
@@ -29,12 +30,10 @@ export abstract class PlaybackStrategy {
         const src = (inter.options as CommandInteractionOptionResolver).getString("fuente") as SearchPlatform | undefined ?? "ytsearch";
         const query = (inter.options as CommandInteractionOptionResolver).getString("busqueda") as string;
 
-        if (query == "no_results") return warnNothingFound(inter);
-        if (query == "join_vc") return warnJoinToVCBut(inter);
+        if (query == queryErrors.NO_RESULTS) return warnNothingFound(inter);
+        if (query == queryErrors.JOIN_VC) return warnJoinToVCBut(inter);
 
         const fromAutocomplete = this.autocompleteMap.get(`${inter.user.id}_res`) && query.startsWith("autocomplete_");
-
-        logger.debug(`query: ${query}`);
 
         let results: SearchResult | undefined;
 
@@ -70,12 +69,12 @@ export abstract class PlaybackStrategy {
         const player = client.getPlayerOrDefault(inter, GuildID);
         if (!player.connected) await player.connect();
         if (player.voiceChannelId !== VCID) return inter.respond([{ name: "Debes unirte al mismo canal de voz que el bot", value: "join_vc" }]);
-        if (!focussedQuery.trim().length) return await inter.respond([{ name: "No se encontró ninguna canción", value: "no_results" }]);
+        if (!focussedQuery.trim().length) return await inter.respond([{ name: "No se encontró ninguna canción", value: queryErrors.NO_RESULTS }]);
 
         const src = (inter.options as CommandInteractionOptionResolver).getString("fuente") as SearchPlatform | undefined ?? "ytsearch";
         const res = await player.search({ query: focussedQuery, source: src }, inter.user) as SearchResult
 
-        if (!res.tracks.length) return inter.respond([{ name: "No se encontraron resultados", value: "no_results" }]);
+        if (!res.tracks.length) return inter.respond([{ name: "No se encontraron resultados", value: queryErrors.NO_RESULTS }]);
 
         if (res.loadType === "playlist") {
             this.startTOAutoComplete(inter.user.id, res);
