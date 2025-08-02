@@ -8,17 +8,19 @@ export class PrefixCommandContext {
     private _message: OmitPartialGroupDMChannel<Message<boolean>>;
     private _textChannel: TextChannel;
     private _cmdName: string;
+    private _cmdType: "prefix" | "withOutPrefix";
 
     constructor(client: BotClient, message: OmitPartialGroupDMChannel<Message<boolean>>) {
         this._client = client;
         this._message = message;
         this._textChannel = message.channel as TextChannel;
         this._cmdName = message.content
-            .slice(config.bot.prefix.length)
+            .replace(config.bot.prefix, "")
             .trim()
             .split(/ +/)[0]
             .toLowerCase();
 
+        this._cmdType = message.content.startsWith(config.bot.prefix) ? "prefix" : "withOutPrefix";
         if (!this._cmdName) {
             throw new Error("[PrefixCommandContext] No command name found in message");
         }
@@ -36,6 +38,9 @@ export class PrefixCommandContext {
     }
     public get cmdName(): string {
         return this._cmdName;
+    }
+    public get cmdType(): "prefix" | "withOutPrefix" {
+        return this._cmdType;
     }
 
 

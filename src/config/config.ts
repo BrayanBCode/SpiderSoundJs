@@ -29,6 +29,7 @@ interface Config {
         discord: {
             slashCommands: string,
             prefixCommands: string,
+            withOutPrefixCommands: string,
             events: string
         },
         lavalink: {
@@ -65,6 +66,7 @@ export const config: Config = {
         discord: {
             slashCommands: 'src/core/commands/slash',
             prefixCommands: 'src/core/commands/prefix',
+            withOutPrefixCommands: 'src/core/commands/withOutPrefix',
             events: 'src/core/events/discord'
         },
         lavalink: {

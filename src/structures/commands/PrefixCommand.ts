@@ -1,11 +1,14 @@
+import { TCommandCategoryOptions } from "@/types/types/TCategoryOptions.js";
 import { PrefixCommandExecute } from "@/types/types/TPrefixCommand.js";
 
 
 export class PrefixCommand {
-    private type: "prefix" = "prefix";
+    public type: string = "prefix";
     private _name?: string;
     private _description?: string;
     private _execute?: PrefixCommandExecute;
+    private _category?: string;
+
 
     setName(name: string): this {
         this._name = name;
@@ -21,6 +24,10 @@ export class PrefixCommand {
         this._execute = execute;
         return this;
     }
+    setCategory(category: TCommandCategoryOptions): this {
+        this._category = category;
+        return this;
+    }
 
     public get name() {
         return this._name;
@@ -33,6 +40,9 @@ export class PrefixCommand {
     }
     public get getType() {
         return this.type;
+    }
+    public get category() {
+        return this._category;
     }
 
     toJSON() {

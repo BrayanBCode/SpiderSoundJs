@@ -6,12 +6,14 @@ import { config } from "@/config/config.js";
 import { SlashCommand } from "@/structures/commands/SlashCommand.js";
 import { PrefixCommand } from "@/structures/commands/PrefixCommand.js";
 import { BotClientOptions } from "@/types/interface/IClient.js";
+import { WithOutPrefix } from "@/structures/commands/WithOutPrefix.js";
 
 
 export class BotClient extends Client {
     manager!: LavaManagerCustom;
     slashCommands: Map<string, SlashCommand>;
     prefixCommands: Map<string, PrefixCommand>;
+    withOutPrefixCommands: Map<string, WithOutPrefix>;
     defaultVolume: number;
     playerMessage: PlayerMessage;
 
@@ -21,6 +23,7 @@ export class BotClient extends Client {
 
         this.slashCommands = options.slashCommands ?? new Map();
         this.prefixCommands = options.prefixCommands ?? new Map();
+        this.withOutPrefixCommands = options.withOutPrefixCommands ?? new Map();
         this.defaultVolume = options.defaultVolume ?? 10.0;
 
         this.playerMessage = new PlayerMessage(this)

@@ -4,8 +4,10 @@ import { config } from "@/config/config.js";
 import { registerPrefixCommands } from "@/core/handler/RegisterPrefixCommands.js";
 import { registerSlashCommands } from "@/core/handler/RegisterSlashCommands.js";
 import { registerLavalinkEvents } from "@/core/handler/RegisterlavalinkManagerEvent.js";
+import { registerWithOutPrefixCommands } from "@/core/handler/RegisterWithOutPrefixCommands.js";
 import { LavaManagerCustom } from "@/lavalink/lavaManagerCustom.js";
 import { BaseDiscordEvent } from "@/structures/events/BaseDiscordEvent.js";
+import { ActivityType } from "discord.js";
 
 
 /**
@@ -23,12 +25,16 @@ export default class ReadyEvent extends BaseDiscordEvent<"ready"> {
     async execute(client: BotClient) {
         logger.info(`¡Bot ${client.user?.tag} está listo y conectado!`);
 
+        stablishActivity(client);                     // Establece la actividad del bot
+        await this.initializeLavaManager(client);     // Conecta con el servidor Lavalink
+
         // Ejecuta todas las tareas de inicialización de forma paralela
         await Promise.all([
-            this.initializeLavaManager(client),       // Conecta con el servidor Lavalink
             registerSlashCommands(client),            // Registra todos los comandos slash disponibles
             registerPrefixCommands(client),           // Registra todos los comandos prefix disponibles
             registerLavalinkEvents(client),           // Registra eventos personalizados para Lavalink
+            registerWithOutPrefixCommands(client),    // Registra comandos sin prefijo
+            // Inabilitado por falta de uso
             // registerLavalinkNodeEvents(client)        // Registra eventos base del nodo Lavalink
         ]);
     }
@@ -43,47 +49,72 @@ export default class ReadyEvent extends BaseDiscordEvent<"ready"> {
         try {
             logger.info("[Ready Event] Iniciando conexión con Lavalink...");
 
-            // Crea una nueva instancia de LavaManagerCustom con configuración personalizada
-            client.manager = new LavaManagerCustom({
-                nodes: [
-                    {
-                        authorization: config.lavalink.authorization,  // Token de autenticación
-                        host: config.lavalink.host,                    // Dirección del servidor
-                        port: config.lavalink.port,                    // Puerto del servidor
-                        id: config.lavalink.id,                        // Identificador del nodo, se utiliza el clienteID del bot
-                    },
-                ],
-                autoSkip: true, // Hace que las canciones se salten automáticamente si fallan
+            await stablishLavalinkConnection(client); // Establece la conexión con Lavalink
+            onRaw(client);                            // Registra el evento `raw` para enviar datos a Lavalink
 
-                playerOptions: {
-                    defaultSearchPlatform: "ytsearch", // Plataforma de búsqueda por defecto
-                    onDisconnect: {
-                        autoReconnect: true,           // Reconecta automáticamente si se pierde la conexión
-                    }
-                },
-
-                // Método para enviar datos al shard correcto
-                sendToShard: (guildId, payload) =>
-                    client.guilds.cache.get(guildId)?.shard?.send(payload),
-            });
-
-            // Inicializa la conexión con Lavalink
-            await client.manager.init({
-                id: config.bot.clientID,
-                username: client.user?.tag
-            }).catch((err) => {
-                logger.error("[Ready Event] Error al iniciar manager:", err);
-            });
-
-            // Registra el evento "raw" de Discord para enviar datos a Lavalink
-            logger.info("|| Evento Raw Cargado ||");
-            client.on("raw", (d) => {
-                return client.manager.sendRawData(d)
-            });
-
-            logger.info("[Ready Event] manager inicializado.");
+            logger.info("[Ready Event] Conexión con Lavalink establecida correctamente.");
         } catch (err) {
             logger.error("[Ready Event] Error al inicializar manager:", err);
         }
     }
+}
+
+
+/**
+ * Establece la conexión con el servidor Lavalink y configura el manager.
+ * 
+ * @param client Cliente del bot.
+ */
+async function stablishLavalinkConnection(client: BotClient) {
+    // Crea una nueva instancia de LavaManagerCustom con configuración personalizada
+    client.manager = new LavaManagerCustom({
+        nodes: [
+            {
+                authorization: config.lavalink.authorization,  // Token de autenticación
+                host: config.lavalink.host,                    // Dirección del servidor
+                port: config.lavalink.port,                    // Puerto del servidor
+                id: config.lavalink.id,                        // Identificador del nodo, se utiliza el clienteID del bot
+            },
+        ],
+        autoSkip: true, // Hace que las canciones se salten automáticamente si fallan
+
+        playerOptions: {
+            defaultSearchPlatform: "ytsearch", // Plataforma de búsqueda por defecto
+            onDisconnect: {
+                autoReconnect: true,           // Reconecta automáticamente si se pierde la conexión
+            }
+        },
+
+        // Método para enviar datos al shard correcto
+        sendToShard: (guildId, payload) =>
+            client.guilds.cache.get(guildId)?.shard?.send(payload),
+    });
+
+    // Inicializa la conexión con Lavalink
+    await client.manager.init({
+        id: config.bot.clientID,
+        username: client.user?.tag
+    }).catch((err) => {
+        logger.error("[Ready Event] Error al iniciar manager:", err);
+    });
+}
+
+
+/**
+ * Registra el evento "raw" de Discord para enviar datos a Lavalink
+ */
+function onRaw(client: BotClient) {
+    logger.info("|| Evento Raw Cargado ||");
+    client.on("raw", (d) => {
+        return client.manager.sendRawData(d)
+    });
+}
+
+
+function stablishActivity(client: BotClient) {
+    client.user!.setActivity({
+        name: `${client.guilds.cache.size} servidores`,
+        type: ActivityType.Watching,
+        url: "https://github.com/BrayanBCode/SpiderSoundJs"
+    });
 }

@@ -2,6 +2,7 @@ import { BotClient } from "@/bot/BotClient.js";
 import logger from "@/bot/logger.js";
 import { config } from "@/config/config.js";
 import { PrefixCommandContext } from "@/structures/commands/PrefixCommandContext.js";
+import { WithOutPrefix } from "@/structures/commands/WithOutPrefix.js";
 import { BaseDiscordEvent } from "@/structures/events/BaseDiscordEvent.js";
 import { createEmptyEmbed } from "@/utils/tools.js";
 import { OmitPartialGroupDMChannel, Message } from "discord.js";
@@ -14,11 +15,7 @@ export default class MessageCreate extends BaseDiscordEvent<"messageCreate"> {
     name: "messageCreate" = "messageCreate";
     execute(client: BotClient, message: OmitPartialGroupDMChannel<Message<boolean>>): void | Promise<void> {
 
-        // Ignora mensajes de bots
-        if (message.author.bot) return;
-
-        // Verifica si el mensaje comienza con el prefijo del bot
-        if (!message.content.startsWith(config.bot.prefix)) return;
+        if (!message.content || !message.author.bot) return;
 
         // Prefix Command Context (PreCC)
         const PreCC = new PrefixCommandContext(client, message);
@@ -26,6 +23,31 @@ export default class MessageCreate extends BaseDiscordEvent<"messageCreate"> {
             .slice(config.bot.prefix.length + PreCC.cmdName.length)
             .trim()
             .split(/ +/);
+
+        // Ignora mensajes de bots
+        if (message.author.bot) return;
+
+        // Verifica si el mensaje comienza con el prefijo del bot
+        if (!message.content.startsWith(config.bot.prefix)) {
+            for (const [_, cmd] of client.withOutPrefixCommands) {
+
+                for (const aliase of cmd.aliases) {
+
+                    if (message.content.includes(aliase.toLocaleLowerCase())) {
+
+                        if (cmd.startWithName && !message.content.startsWith(aliase.toLocaleLowerCase())) {
+                            return;
+                        }
+
+                        cmd.execute!(client, PreCC, args);
+                    }
+                }
+            }
+        }
+
+        if (PreCC.cmdType === "withOutPrefix") {
+            return;
+        }
 
         if (!PreCC.cmdName) {
             message.reply({

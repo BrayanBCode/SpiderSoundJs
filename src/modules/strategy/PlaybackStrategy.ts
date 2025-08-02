@@ -83,7 +83,7 @@ export abstract class PlaybackStrategy {
 
         const options = res.tracks.slice(0, 25).map((track, index) => {
             return {
-                name: `${formatMS_HHMMSS(track.info.duration!)} ${track.info.title}`.slice(0, 100),
+                name: `${formatMS_HHMMSS(track.info?.duration!)} ${track.info?.title}`.slice(0, 100),
                 value: `autocomplete_${index}`,
             };
         })
@@ -149,14 +149,14 @@ export abstract class PlaybackStrategy {
             await this.addTracks(player, res.tracks)
 
             const embed = createEmptyEmbed()
-                .setAuthor({ name: `Agregando ${res.pluginInfo.type ?? "Playlist"} 🎧` })
+                .setAuthor({ name: `Agregando ${res.pluginInfo?.type ?? "Playlist"} 🎧` })
                 .setTitle(`${res.playlist ? titleCleaner(res.playlist.title, res.playlist.author) : query}`)
-                .setThumbnail(res.tracks[0].info.artworkUrl)
+                .setThumbnail(res.tracks[0].info?.artworkUrl)
                 .setColor('Green')
 
             for (let i = 0; i < Math.min(res.tracks.length, 3); i++) {
                 embed.addFields({
-                    name: `${res.tracks[i].info.title}`, value: `${res.tracks[i].info.author} - Duración: ${formatMS_HHMMSS(res.tracks[i].info.duration)
+                    name: `${res.tracks[i].info?.title}`, value: `${res.tracks[i].info?.author} - Duración: ${formatMS_HHMMSS(res.tracks[i].info?.duration)
                         }`, inline: true
                 });
             }
@@ -173,13 +173,13 @@ export abstract class PlaybackStrategy {
             Msg = await (await replyEmbed({
                 interaction: inter,
                 embed: createEmptyEmbed()
-                    .setAuthor({ name: `Agregando ${titleCleaner(track.info.title, track.info.author)} 🎧` })
-                    .setDescription(`Autor: ${track.info.author} `)
-                    .setThumbnail(track.info.artworkUrl ?? "")
+                    .setAuthor({ name: `Agregando ${titleCleaner(track.info?.title, track.info?.author)} 🎧` })
+                    .setDescription(`Autor: ${track.info?.author} `)
+                    .setThumbnail(track.info?.artworkUrl ?? "")
                     .setColor('Green')
                     .addFields(
-                        { name: "Duración", value: formatMS_HHMMSS(track.info.duration), inline: true },
-                        { name: "Artista", value: track.info.author, inline: true }
+                        { name: "Duración", value: formatMS_HHMMSS(track.info?.duration), inline: true },
+                        { name: "Artista", value: track.info?.author, inline: true }
                     ),
 
             })).fetch()
