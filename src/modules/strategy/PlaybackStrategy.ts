@@ -30,6 +30,8 @@ export abstract class PlaybackStrategy {
         const src = (inter.options as CommandInteractionOptionResolver).getString("fuente") as SearchPlatform | undefined ?? "ytsearch";
         const query = (inter.options as CommandInteractionOptionResolver).getString("busqueda") as string;
 
+        logger.debug(`PlaybackStrategy: ${inter.user.username} - ${query} - ${src}`);
+
         if (query == queryErrors.NO_RESULTS) return warnNothingFound(inter);
         if (query == queryErrors.JOIN_VC) return warnJoinToVCBut(inter);
 
@@ -37,11 +39,11 @@ export abstract class PlaybackStrategy {
 
         let results: SearchResult | undefined;
 
-        if (fromAutocomplete) {
-            results = this.getAutoComplete(inter.user.id);
-        }
-
         const player = client.getPlayerOrDefault(inter, GuildID);
+
+        if (fromAutocomplete) results = this.getAutoComplete(inter.user.id)
+        else results = await player.search({ query: query, source: src }, inter.user) as SearchResult
+
         if (!player.connected) await player.connect();
         if (player.voiceChannelId !== VCID) return warnNeedSameVC(inter);
 
@@ -166,7 +168,7 @@ export abstract class PlaybackStrategy {
             Msg = await (await replyEmbed({ interaction: inter, embed })).fetch();
 
         } else {
-            const track = res.tracks[Number(query.replace("autocomplete_", ""))];
+            const track = query.startsWith("autocomplete_") ? res.tracks[Number(query.replace("autocomplete_", ""))] : res.tracks[0];
 
             await this.addTracks(player, track)
 
