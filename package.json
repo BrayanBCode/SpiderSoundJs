@@ -34,6 +34,7 @@
         "discord.js": "^14.20.0",
         "dotenv": "^16.5.0",
         "lavalink-client": "^2.5.7",
+        "moonlink": "^1.0.0",
         "pagination.djs": "^4.0.18",
         "ts-transformer-keys": "^0.4.4",
         "winston": "^3.17.0"
