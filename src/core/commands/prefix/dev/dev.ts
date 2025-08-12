@@ -6,6 +6,7 @@ import { createEmptyEmbed } from "@/utils/tools.js";
 export default new PrefixCommand()
     .setName("dev")
     .setDescription("Comandos exclusivos para el Developer.")
+    .setCategory("Dev")
     .setExecute(
         async (_client, ctx, args) => {
             if (!ctx.message.guildId) return;

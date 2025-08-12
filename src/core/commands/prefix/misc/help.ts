@@ -5,6 +5,7 @@ import { EmptyEmbed } from "@/utils/tools.js";
 export default new PrefixCommand()
     .setName("help")
     .setDescription("Muestra la ayuda del bot.")
+    .setCategory("Misc")
     .setExecute(async (_client, ctx,) => {
         await ctx.reply({
             embeds: [
