@@ -1,14 +1,14 @@
 import { BotClient } from "@/bot/BotClient.js";
 import logger from "@/bot/logger.js";
-import { BaseLavalinkManagerEvents } from "@/structures/events/BaseLavalinkManagerEvents.js";
+import { BaseMoonLinkManagerEvents } from "@/structures/events/BaseLavalinkManagerEvents.js";
+import { sendReply } from "@/utils/replyUtils.js";
 import { createEmptyEmbed, deleteAfterTimer } from "@/utils/tools.js";
-import { Player, Track, UnresolvedTrack, TrackEndEvent, TrackStuckEvent, TrackExceptionEvent } from "lavalink-client";
+import { Player } from "moonlink.js";
 
-
-export default class queueEnd extends BaseLavalinkManagerEvents<"queueEnd"> {
+export default class queueEnd extends BaseMoonLinkManagerEvents<"queueEnd"> {
     name: "queueEnd" = "queueEnd";
-
-    async execute(client: BotClient, player: Player, track: Track | UnresolvedTrack | null, payload: TrackEndEvent | TrackStuckEvent | TrackExceptionEvent): Promise<void> {
+    once: boolean = false;
+    async execute(client: BotClient, player: Player, track?: any): Promise<void> {
         const channel = client.playerMessage.getData(player.guildId)?.channel
 
         if (!channel) {
@@ -25,7 +25,6 @@ export default class queueEnd extends BaseLavalinkManagerEvents<"queueEnd"> {
             ]
         })
 
-
         setTimeout(() => {
             const gettedPlayer = client.getPlayer(player.guildId);
             if (gettedPlayer && gettedPlayer.queue.tracks.length === 0) {
@@ -39,3 +38,5 @@ export default class queueEnd extends BaseLavalinkManagerEvents<"queueEnd"> {
     }
 
 }
+
+

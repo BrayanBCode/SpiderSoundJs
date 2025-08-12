@@ -5,9 +5,9 @@ import { ChatInputCommandInteraction, GuildMember, CommandInteractionOptionResol
 import { warnJoinToVC, warnNothingFound, warnJoinToVCBut, warnNeedSameVC, errorNoMatchesFounded } from "./PlayBackStrategy.messages.js";
 import { checkUserVC } from "./PlayBackStrategy.modules.js";
 import logger from "@/bot/logger.js";
-import { Player, SearchPlatform, SearchResult, Track } from "lavalink-client";
 import { queryErrors } from "@/types/enums/EQueryErrors.js";
 import { IAddToQueueParams } from "@/types/interface/IQueuePaginator.js";
+import { Player, SearchResult, SearchSources, Track } from "moonlink.js";
 
 
 export abstract class PlaybackStrategy {
@@ -18,7 +18,48 @@ export abstract class PlaybackStrategy {
 
     }
 
+    async autocomplete(client: BotClient, inter: AutocompleteInteraction<CacheType>) {
+        const guildId = inter.guildId;
+
+        if (!guildId) return;
+
+        const VCID = (inter.member as GuildMember).voice.channelId;
+        if (!VCID) return inter.respond([{ name: "Debes unirte a un canal de voz", value: "join_vc" }]);
+
+        const focussedQuery = inter.options.getFocused();
+
+        const player = client.getPlayerOrDefault(inter, guildId);
+        if (!player.connected) player.connect({ setDeaf: true, setMute: false });
+        if (player.voiceChannelId !== VCID) return inter.respond([{ name: "Debes unirte al mismo canal de voz que el bot", value: "join_vc" }]);
+        if (!focussedQuery.trim().length) return await inter.respond([{ name: "No se encontró ninguna canción", value: queryErrors.NO_RESULTS }]);
+
+        const res = await client.manager.search({
+            query: focussedQuery,
+            source: "ytsearch",
+            requester: inter.user,
+        })
+
+        if (!res.tracks.length) return inter.respond([{ name: "No se encontraron resultados", value: queryErrors.NO_RESULTS }]);
+
+        if (res.loadType === 'playlist') {
+            this.startTOAutoComplete(inter.user.id, res);
+            return inter.respond([{ name: `Playlist [${res.tracks.length} Tracks] - ${res.playlistInfo.name ?? "Unknown Playlist"}`, value: "autocomplete_0" }]);
+        }
+
+        const trackOptions = res.tracks.slice(0, 25).map((track, index) => {
+            return {
+                name: `${formatMS_HHMMSS(track.duration)} ${track.title}`.slice(0, 100),
+                value: `autocomplete_${index}`,
+            };
+        });
+
+        this.startTOAutoComplete(inter.user.id, res);
+        await inter.respond(trackOptions);
+
+    }
+
     async execute(client: BotClient, inter: ChatInputCommandInteraction<"cached">) {
+
         const GuildID = inter.guildId;
         if (!GuildID) return;
 
@@ -27,7 +68,7 @@ export abstract class PlaybackStrategy {
 
         if (!checkUserVC(inter)) return;
 
-        const src = (inter.options as CommandInteractionOptionResolver).getString("fuente") as SearchPlatform | undefined ?? "ytsearch";
+        const src = (inter.options as CommandInteractionOptionResolver).getString("fuente") as SearchSources | undefined ?? "ytsearch";
         const query = (inter.options as CommandInteractionOptionResolver).getString("busqueda") as string;
 
         logger.debug(`PlaybackStrategy: ${inter.user.username} - ${query} - ${src}`);
@@ -42,12 +83,12 @@ export abstract class PlaybackStrategy {
         const player = client.getPlayerOrDefault(inter, GuildID);
 
         if (fromAutocomplete) results = this.getAutoComplete(inter.user.id)
-        else results = await player.search({ query: query, source: src }, inter.user) as SearchResult
+        else results = await client.manager.search({ query: query, source: src, requester: inter.user }) as SearchResult
 
-        if (!player.connected) await player.connect();
+        if (!player.connected) player.connect();
         if (player.voiceChannelId !== VCID) return warnNeedSameVC(inter);
 
-        results ??= await player.search({ query, source: src }, inter.user) as SearchResult;
+        results ??= await client.manager.search({ query, source: src, requester: inter.user }) as SearchResult;
 
         if (!results.tracks.length) return errorNoMatchesFounded(inter);
 
@@ -55,47 +96,16 @@ export abstract class PlaybackStrategy {
 
         this.afterAddToQueue(player)
 
-        if (!player.playing) await player.play(player.connected ? { volume: client.defaultVolume, paused: false } : undefined);
-
-    }
-
-    async autocomplete(client: BotClient, inter: AutocompleteInteraction<CacheType>) {
-        const GuildID = inter.guildId;
-        if (!GuildID) return;
-
-        const VCID = (inter.member as GuildMember).voice.channelId;
-        if (!VCID) inter.respond([{ name: "Debes unirte a un canal de voz para buscar canciones", value: "join_vc" }]);
-
-        const focussedQuery = inter.options.getFocused();
-
-        const player = client.getPlayerOrDefault(inter, GuildID);
-        if (!player.connected) await player.connect();
-        if (player.voiceChannelId !== VCID) return inter.respond([{ name: "Debes unirte al mismo canal de voz que el bot", value: "join_vc" }]);
-        if (!focussedQuery.trim().length) return await inter.respond([{ name: "No se encontró ninguna canción", value: queryErrors.NO_RESULTS }]);
-
-        const src = (inter.options as CommandInteractionOptionResolver).getString("fuente") as SearchPlatform | undefined ?? "ytsearch";
-        const res = await player.search({ query: focussedQuery, source: src }, inter.user) as SearchResult
-
-        if (!res.tracks.length) return inter.respond([{ name: "No se encontraron resultados", value: queryErrors.NO_RESULTS }]);
-
-        if (res.loadType === "playlist") {
-            this.startTOAutoComplete(inter.user.id, res);
-            return inter.respond([{ name: `Playlist [${res.tracks.length} Tracks] - ${res.playlist?.title ?? "Unknown Playlist"}`, value: "autocomplete_0" }]);
+        if (!player.playing && !player.paused) {
+            player.play();
+            return;
         }
 
-        const options = res.tracks.slice(0, 25).map((track, index) => {
-            return {
-                name: `${formatMS_HHMMSS(track.info?.duration!)} ${track.info?.title}`.slice(0, 100),
-                value: `autocomplete_${index}`,
-            };
-        })
-
-        // logger.debug(options)
-
-        this.startTOAutoComplete(inter.user.id, res);
-        return inter.respond(options);
-
+        if (player.paused) {
+            player.resume();
+        }
     }
+
 
     /**
      * Obtiene y elimina el registro del auto complete + timer de auto eliminación 
@@ -151,14 +161,14 @@ export abstract class PlaybackStrategy {
             await this.addTracks(player, res.tracks)
 
             const embed = createEmptyEmbed()
-                .setAuthor({ name: `Agregando ${res.pluginInfo?.type ?? "Playlist"} 🎧` })
-                .setTitle(`${res.playlist ? titleCleaner(res.playlist.title, res.playlist.author) : query}`)
-                .setThumbnail(res.tracks[0].info?.artworkUrl)
+                .setAuthor({ name: `Agregando ${res.lavasearchPluginInfo?.toString() ?? "Playlist"} 🎧` })
+                .setTitle(`${res.playlistInfo ? titleCleaner(res.playlistInfo.name, "") : query}`)
+                .setThumbnail(res.tracks[0].artworkUrl ?? "")
                 .setColor('Green')
 
             for (let i = 0; i < Math.min(res.tracks.length, 3); i++) {
                 embed.addFields({
-                    name: `${res.tracks[i].info?.title}`, value: `${res.tracks[i].info?.author} - Duración: ${formatMS_HHMMSS(res.tracks[i].info?.duration)
+                    name: `${res.tracks[i].title}`, value: `${res.tracks[i].author} - Duración: ${formatMS_HHMMSS(res.tracks[i].duration)
                         }`, inline: true
                 });
             }
@@ -175,13 +185,13 @@ export abstract class PlaybackStrategy {
             Msg = await (await replyEmbed({
                 interaction: inter,
                 embed: createEmptyEmbed()
-                    .setAuthor({ name: `Agregando ${titleCleaner(track.info?.title, track.info?.author)} 🎧` })
-                    .setDescription(`Autor: ${track.info?.author} `)
-                    .setThumbnail(track.info?.artworkUrl ?? "")
+                    .setAuthor({ name: `Agregando ${titleCleaner(track.title, track.author)} 🎧` })
+                    .setDescription(`Autor: ${track.author} `)
+                    .setThumbnail(track.artworkUrl ?? "")
                     .setColor('Green')
                     .addFields(
-                        { name: "Duración", value: formatMS_HHMMSS(track.info?.duration), inline: true },
-                        { name: "Artista", value: track.info?.author, inline: true }
+                        { name: "Duración", value: formatMS_HHMMSS(track.duration), inline: true },
+                        { name: "Artista", value: track.author, inline: true }
                     ),
 
             })).fetch()

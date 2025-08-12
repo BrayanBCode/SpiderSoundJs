@@ -3,11 +3,11 @@ import logger from "@/bot/logger.js"
 import { formatMS_HHMMSS } from "@/utils/formatMS_HHMMSS.js"
 import { createEmptyEmbed, titleCleaner, replyEmbed, deleteAfterTimer } from "@/utils/tools.js"
 import { TextChannel, Message, User, ButtonStyle, MessageFlags, ButtonInteraction } from "discord.js"
-import { Track, Player } from "lavalink-client"
 import { CustomButtonBuilder } from "../buttons/ButtonBuilder.js"
 import { QueuePaginator } from "../buttons/QueuePaginator.js"
 import { DisplayButtonsBuilder } from "../buttons/DisplayButtonsBuilder.js"
-import { IButtonInteraction } from "@/types/interface/IButtonInteraction.js"
+import { IButtonInteraction } from "@/types/interface/IButtons.js"
+import { Player, Track } from "moonlink.js"
 
 
 class PlayingButtons extends DisplayButtonsBuilder {
@@ -52,7 +52,7 @@ export class PlayerMessage {
             return undefined
         }
 
-        const currentTrack = player.queue.current
+        const currentTrack = player.current
 
         if (!currentTrack) {
             logger.error(`[PlayerMessage] No se pudo obtener la cancion actual`)
@@ -133,7 +133,7 @@ export class PlayerMessage {
     }
 
     private getPlayingEmbed(track: Track, player: Player) {
-        const user = (track.requester as User)
+        const user = (track.requestedBy as User)
         const userDisplay = typeof user.displayAvatarURL === "function" ? user.displayAvatarURL() : this.client.user?.displayAvatarURL() ?? ""
 
         return createEmptyEmbed()
@@ -141,25 +141,25 @@ export class PlayerMessage {
                 name: `Escuchando 🎧`,
                 iconURL: userDisplay
             })
-            .setDescription(`[${titleCleaner(track.info.title)}](${track.info.uri})`)
+            .setDescription(`[${(track.title)}](${track.url})`)
             .addFields(
-                { name: "Artista", value: `\`${track.info.author}\``, inline: true },
+                { name: "Artista", value: `\`${track.author}\``, inline: true },
                 { name: "Volumen", value: `\`${player.volume}%\``, inline: true },
-                { name: "Duración", value: `\`${formatMS_HHMMSS(track.info.duration)}\``, inline: true },
+                { name: "Duración", value: `\`${formatMS_HHMMSS(track.duration)}\``, inline: true },
                 { name: "En cola", value: `\`${player.queue.tracks.length}\``, inline: true },
-                { name: "Loop", value: `\`${player.repeatMode}\``, inline: true },
+                { name: "Loop", value: `\`${player.loop}\``, inline: true },
                 {
                     name: "Duración de lista",
                     value: `\`${formatMS_HHMMSS(
-                        (player.queue.tracks.reduce((acum, track) => acum + track.info.duration!, 0) + track.info.duration))
-                        }\``,
+                        (player.queue.tracks.reduce((acum: any, track: any) => acum + track.duration, 0) + track.duration)
+                    )}\``,
                     inline: true
                 },
             )
 
             .setColor("NotQuiteBlack")
             // .setImage(`https://img.youtube.com/vi/${track.info.identifier}/hqdefault.jpg`)
-            .setThumbnail(`${track.info.artworkUrl}`)
+            .setThumbnail(`${track.artworkUrl}`)
         // .setFooter({
         //     text: `Pedido por ${(track.requester as User).globalName}`,
         //     iconURL: (track.requester as User).displayAvatarURL()
@@ -205,12 +205,12 @@ export class PlayerMessage {
                 async (client, inter) => {
                     const player = client.getPlayer(inter.guildId)!
 
-                    await player.play({ track: player.queue.previous[0] });
+                    await player.back();
 
                     const prevMsg = await replyEmbed({
                         interaction: inter as ButtonInteraction<"cached">,
                         embed: createEmptyEmbed()
-                            .setDescription(`Reproduciendo: **${player.queue.previous[0].info.title}**`)
+                            .setDescription(`Reproduciendo: **${player.queue.previous[0].title}**`)
                     });
 
                     deleteAfterTimer(prevMsg, 10000)
@@ -225,7 +225,7 @@ export class PlayerMessage {
                 async (client, inter, col) => {
                     const player = client.getPlayer(inter.guildId)!
 
-                    player.playing ? await player.pause() : await player.resume();
+                    player.playing ? player.pause() : player.resume();
 
                     const ResumePlayMsg = await replyEmbed({
                         interaction: inter as ButtonInteraction<"cached">,
@@ -286,8 +286,8 @@ export class PlayerMessage {
                 async (client, inter, col) => {
                     const player = client.getPlayer(inter.guildId)!
 
-                    if (player.repeatMode === "off") {
-                        await player.setRepeatMode("track");
+                    if (player.loop === "off") {
+                        await player.setLoop("track");
                         await inter.reply({
                             embeds: [
                                 createEmptyEmbed()
@@ -296,8 +296,8 @@ export class PlayerMessage {
                             ],
                             flags: MessageFlags.Ephemeral
                         });
-                    } else if (player.repeatMode === "track") {
-                        await player.setRepeatMode("queue");
+                    } else if (player.loop === "track") {
+                        await player.setLoop("queue");
                         await inter.reply({
                             embeds: [
                                 createEmptyEmbed()
@@ -307,7 +307,7 @@ export class PlayerMessage {
                             flags: MessageFlags.Ephemeral
                         });
                     } else {
-                        await player.setRepeatMode("off");
+                        await player.setLoop("off");
                         await inter.reply({
                             embeds: [
                                 createEmptyEmbed()
@@ -327,7 +327,7 @@ export class PlayerMessage {
                 async (client, inter, col) => {
                     const player = client.getPlayer(inter.guildId)!
 
-                    await player.seek(player.position - (10 * 1_000));
+                    player.seek(player.current.position - (10 * 1_000));
 
                     deleteAfterTimer(
                         await inter.reply({
@@ -348,7 +348,7 @@ export class PlayerMessage {
                 async (client, inter, col) => {
                     const player = client.getPlayer(inter.guildId)!
 
-                    await player.stopPlaying(true)
+                    player.stop()
 
                     const stopMsg = await replyEmbed({
                         interaction: (inter as ButtonInteraction<"cached">),
@@ -380,7 +380,7 @@ export class PlayerMessage {
                 async (client, inter, col) => {
                     const player = client.getPlayer(inter.guildId)!
 
-                    await player.seek(player.position + (15 * 1_000));
+                    await player.seek(player.current.position + (15 * 1_000));
                     deleteAfterTimer(
                         await inter.reply({
                             embeds: [

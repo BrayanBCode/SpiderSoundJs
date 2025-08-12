@@ -5,9 +5,9 @@ import { registerPrefixCommands } from "@/core/handler/RegisterPrefixCommands.js
 import { registerSlashCommands } from "@/core/handler/RegisterSlashCommands.js";
 import { registerLavalinkEvents } from "@/core/handler/RegisterlavalinkManagerEvent.js";
 import { registerWithOutPrefixCommands } from "@/core/handler/RegisterWithOutPrefixCommands.js";
-import { LavaManagerCustom } from "@/lavalink/lavaManagerCustom.js";
 import { BaseDiscordEvent } from "@/structures/events/BaseDiscordEvent.js";
-import { ActivityType } from "discord.js";
+import { ActivityType, Client } from "discord.js";
+import { INode, Manager } from "moonlink.js";
 
 
 /**
@@ -66,37 +66,26 @@ export default class ReadyEvent extends BaseDiscordEvent<"ready"> {
  * @param client Cliente del bot.
  */
 async function stablishLavalinkConnection(client: BotClient) {
-    // Crea una nueva instancia de LavaManagerCustom con configuración personalizada
-    client.manager = new LavaManagerCustom({
+    // Crea una nueva instancia de Manager con configuración personalizada
+    client.manager = new Manager({
         nodes: [
             {
-                authorization: config.lavalink.authorization,  // Token de autenticación
+                password: config.lavalink.authorization,  // Token de autenticación
                 host: config.lavalink.host,                    // Dirección del servidor
                 port: config.lavalink.port,                    // Puerto del servidor
-                id: config.lavalink.id,                        // Identificador del nodo, se utiliza el clienteID del bot
+                identifier: config.lavalink.id,                        // Identificador del nodo, se utiliza el clienteID del bot
             },
         ],
-        autoSkip: true, // Hace que las canciones se salten automáticamente si fallan
-
-        playerOptions: {
-            defaultSearchPlatform: "ytsearch", // Plataforma de búsqueda por defecto
-            onDisconnect: {
-                autoReconnect: true,           // Reconecta automáticamente si se pierde la conexión
-            }
-        },
-
+        options: { disableNativeSources: true },
         // Método para enviar datos al shard correcto
-        sendToShard: (guildId, payload) =>
-            client.guilds.cache.get(guildId)?.shard?.send(payload),
+        sendPayload: (guildId: string, payload: any) => {
+            const guild = client.guilds.cache.get(guildId);
+            if (guild) guild.shard.send(JSON.parse(payload));
+        }
     });
 
-    // Inicializa la conexión con Lavalink
-    await client.manager.init({
-        id: config.bot.clientID,
-        username: client.user?.tag
-    }).catch((err) => {
-        logger.error("[Ready Event] Error al iniciar manager:", err);
-    });
+    client.manager.init(config.bot.clientID);
+
 }
 
 
@@ -105,9 +94,10 @@ async function stablishLavalinkConnection(client: BotClient) {
  */
 function onRaw(client: BotClient) {
     logger.info("|| Evento Raw Cargado ||");
-    client.on("raw", (d) => {
-        return client.manager.sendRawData(d)
+    client.on("raw", (payload) => {
+        client.manager.packetUpdate(payload);
     });
+
 }
 
 

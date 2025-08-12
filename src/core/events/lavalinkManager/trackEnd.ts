@@ -1,16 +1,15 @@
 import { BotClient } from "@/bot/BotClient.js";
 import logger from "@/bot/logger.js";
-import { BaseLavalinkManagerEvents } from "@/structures/events/BaseLavalinkManagerEvents.js";
-import { Player, Track, TrackEndEvent } from "lavalink-client";
+import { BaseMoonLinkManagerEvents } from "@/structures/events/BaseLavalinkManagerEvents.js";
+import { Player, Track, TTrackEndType } from "moonlink.js";
 
 
-export default class trackEnd extends BaseLavalinkManagerEvents<"trackEnd"> {
+export default class trackEnd extends BaseMoonLinkManagerEvents<"trackEnd"> {
     name: "trackEnd" = "trackEnd";
-    async execute(client: BotClient, player: Player, track: Track | null, payload: TrackEndEvent): Promise<void> {
+    once: boolean = false;
 
-        // await client.playerMessage.delete(player.guildId)
-        logger.info(`Termino **${track?.info.title}** en **${client.getGuild(player.guildId)?.name}**`);
-
+    execute(client: BotClient, player: Player, track: Track, type: TTrackEndType, payload?: any): void {
+        logger.info(`Termino **${track.title}** en **${client.getGuild(player.guildId)?.name}**`);
     }
 
 }

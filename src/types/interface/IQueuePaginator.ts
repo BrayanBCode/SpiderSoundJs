@@ -1,9 +1,9 @@
 import { ChatInputCommandInteraction, ButtonInteraction, TextChannel } from "discord.js"
-import { Player, SearchResult, Track, UnresolvedTrack } from "lavalink-client";
+import { Player, SearchResult, Track } from "moonlink.js";
 
 export interface IQueuePaginatorOpt {
     interaction: ChatInputCommandInteraction<"cached"> | ButtonInteraction<"cached">;
-    items: (Track | UnresolvedTrack)[];
+    items: (Track)[];
     textChannel?: TextChannel;
     pageSize?: number;
     timer?: number;
@@ -13,7 +13,7 @@ export interface IQueuePaginatorOpt {
 
 export interface IQueuePaginator {
     interaction: ChatInputCommandInteraction<"cached"> | ButtonInteraction<"cached">;
-    items: (Track | UnresolvedTrack)[];
+    items: (Track)[];
     pageSize?: number;
     time?: number;
 }
@@ -21,7 +21,7 @@ export interface IQueuePaginator {
 
 export interface IClassQueuePaginator {
     interaction: ChatInputCommandInteraction<"cached"> | ButtonInteraction<"cached">;
-    items: (Track | UnresolvedTrack)[];
+    items: (Track)[];
     textChannel?: TextChannel;
     pageSize: number;
     timer?: number;

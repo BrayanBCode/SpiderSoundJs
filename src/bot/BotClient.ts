@@ -1,5 +1,4 @@
 import { registerDiscordEvents } from "@/core/handler/RegisterDiscordEvent.js";
-import { LavaManagerCustom } from "@/lavalink/lavaManagerCustom.js";
 import { Client, ChatInputCommandInteraction, AutocompleteInteraction, CacheType, GuildMember, Guild, TextChannel, VoiceChannel } from "discord.js";
 import { PlayerMessage } from "@/modules/messages/playerMessage.js";
 import { config } from "@/config/config.js";
@@ -7,10 +6,12 @@ import { SlashCommand } from "@/structures/commands/SlashCommand.js";
 import { PrefixCommand } from "@/structures/commands/PrefixCommand.js";
 import { BotClientOptions } from "@/types/interface/IClient.js";
 import { WithOutPrefix } from "@/structures/commands/WithOutPrefix.js";
+import { Manager } from "moonlink.js";
+
 
 
 export class BotClient extends Client {
-    manager!: LavaManagerCustom;
+    manager!: Manager;
     slashCommands: Map<string, SlashCommand>;
     prefixCommands: Map<string, PrefixCommand>;
     withOutPrefixCommands: Map<string, WithOutPrefix>;
@@ -40,11 +41,7 @@ export class BotClient extends Client {
             guildId: guildId,
             voiceChannelId: (inter.member as GuildMember).voice.channelId!,
             textChannelId: inter.channelId,
-            selfDeaf: true,
-            selfMute: false,
             volume: this.defaultVolume,
-            node: config.bot.user,
-            vcRegion: (inter.member as GuildMember)?.voice.channel?.rtcRegion!
         })
 
         return player

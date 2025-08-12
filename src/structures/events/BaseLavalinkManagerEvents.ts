@@ -1,11 +1,11 @@
 import { BotClient } from "@/bot/BotClient.js";
-import { LavalinkManagerEvents } from "lavalink-client";
+import { IEvents } from "moonlink.js";
 
 
-export abstract class BaseLavalinkManagerEvents<K extends keyof LavalinkManagerEvents> {
-    eventType: string = "LavalinkManagerEvents"
+export abstract class BaseMoonLinkManagerEvents<K extends keyof IEvents> {
+    eventType: string = "MoonLinkManagerEvents"
     abstract name: K;
     once: boolean = false;
 
-    abstract execute(client: BotClient, ...args: Parameters<LavalinkManagerEvents[K]>): void;
+    abstract execute(client: BotClient, ...args: Parameters<IEvents[K]>): void;
 }
