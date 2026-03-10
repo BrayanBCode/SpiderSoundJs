@@ -7,7 +7,9 @@
   ],
   "scripts": {
     "bot": "bun run --cwd apps/bot dev",
-    "nodelink": "bun run --cwd apps/nodelink start:bun"
+    "nodelink": "bun run --cwd apps/NodeLink start:bun",
+    "start": "bun run launcher.ts",
+    "build": "bun build --compile launcher.ts --outfile spidersound.exe"
   }
 }
 
