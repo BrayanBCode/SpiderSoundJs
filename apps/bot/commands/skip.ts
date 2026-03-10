@@ -34,7 +34,7 @@ export default new SlashCommand()
 
             const track = player.queue.tracks[pos]!;
 
-            player.queue.remove(pos);
+            player.skip(pos);
 
             return inter.reply({
                 embeds: [
