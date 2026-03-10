@@ -16,7 +16,7 @@ export interface ISimpleEmbedReply {
 export async function warnNoChannelAcces(inter: interactionCommandType) {
     return await replyEmbed({
         interaction: inter,
-        embed: createEmptyEmbed({ description: "No puedo unirme o reproducir en este canal" }),
+        embed: createEmptyEmbed({ description: "❌| No puedo unirme o reproducir en este canal" }).setColor("Red"),
         ephemeral: true
     })
 }
@@ -24,7 +24,7 @@ export async function warnNoChannelAcces(inter: interactionCommandType) {
 export async function warnJoinToVC(inter: interactionCommandType) {
     return await replyEmbed({
         interaction: inter,
-        embed: createEmptyEmbed({ description: "Unete a un canal de voz" }).setColor("Yellow"),
+        embed: createEmptyEmbed({ description: "⚠️| Unete a un canal de voz" }).setColor("Yellow"),
         ephemeral: true
     });
 }
@@ -32,7 +32,7 @@ export async function warnJoinToVC(inter: interactionCommandType) {
 export async function warnNothingFound(inter: interactionCommandType) {
     return await replyEmbed({
         interaction: inter,
-        embed: createEmptyEmbed({ description: "No se encontraron resultados" }).setColor("Yellow"),
+        embed: createEmptyEmbed({ description: "⚠️| No se encontraron resultados" }).setColor("Yellow"),
         ephemeral: true
     })
 }
@@ -40,7 +40,7 @@ export async function warnNothingFound(inter: interactionCommandType) {
 export async function warnJoinToVCBut(inter: interactionCommandType) {
     return await replyEmbed({
         interaction: inter,
-        embed: createEmptyEmbed({ description: "Te uniste al canal de voz, pero vuelve a ejecutar el comando, por favor.." }).setColor('Yellow'),
+        embed: createEmptyEmbed({ description: "⚠️| Te uniste al canal de voz, vuelve a ejecutar el comando, por favor.." }).setColor('Yellow'),
         ephemeral: true
     })
 }
@@ -48,7 +48,7 @@ export async function warnJoinToVCBut(inter: interactionCommandType) {
 export async function warnNeedSameVC(inter: interactionCommandType) {
     return await replyEmbed({
         interaction: inter,
-        embed: createEmptyEmbed({ description: "Necesitas estar en el mismo canal que yo para agregar/reproducir " }).setColor("Yellow"),
+        embed: createEmptyEmbed({ description: "⚠️| Necesitas estar en el mismo canal que yo" }).setColor("Yellow"),
         ephemeral: true
     })
 }
@@ -56,7 +56,7 @@ export async function warnNeedSameVC(inter: interactionCommandType) {
 export async function errorNoMatchesFounded(inter: interactionCommandType) {
     return replyEmbed({
         interaction: inter,
-        embed: createEmptyEmbed({ description: "No se encontraron resultados" }).setColor("Red"),
+        embed: createEmptyEmbed({ description: "❌| No se encontraron resultados" }).setColor("Red"),
         ephemeral: true
     });
 }
