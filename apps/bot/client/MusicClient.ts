@@ -91,4 +91,8 @@ export default class MusicClient extends Client {
         return player;
     }
 
+    getPlayer(guildId: string) {
+        return this.music.players.get(guildId);
+    }
+
 }
