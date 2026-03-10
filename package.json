@@ -1,0 +1,13 @@
+{
+  "name": "spidersoundjs",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "bot": "bun run --cwd apps/bot dev",
+    "nodelink": "bun run --cwd apps/nodelink start:bun"
+  }
+}
+
