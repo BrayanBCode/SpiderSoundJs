@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction, GuildMember, VoiceChannel } from "discord.js";
 import { warnNoChannelAcces } from "./PlayBackStrategy.messages.js";
 import { SearchResult, Track } from "moonlink.js";
-import { formatMS_HHMMSS } from "./PlaybackStrategy.js";
+import { formatMS_HHMMSS } from "@/utils/tools.js";
 
 
 // pasar a PlayBackStrategt.modules

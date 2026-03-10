@@ -4,7 +4,7 @@ import { checkUserVC } from "./PlayBackStrategy.modules.js";
 import { Player, SearchResult, Track } from "moonlink.js";
 import type MusicClient from "../../client/MusicClient.js";
 import logger from "../../utils/logger.js";
-import { createEmptyEmbed, replyEmbed, titleCleaner } from "../../utils/tools.js";
+import { createEmptyEmbed, formatMS_HHMMSS, replyEmbed, titleCleaner } from "../../utils/tools.js";
 
 export declare enum SearchSources {
     YouTube = "youtube",
@@ -25,19 +25,6 @@ export interface IAddToQueueParams {
     inter: ChatInputCommandInteraction<"cached">;
 }
 
-export function formatMS_HHMMSS(num: number) {
-    return [86400000, 3600000, 60000, 1000, 1].reduce((p: number[], c: number) => {
-        let res = ~~(num / c);
-        num -= res * c;
-        return [...p, res];
-    }, [])
-        .map((v, i) => i <= 1 && v === 0 ? undefined : [i === 4 ? "." : "", v < 10 ? `0${v}` : v, [" Days, ", ":", ":", "", ""][i]].join(""))
-        .filter(Boolean)
-        .slice(0, -1)
-        .join("");
-}
-
-
 export abstract class PlaybackStrategy {
     private autocompleteMap: Map<string, any>;
 
@@ -56,8 +43,6 @@ export abstract class PlaybackStrategy {
         if (!checkUserVC(inter)) return;
 
         const query = (inter.options as CommandInteractionOptionResolver).getString("busqueda") as string;
-
-        logger.debug(`PlaybackStrategy: ${inter.user.username} - ${query}`);
 
         if (query == queryErrors.NO_RESULTS) return warnNothingFound(inter);
         if (query == queryErrors.JOIN_VC) return warnJoinToVCBut(inter);
@@ -226,7 +211,7 @@ export abstract class PlaybackStrategy {
      * @param tracks 
      */
     protected async addTracks(player: Player, tracks: Track | Track[]): Promise<void> {
-        await player.queue.add(tracks);
+        player.queue.add(tracks);
     }
 
     protected async afterAddToQueue(player: Player): Promise<void> {
