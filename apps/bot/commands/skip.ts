@@ -1,4 +1,5 @@
 import { SlashCommand } from "@/src/Base/discord/SlashCommand";
+import { warnNeedSameVC } from "@/src/strategy/PlayBackStrategy.messages";
 import { createEmptyEmbed, deleteAfterTimer, EmptyEmbed, replyEmbed } from "@/utils/tools";
 import { GuildMember } from "discord.js";
 
@@ -14,16 +15,7 @@ export default new SlashCommand()
             const VCID = (inter.member as GuildMember).voice.channelId;
             const player = client.getPlayerOrDefault(inter, GuildID);
 
-            if (!VCID || VCID !== player.voiceChannelId)
-                return deleteAfterTimer(
-                    await replyEmbed({
-                        interaction: inter,
-                        embed: createEmptyEmbed()
-                            .setDescription("❌ | Debes unirte a un canal de voz para usar este comando.")
-                            .setColor("Red"),
-                        ephemeral: true,
-                    }), 15000);
-
+            if (player.voiceChannelId != VCID) return warnNeedSameVC(inter);
 
             if (!player.queue.size) {
                 return deleteAfterTimer(

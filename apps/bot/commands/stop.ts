@@ -1,4 +1,5 @@
 import { SlashCommand } from "@/src/Base/discord/SlashCommand";
+import { warnNeedSameVC } from "@/src/strategy/PlayBackStrategy.messages";
 import { deleteAfterTimer, EmptyEmbed, replyEmbed } from "@/utils/tools";
 import { GuildMember } from "discord.js";
 
@@ -12,6 +13,8 @@ export default new SlashCommand()
 
             const VCID = (inter.member as GuildMember).voice.channelId;
             const player = client.getPlayerOrDefault(inter, GuildID);
+
+            if (player.voiceChannelId != VCID) return warnNeedSameVC(inter);
 
             if (!VCID || VCID !== player.voiceChannelId)
                 return deleteAfterTimer(
