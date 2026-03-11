@@ -1,6 +1,6 @@
-import { SlashCommand } from "../src/Base/discord/SlashCommand"
-import { PlaybackStrategy } from "../src/strategy/PlaybackStrategy"
-import logger from "../utils/logger"
+import { PlaybackStrategy } from "@/music/strategy/PlaybackStrategy";
+import { SlashCommand } from "@/src/Base/discord/SlashCommand";
+import logger from "@/utils/logger";
 
 
 class Play extends PlaybackStrategy { }

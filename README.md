@@ -4,10 +4,10 @@
 
 ![logo](https://github.com/BrayanBCode/SpiderBot/assets/134159765/527b4a22-a501-4ba1-b2bf-d7eefd0e9fa4)
 
-**Araña Sound** es un bot de música para Discord creado con Node.js, Discord.js y Lavalink. Reproduce música desde YouTube, maneja una cola interactiva y cuenta con controles avanzados.
+**Araña Sound** es un bot de música para Discord creado con Bun, Discord.js y NodeLink. Reproduce música desde varias fuentes, maneja una cola interactiva y cuenta con controles avanzados.
 
 ---
-<!-- 
+
 ## 📦 Características
 
 - 🎵 Reproducción de música desde YouTube
@@ -16,9 +16,8 @@
 - 🎚️ Controles mediante botones
 - 🧪 Modo desarrollador para pruebas y paginadores
 - ⚙️ Modular y fácil de extender
-- 🐳 Utilizar con Docker
 
---- -->
+---
 
 ## 📄 Licencia
 

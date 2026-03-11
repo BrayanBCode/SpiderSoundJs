@@ -1,5 +1,5 @@
 import { SlashCommand } from "@/src/Base/discord/SlashCommand";
-import { PlaybackStrategy } from "@/src/strategy/PlaybackStrategy";
+import { PlaybackStrategy } from "@/music/strategy/PlaybackStrategy";
 import logger from "@/utils/logger";
 import { Player, Track } from "moonlink.js";
 

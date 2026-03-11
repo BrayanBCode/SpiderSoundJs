@@ -1,5 +1,5 @@
 import { SlashCommand } from "@/src/Base/discord/SlashCommand";
-import { warnJoinToVC, warnNeedSameVC } from "@/src/strategy/PlayBackStrategy.messages";
+import { warnNeedSameVC } from "@/music/strategy/PlayBackStrategy.messages";
 import { createEmptyEmbed, deleteAfterTimer, EmptyEmbed, replyEmbed } from "@/utils/tools";
 import { GuildMember } from "discord.js";
 

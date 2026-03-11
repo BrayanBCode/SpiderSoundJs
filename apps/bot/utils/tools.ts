@@ -1,6 +1,6 @@
 import { EmbedBuilder, InteractionResponse, Message, MessageFlags, type EmbedData } from "discord.js";
 import logger from "./logger";
-import type { ISimpleEmbedReply } from "../src/strategy/PlayBackStrategy.messages";
+import type { ISimpleEmbedReply } from "../music/strategy/PlayBackStrategy.messages";
 
 
 /**
