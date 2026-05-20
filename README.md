@@ -1,8 +1,7 @@
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/BrayanBCode/SpiderSoundJs)
 
-> [!WARNING]  
-> Actualmente sin soporte ni actualizaciones.
-> En algun momento retomare el proyecto.
+> [!CAUTION]  
+> Actualmente sin soporte ni actualizaciones, en algun momento retomare el proyecto.
 
 # 🕷️ Araña Sound
 
