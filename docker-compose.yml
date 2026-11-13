@@ -1,0 +1,33 @@
+services:
+    yt-cipher:
+        image: ghcr.io/kikkia/yt-cipher:master
+        environment:
+            - OVERRIDE_PLAYER_VARIANT=IAS
+            - API_TOKEN=${YT_CIPHER_TOKEN}
+        restart: always
+
+    lavalink:
+        image: ghcr.io/lavalink-devs/lavalink:4
+
+        ports:
+            # Solo accesible desde esta PC (para correr el bot fuera de Docker); el bot en Docker usa la red interna
+            - '127.0.0.1:2333:2333'
+        volumes:
+            - ./application.yml:/opt/Lavalink/application.yml:ro
+            - ./plugins:/opt/Lavalink/plugins
+        depends_on:
+            - yt-cipher
+        restart: always
+
+    discord-bot:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        environment:
+            # Dentro de Docker, Lavalink es el servicio "lavalink" (el .env trae localhost para correr fuera de Docker)
+            - lavalinkHost=lavalink
+        volumes:
+            - .:/usr/src/app:delegated
+        depends_on:
+            - lavalink # Esto asegura que Lavalink se inicie primero
+        restart: always
