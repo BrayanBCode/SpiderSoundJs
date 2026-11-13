@@ -1,18 +1,17 @@
 import { REST, Routes } from "discord.js";
 import { readdirSync } from "fs";
 import { join } from "path";
-import { stringPathToSegmentedString } from "../../../utils/tools.js";
 import { BClient } from "../../client/BClient.js";
 import { SlashCommand } from "../../classes/SlashCommand.js";
 import logger from "../../client/logger.js";
 
 
 export async function registerSlashCommands(client: BClient) {
-    const stringPath = join(process.cwd(), ...stringPathToSegmentedString("dist/commands/slash"))
+    const stringPath = join(import.meta.dir, "../../../commands/slash")
     const commandsFolders = readdirSync(stringPath, { withFileTypes: true }).filter((entry) => entry.isDirectory());
 
     const commandsStringPath = commandsFolders.map((folder) => {
-        const files = readdirSync(join(stringPath, folder.name)).filter(file => file.endsWith(".ts") || file.endsWith(".js"))
+        const files = readdirSync(join(stringPath, folder.name)).filter(file => file.endsWith(".ts"))
 
         return files.map((file) => {
             return join(stringPath, folder.name, file)
@@ -41,15 +40,12 @@ export async function registerSlashCommands(client: BClient) {
     }
     const rest = new REST().setToken(process.env.token as string);
 
-    const commandsArray = Array.from(client.slashCommands.values()).map(cmd => {
-        const command = cmd.toJSON()
-        logger.info(`|| Slash command ${cmd.name} registrado con exito ||`)
-        return command
-    });
+    const commandsArray = Array.from(client.slashCommands.values()).map(cmd => cmd.toJSON());
 
     await rest.put(
         Routes.applicationCommands(process.env.botClientID as string),
         { body: commandsArray }
     );
+    logger.info(`[SlashCommands] ${commandsArray.length} comandos registrados en Discord: ${commandsArray.map(c => c.name).join(", ")}`);
 
 }

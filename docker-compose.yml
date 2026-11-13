@@ -27,7 +27,10 @@ services:
             # Dentro de Docker, Lavalink es el servicio "lavalink" (el .env trae localhost para correr fuera de Docker)
             - lavalinkHost=lavalink
         volumes:
-            - .:/usr/src/app:delegated
+            # El código y las dependencias vienen en la imagen; de la PC solo el .env (Bun lo lee solo) y los datos
+            - ./.env:/usr/src/app/.env:ro
+            - ./logs:/usr/src/app/logs
+            - ./.moonlink:/usr/src/app/.moonlink
         depends_on:
             - lavalink # Esto asegura que Lavalink se inicie primero
         restart: always
