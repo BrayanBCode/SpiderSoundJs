@@ -26,9 +26,9 @@
 | `/play` | Reproduce o agrega a la cola (texto o link, con autocompletado) |
 | `/playnext` | Agrega la canción para que suene a continuación |
 | `/forceplay` | Reproduce ya, saltando la actual |
-| `/pause` | Pausa o reanuda |
-| `/skip` | Salta a la siguiente o a una posición de la cola |
-| `/remove` | Quita una canción de la cola |
+| `/pause` · `/resume` | Pausa o reanuda la canción |
+| `/skip` | Salta a la siguiente o a una posición de la cola (desde 1, como en `/queue`) |
+| `/remove` | Quita una canción de la cola por su posición |
 | `/queue` | Muestra la cola |
 | `/clear` | Vacía la cola |
 | `/forward` · `/backward` | Adelanta o retrocede segundos |

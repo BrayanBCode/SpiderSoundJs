@@ -26,11 +26,9 @@ export default new SlashCommand()
                     }), 15000);
             }
 
-            let pos = inter.options.getNumber("position");
+            const pos = inter.options.getNumber("position") ?? 1; // empieza en 1, como en /queue
 
-            if (!pos) pos = 0;
-
-            const track = await skipTrack(player, pos);
+            const track = pos >= 1 ? await skipTrack(player, pos - 1) : undefined;
 
             if (!track)
                 return deleteAfterTimer(

@@ -12,8 +12,8 @@ export default new SlashCommand()
             const player = await requireListener(client, inter);
             if (!player) return;
 
-            const pos = inter.options.getNumber("position", true);
-            const track = player.queue.get(pos);
+            const pos = inter.options.getNumber("position", true); // empieza en 1, como en /queue
+            const track = player.queue.get(pos - 1);
 
             if (!track)
                 return deleteAfterTimer(await replyEmbed({
@@ -26,7 +26,7 @@ export default new SlashCommand()
                     ephemeral: true,
                 }), 15000);
 
-            player.queue.remove(pos);
+            player.queue.remove(pos - 1);
             logger.info(`[/remove] ${inter.user.username} quitó "${track.title}" (posición ${pos}) en ${inter.guild.name}`);
 
             return inter.reply({

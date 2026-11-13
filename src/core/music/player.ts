@@ -111,18 +111,18 @@ export async function seekRelative(player: Player, deltaMs: number): Promise<num
 
 /**
  * Autocompletado de posiciones de la cola (para /skip y /remove): muestra hasta 5 canciones
- * antes y después de la posición que se está escribiendo.
+ * antes y después de la posición que se está escribiendo. Las posiciones empiezan en 1, como en /queue.
  */
 export async function respondQueuePositions(client: BClient, inter: AutocompleteInteraction) {
     const queue = inter.guildId ? client.getPlayer(inter.guildId)?.queue.tracks ?? [] : [];
     if (queue.length === 0) return inter.respond([{ name: "Lista de reproducción vacía", value: -1 }]);
 
-    const pos = Math.min(Math.max(Number(inter.options.getFocused()) || 0, 0), queue.length - 1);
+    const pos = Math.min(Math.max((Number(inter.options.getFocused()) || 1) - 1, 0), queue.length - 1);
     const range = 5;
     const startIndex = Math.max(0, pos - range);
 
     return inter.respond(queue.slice(startIndex, pos + range + 1).map((track, i) => ({
-        name: `${startIndex + i} - ${track.title}`.slice(0, 100),
-        value: startIndex + i,
+        name: `${startIndex + i + 1} - ${track.title}`.slice(0, 100),
+        value: startIndex + i + 1,
     })));
 }
