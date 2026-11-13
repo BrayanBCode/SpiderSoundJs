@@ -10,7 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export async function loadMoonlinkEvents(client: BClient) {
     const eventsPath = path.join(__dirname, "../../events/Music");
-    const files = readdirSync(eventsPath).filter(f => f.endsWith(".js"));
+    const files = readdirSync(eventsPath).filter(f => f.endsWith(".ts"));
 
     for (const file of files) {
         const { default: EventClass } = await import(

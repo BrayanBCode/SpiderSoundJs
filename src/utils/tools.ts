@@ -33,10 +33,6 @@ export function titleCleaner(title: string, artist?: string): string {
 }
 
 
-export function stringPathToSegmentedString(path: string) {
-    return path.split('/')
-}
-
 export function formatMS_HHMMSS(num: number) {
     return [86400000, 3600000, 60000, 1000, 1].reduce((p: number[], c: number) => {
         let res = ~~(num / c);

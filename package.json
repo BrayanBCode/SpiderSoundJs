@@ -2,14 +2,11 @@
   "name": "spidersound",
   "version": "1.0.0",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "src/shards.ts",
   "scripts": {
-    "clean": "if exist dist rd /s /q dist",
-    "build": "npm run clean && tsc",
-    "start": "npm run build && set NODE_OPTIONS=--no-deprecation && node ./dist/shards.js",
-    "deploy": "npm run build && node --no-deprecation dist/deploy-commands.js",
-    "docker": "npm run build && docker-compose up --build -d",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "bun src/shards.ts",
+    "typecheck": "tsc --noEmit",
+    "docker": "docker compose up --build -d"
   },
   "repository": {
     "type": "git",
@@ -23,16 +20,12 @@
   "homepage": "https://github.com/BrayanBCode/MultiPurposeBotTS#readme",
   "description": "",
   "dependencies": {
-    "@discordjs/voice": "^0.18.0",
     "discord.js": "^14.22.1",
-    "dotenv": "^17.2.1",
     "moonlink.js": "^5.2.0",
-    "node-fetch": "^3.3.2",
     "winston": "^3.17.0"
   },
   "devDependencies": {
-    "@types/node-fetch": "^2.6.13",
-    "tsx": "^4.20.5",
+    "@types/bun": "^1.4.4",
     "typescript": "^5.9.2"
   }
 }
