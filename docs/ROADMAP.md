@@ -9,7 +9,7 @@
 
 ## Estado actual
 
-- Bot funcionando en Docker: **Node** + **Lavalink 4.2** + plugin de YouTube (snapshot) + **yt-cipher** + **moonlink.js 5.2**.
+- Bot funcionando en Docker: **Bun** + **Lavalink 4.2** + plugin de YouTube (snapshot) + **yt-cipher** + **moonlink.js 5.2**.
 - YouTube ✅ · Spotify: solo **canciones sueltas** ✅ (álbumes/playlists/artistas bloqueados por la API de Spotify).
 - Botones del reproductor con **emojis propios** (tema araña). El botón ❤️ está **deshabilitado** esperando la base de datos.
 - Repo actual: MultiPurposeBotTS (privado). PRs #1 a #10 mergeados.
@@ -34,10 +34,12 @@ Destino: [BrayanBCode/SpiderSoundJs](https://github.com/BrayanBCode/SpiderSoundJ
 
 ## 2. Pasar el bot a Bun
 
-- [ ] Runtime del bot en **Bun** (Lavalink sigue igual: es Java y corre aparte).
-- [ ] Ajustar `package.json`, scripts y `dockerfile` (imagen `oven/bun`).
-- [ ] Verificar compatibilidad: discord.js, moonlink.js, winston, `dotenv` (Bun ya lee `.env` solo).
-- [ ] Revisar scripts con sintaxis de Windows (`rd /s /q`, `set`) y dejarlos multiplataforma.
+- [x] Runtime del bot en **Bun** (Lavalink sigue igual: es Java y corre aparte).
+- [x] Ajustar `package.json`, scripts y `dockerfile` (imagen `oven/bun`).
+- [x] Verificar compatibilidad: discord.js, moonlink.js, winston, `dotenv` (Bun ya lee `.env` solo). _Typecheck y carga de módulos OK; falta la prueba real en Discord._
+- [x] Revisar scripts con sintaxis de Windows (`rd /s /q`, `set`) y dejarlos multiplataforma.
+
+**Hecho:** Bun ejecuta `src/` directo (sin `tsc` ni `dist/`); `bun.lock` reemplaza a `package-lock.json` (mismas versiones); se quitaron `dotenv`, `node-fetch`, `@discordjs/voice` y `tsx` (sin uso). La imagen trae código y dependencias; del host solo se montan `.env`, `logs/` y `.moonlink/`.
 
 ---
 

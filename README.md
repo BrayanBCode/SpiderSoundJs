@@ -4,7 +4,7 @@
 
 ![logo](https://github.com/BrayanBCode/SpiderBot/assets/134159765/527b4a22-a501-4ba1-b2bf-d7eefd0e9fa4)
 
-**Araña Sound** es un bot de música para Discord hecho con **discord.js 14**, **moonlink.js 5** y **Lavalink 4**, todo en Docker. Reproduce desde YouTube y Spotify, con una cola interactiva y controles por botones.
+**Araña Sound** es un bot de música para Discord hecho con **Bun**, **discord.js 14**, **moonlink.js 5** y **Lavalink 4**, todo en Docker. Reproduce desde YouTube y Spotify, con una cola interactiva y controles por botones.
 
 > [!NOTE]
 > Proyecto retomado. El plan de trabajo está en [`docs/ROADMAP.md`](docs/ROADMAP.md).
@@ -40,7 +40,7 @@ Los comandos que controlan la reproducción solo funcionan si estás en el mismo
 
 ## 🚀 Puesta en marcha (Docker)
 
-Requisitos: **Docker** con Docker Compose y **Node.js 22+** (para compilar).
+Requisitos: **Docker** con Docker Compose. El bot corre con **Bun** dentro de su contenedor: no hace falta instalar nada más.
 
 1. **Configuración**
 
@@ -52,16 +52,19 @@ Requisitos: **Docker** con Docker Compose y **Node.js 22+** (para compilar).
    - En `.env`: `token` y `botClientID` de tu bot ([Developer Portal](https://discord.com/developers/applications)), y contraseñas propias para `lavalinkPassword` y `YT_CIPHER_TOKEN`.
    - En `application.yml`: las mismas contraseñas en `server.password` y `plugins.youtube.remoteCipher.password`, y (opcional) el Client ID/Secret de una app de Spotify.
 
-2. **Instalar, compilar y levantar**
+2. **Levantar**
 
    ```bash
-   npm ci
-   npm run docker
+   docker compose up --build -d
    ```
 
-   Levanta tres contenedores: `yt-cipher` (descifrado de YouTube), `lavalink` (audio) y `discord-bot`.
+   Levanta tres contenedores: `yt-cipher` (descifrado de YouTube), `lavalink` (audio) y `discord-bot`. Después de cambiar el código, el mismo comando reconstruye la imagen del bot.
 
-3. **Registrar los slash commands** (la primera vez o cuando cambien): `npm run deploy`.
+   Los slash commands se registran solos cada vez que el bot arranca.
+
+### Desarrollo sin Docker (opcional)
+
+Con [Bun](https://bun.sh) 1.4+ instalado: `bun install`, levantar solo Lavalink con `docker compose up -d lavalink` (en el `.env`, `lavalinkHost="localhost"`) y correr el bot con `bun start`. Bun lee el `.env` solo y ejecuta TypeScript directo, sin compilar. Para revisar tipos: `bun run typecheck`.
 
 ### Token de YouTube (OAuth)
 
