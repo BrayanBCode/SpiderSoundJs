@@ -10,3 +10,4 @@ plugins/*.jar
 application.yml
 # base de datos local
 data/
+/graphify-out

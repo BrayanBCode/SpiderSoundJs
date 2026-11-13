@@ -51,6 +51,7 @@ Requisitos: **Docker** con Docker Compose. El bot corre con **Bun** dentro de su
 
    - En `.env`: `token` y `botClientID` de tu bot ([Developer Portal](https://discord.com/developers/applications)), y contraseñas propias para `lavalinkPassword` y `YT_CIPHER_TOKEN`.
    - En `application.yml`: las mismas contraseñas en `server.password` y `plugins.youtube.remoteCipher.password`, y (opcional) el Client ID/Secret de una app de Spotify.
+   - Plugin de YouTube: `YOUTUBE_PLUGIN_CHANNEL` en `.env` elige qué versión baja Lavalink al arrancar: `release` (última estable) o `dev` (último snapshot). Vacío usa la versión fija de `application.yml`. La versión en uso aparece en `docker compose logs lavalink` (líneas `[YouTubePlugin]`). Si tu `application.yml` es anterior a este ajuste, copiá la línea del plugin de YouTube (con `${YOUTUBE_PLUGIN_VERSION:...}`) y su `snapshot` desde `application.example.yml`.
 
 2. **Levantar**
 

@@ -8,12 +8,16 @@ services:
 
     lavalink:
         image: ghcr.io/lavalink-devs/lavalink:4
-
+        # Antes de arrancar Lavalink elige la versión del plugin de YouTube (ver lavalink-entrypoint.sh)
+        entrypoint: ['sh', '/opt/Lavalink/lavalink-entrypoint.sh']
+        environment:
+            - YOUTUBE_PLUGIN_CHANNEL=${YOUTUBE_PLUGIN_CHANNEL:-}
         ports:
             # Solo accesible desde esta PC (para correr el bot fuera de Docker); el bot en Docker usa la red interna
             - '127.0.0.1:2333:2333'
         volumes:
             - ./application.yml:/opt/Lavalink/application.yml:ro
+            - ./lavalink-entrypoint.sh:/opt/Lavalink/lavalink-entrypoint.sh:ro
             - ./plugins:/opt/Lavalink/plugins
         depends_on:
             - yt-cipher
