@@ -9,7 +9,7 @@
 
 ## Estado actual
 
-- Bot funcionando en Docker: **Bun** + **Lavalink 4.2** + plugin de YouTube (snapshot) + **yt-cipher** + **moonlink.js 5.2**.
+- Bot funcionando en Docker: **Bun** + **Lavalink 4.2** + plugin de YouTube (versión elegida al arrancar: release o snapshot) + **yt-cipher** + **moonlink.js 5.2**.
 - YouTube ✅ · Spotify: solo **canciones sueltas** ✅ (álbumes/playlists/artistas bloqueados por la API de Spotify).
 - Botones del reproductor con **emojis propios** (tema araña). El botón ❤️ está **deshabilitado** esperando la base de datos.
 - Repo actual: MultiPurposeBotTS (privado). PRs #1 a #10 mergeados.
@@ -45,11 +45,11 @@ Destino: [BrayanBCode/SpiderSoundJs](https://github.com/BrayanBCode/SpiderSoundJ
 
 ## 3. Plugin de YouTube automatizado
 
-Hoy la versión del plugin está fija a mano en `application.yml` (snapshot `2be8e542…`).
+- [x] Un ajuste de configuración (`YOUTUBE_PLUGIN_CHANNEL=release|dev` en `.env`) que elija entre la **última release** o la **rama dev (snapshot)**.
+- [x] Al arrancar Lavalink, resolver la última versión del canal elegido desde `maven.lavalink.dev` (`maven-metadata.xml`) y usarla (+ `snapshot: true` si es dev).
+- [x] Log claro de qué versión quedó en uso.
 
-- [ ] Un ajuste de configuración (ej. `YOUTUBE_PLUGIN_CHANNEL=release|dev` en `.env`) que elija entre la **última release** o la **rama dev (snapshot)**.
-- [ ] Al arrancar Lavalink, resolver la última versión del canal elegido desde `maven.lavalink.dev` (`maven-metadata.xml`) y escribirla en `application.yml` (+ `snapshot: true` si es dev).
-- [ ] Log claro de qué versión quedó en uso.
+**Hecho:** `lavalink-entrypoint.sh` corre antes de Lavalink, consulta `maven-metadata.xml` y pasa la versión por `YOUTUBE_PLUGIN_VERSION` / `YOUTUBE_PLUGIN_SNAPSHOT`, que `application.yml` lee como `${...}` (no se reescribe el archivo: tiene secretos). Sin canal, con un valor inválido o si maven no responde, queda la versión fija de `application.yml` con un aviso `[YouTubePlugin]` en el log. No se usaron variables `LAVALINK_PLUGINS_N_...`: Spring reemplaza la lista de plugins entera, así que habría que repetir también LavaSrc.
 
 ---
 
@@ -115,7 +115,7 @@ Lo que vaya surgiendo de las etapas anteriores. Anotarlo acá a medida que apare
 
 ## Mantenimiento
 
-- Si YouTube deja de sonar: revisar `docker compose logs lavalink` (motivo por cliente). Si aparece `oauth2 token fetch: 400`, regenerar el refresh token.
+- Si YouTube deja de sonar: revisar `docker compose logs lavalink` (motivo por cliente). Si aparece `oauth2 token fetch: 400`, regenerar el refresh token. El log arranca con `[YouTubePlugin]` y la versión del plugin en uso; si la última del canal falla, probar el otro canal (`YOUTUBE_PLUGIN_CHANNEL` en `.env`) o dejarlo vacío para usar la versión fija de `application.yml`, y recrear Lavalink (`docker compose up -d lavalink`).
 - **Emojis de botones**: para cambiar uno hay que borrarlo y volver a subirlo (cambia el ID) y actualizar `src/core/buttons/emojis.ts`. Fuentes en `assets/emojis/`.
 - Calidad de audio (opcional): `resamplingQuality: LOW → HIGH` en `application.yml`; lo que más pesa es el bitrate del canal de voz.
 - No probado aún: mover el bot de canal con música sonando; pegar un álbum de Spotify en Discord.

@@ -1,2 +1,4 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+# se ejecuta con sh dentro del contenedor: CRLF lo rompería
+*.sh text eol=lf

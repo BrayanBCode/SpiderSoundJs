@@ -2,9 +2,10 @@
 lavalink:
     plugins:
         - dependency: 'com.github.topi314.lavasrc:lavasrc-plugin:4.8.3'
-        # snapshot con el fix del cliente TV (#233), aún no publicado en una release
-        - dependency: 'dev.lavalink.youtube:youtube-plugin:2be8e542d3f6f178e048dca565892684c2e40177'
-          snapshot: true
+        # Versión elegida al arrancar según YOUTUBE_PLUGIN_CHANNEL del .env (ver lavalink-entrypoint.sh).
+        # Lo que va después de ":" es el valor fijo que se usa si el canal no está definido o falla la consulta.
+        - dependency: 'dev.lavalink.youtube:youtube-plugin:${YOUTUBE_PLUGIN_VERSION:2be8e542d3f6f178e048dca565892684c2e40177}'
+          snapshot: ${YOUTUBE_PLUGIN_SNAPSHOT:true}
 
     server:
         password: "cambiar-esta-contraseña"  # igual a lavalinkPassword del .env
