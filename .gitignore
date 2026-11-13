@@ -1,41 +1,12 @@
-# dependencies (bun install)
-node_modules
-
-# output
-out
-dist
-*.tgz
-
-# code coverage
-coverage
-*.lcov
-
-# logs
-logs
-_.log
-report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
-
-# dotenv environment variable files
+dist/
+node_modules/
+logs/
+# datos locales de moonlink.js 5
+.moonlink/
+# Lavalink descarga los plugins declarados en application.yml
+plugins/*.jar
+# configuración con secretos: usar .env.example y application.example.yml como base
 .env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
-
-# caches
-.eslintcache
-.cache
-*.tsbuildinfo
-
-# IntelliJ based IDEs
-.idea
-
-# Finder (MacOS) folder config
-.DS_Store
-/apps/bot/.moonlink
-*.exe
-*.bun-build
-
-apps/NodeLink/
-apps/NodeLink
-
+application.yml
+# base de datos local
+data/

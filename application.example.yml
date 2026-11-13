@@ -1,0 +1,116 @@
+# Copiar a application.yml y completar. Nunca subir el application.yml real.
+lavalink:
+    plugins:
+        - dependency: 'com.github.topi314.lavasrc:lavasrc-plugin:4.8.3'
+        # snapshot con el fix del cliente TV (#233), aún no publicado en una release
+        - dependency: 'dev.lavalink.youtube:youtube-plugin:2be8e542d3f6f178e048dca565892684c2e40177'
+          snapshot: true
+
+    server:
+        password: "cambiar-esta-contraseña"  # igual a lavalinkPassword del .env
+        bufferDurationMs: 400
+        filters:
+            channelMix: true
+            distortion: true
+            equalizer: true
+            karaoke: true
+            lowPass: true
+            rotation: true
+            timescale: true
+            tremolo: true
+            vibrato: true
+            volume: true
+        frameBufferDurationMs: 5000
+        gc-warnings: true
+        opusEncodingQuality: 10
+        playerUpdateInterval: 5
+        resamplingQuality: LOW
+        soundcloudSearchEnabled: true
+        sources:
+            bandcamp: true
+            http: true
+            local: false
+            nico: true
+            soundcloud: true
+            twitch: true
+            vimeo: true
+            youtube: false
+        trackStuckThresholdMs: 10000
+        useSeekGhosting: true
+        youtubePlaylistLoadLimit: 6
+        youtubeSearchEnabled: true
+metrics:
+    prometheus:
+        enabled: false
+        endpoint: /metrics
+plugins:
+    lavasrc:
+        lyrics-sources:
+            deezer: false
+            spotify: false
+            youtube: false
+        # Cómo se resuelve cada canción de Spotify: primero YouTube por ISRC (match exacto), luego por nombre
+        providers:
+            - ytsearch:"%ISRC%"
+            - ytsearch:%QUERY%
+            - 'scsearch:%QUERY%'
+        sources:
+            applemusic: false
+            deezer: false
+            flowerytts: false
+            spotify: true
+            yandexmusic: false
+            youtube: true
+        spotify:
+            albumLoadLimit: 6
+            clientId: "tu-client-id-de-spotify"
+            clientSecret: "tu-client-secret-de-spotify"
+            countryCode: US
+            playlistLoadLimit: 6
+    youtube:
+        remoteCipher:
+            url: "http://yt-cipher:8001"
+            password: "cambiar-este-token"  # igual a YT_CIPHER_TOKEN del .env
+        allowDirectPlaylistIds: true
+        allowDirectVideoIds: true
+        allowSearch: true
+        clientOptions:
+            ANDROID_MUSIC:
+                playback: false
+                playlistLoading: false
+                searching: false
+                videoLoading: false
+                # videoLoading: true
+            MUSIC:
+                playback: false
+                playlistLoading: false
+                searching: false
+                # searching: true
+                videoLoading: false
+            TVHTML5EMBEDDED:
+                playback: false
+                # playback: true
+                playlistLoading: false
+                searching: false
+                videoLoading: false
+                # videoLoading: true
+        clients:
+            - ANDROID_VR
+            - WEB
+            - MWEB
+            - WEBEMBEDDED
+            - TVHTML5_SIMPLY
+            - TV  # reproducción con OAuth
+        enabled: true
+        oauth:
+            enabled: true
+            refreshToken: ""  # vacío + skipInitialization: false para generar uno (ver README)
+            skipInitialization: false
+sentry:
+    dsn: ''
+    environment: ''
+server:
+    address: 0.0.0.0
+    http2:
+        enabled: false
+    port: 2333
