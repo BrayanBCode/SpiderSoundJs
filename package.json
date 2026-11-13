@@ -20,12 +20,12 @@
   "homepage": "https://github.com/BrayanBCode/MultiPurposeBotTS#readme",
   "description": "",
   "dependencies": {
-    "discord.js": "^14.22.1",
+    "discord.js": "^14.28.1",
     "moonlink.js": "^5.2.0",
-    "winston": "^3.17.0"
+    "winston": "^3.19.0"
   },
   "devDependencies": {
     "@types/bun": "^1.4.4",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.3"
   }
 }
