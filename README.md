@@ -81,7 +81,7 @@ Los íconos están en [`assets/emojis/`](assets/emojis). Los IDs de [`src/core/b
 
 ## 📄 Licencia
 
-Este proyecto está bajo la licencia [MIT](LICENCE.md).
+Este proyecto usa una [licencia propia](LICENCE.md): uso personal o educativo, **sin fines comerciales** y con **atribución obligatoria** a BrayanBCode. No se permite redistribuir el código tal cual sin permiso.
 
 > Si vas a usar partes del código, por favor da créditos.
 
