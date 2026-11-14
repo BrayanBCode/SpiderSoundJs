@@ -44,6 +44,9 @@ export class PlayerMessage {
      */
     private pending = new Map<string, Promise<unknown>>()
 
+    /** Canal del último mensaje enviado por servidor; sobrevive al Stop para avisar si el siguiente sale en otro canal */
+    private lastChannel = new Map<string, TextChannel>()
+
 
     constructor(client: BClient) {
         this.MessageContainer = new Map()
@@ -92,7 +95,7 @@ export class PlayerMessage {
         this.updatePrevButton(data.view, player)
         try {
             await data.Message.edit({ embeds: [this.getPlayingEmbed(player.current, player)], components: data.view.actionRows })
-            logger.debug(`[PlayerMessage] Mensaje "Escuchando" editado para "${player.current.title}" en ${data.channel.guild.name}`)
+            logger.debug(`[PlayerMessage] Mensaje "Escuchando" editado para "${player.current.title}" en #${data.channel.name} (${data.channel.guild.name})`)
             return true
         } catch (err) {
             logger.debug(`[PlayerMessage] No se pudo editar el mensaje ${data.Message.id}, se reenvía: ${err}`)
@@ -144,7 +147,12 @@ export class PlayerMessage {
             return undefined
         }
 
-        logger.debug(`[PlayerMessage] Mensaje "Escuchando" enviado para "${currentTrack.title}" en ${channel.guild.name}`)
+        const previous = this.lastChannel.get(guildID)
+        if (previous && previous.id !== channel.id)
+            logger.info(`[PlayerMessage] El mensaje "Escuchando" se movió de #${previous.name} a #${channel.name} en ${channel.guild.name} (el comando se usó en otro canal)`)
+        this.lastChannel.set(guildID, channel)
+
+        logger.debug(`[PlayerMessage] Mensaje "Escuchando" enviado para "${currentTrack.title}" en #${channel.name} (${channel.guild.name})`)
         this.MessageContainer.set(guildID, { channel, Message: msg, view })
 
         return msg
