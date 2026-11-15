@@ -37,6 +37,19 @@ const AUTOCOMPLETE_VALUE_MAX = 100;
  */
 const startingPlayback = new Set<string>();
 
+/** Inicia la reproducción si el player está libre, evitando dos `play()` simultáneos (también lo usa /favoritos) */
+export async function startIfIdle(player: Player) {
+    if (player.playing || startingPlayback.has(player.guildId)) return;
+
+    startingPlayback.add(player.guildId);
+    try {
+        const started = await player.play();
+        if (!started) logger.warn(`[PlaybackStrategy] No se pudo iniciar la reproducción en ${player.guildId}`);
+    } finally {
+        startingPlayback.delete(player.guildId);
+    }
+}
+
 export abstract class PlaybackStrategy {
 
     async execute(client: BClient, inter: ChatInputCommandInteraction<"cached">) {
@@ -79,7 +92,7 @@ export abstract class PlaybackStrategy {
 
             await this.addToQueue({ inter, player, res: results });
             await this.afterAddToQueue(player);
-            await this.startIfIdle(player);
+            await startIfIdle(player);
 
         } catch (err) {
             logger.error(`[${inter.commandName}] Error procesando "${query}" en ${inter.guild.name}:`, err);
@@ -145,19 +158,6 @@ export abstract class PlaybackStrategy {
             }));
 
         return inter.respond(options);
-    }
-
-    /** Inicia la reproducción si el player está libre, evitando dos `play()` simultáneos */
-    private async startIfIdle(player: Player) {
-        if (player.playing || startingPlayback.has(player.guildId)) return;
-
-        startingPlayback.add(player.guildId);
-        try {
-            const started = await player.play();
-            if (!started) logger.warn(`[PlaybackStrategy] No se pudo iniciar la reproducción en ${player.guildId}`);
-        } finally {
-            startingPlayback.delete(player.guildId);
-        }
     }
 
     /** Responde editando el mensaje diferido y lo borra a los 15 s */

@@ -31,6 +31,16 @@ describe("BotDatabase favoritos", () => {
         expect(db.getFavorites("user-2")).toHaveLength(1);
     });
 
+    test("removeFavorite quita solo la del usuario y avisa si no estaba", () => {
+        db.toggleFavorite("user-1", track);
+        db.toggleFavorite("user-2", track);
+
+        expect(db.removeFavorite("user-1", track.uri)).toBe(true);
+        expect(db.removeFavorite("user-1", track.uri)).toBe(false);
+        expect(db.getFavorites("user-1")).toEqual([]);
+        expect(db.getFavorites("user-2")).toHaveLength(1);
+    });
+
     test("guarda los datos para mostrarla y volver a buscarla", () => {
         db.toggleFavorite("user-1", { ...track, artworkUrl: "https://i.ytimg.com/x.jpg" });
         const [fav] = db.getFavorites("user-1");

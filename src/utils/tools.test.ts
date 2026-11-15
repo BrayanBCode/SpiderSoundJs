@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { titleCleaner } from "./tools.js";
+import { shuffle, titleCleaner } from "./tools.js";
 
 // Títulos reales de los logs del bot. El artista es lo que suele mandar YouTube (el nombre del canal).
 const cases: [title: string, artist: string | undefined, expected: string][] = [
@@ -53,6 +53,16 @@ const cases: [title: string, artist: string | undefined, expected: string][] = [
     ["Linkin Park", "Linkin Park", "Linkin Park"],
     ["(Official Video)", undefined, "(Official Video)"],
 ];
+
+describe("shuffle", () => {
+    test("devuelve los mismos elementos sin tocar el original", () => {
+        const original = Array.from({ length: 50 }, (_, i) => i);
+        const mixed = shuffle(original);
+        expect(original).toEqual(Array.from({ length: 50 }, (_, i) => i));
+        expect([...mixed].sort((a, b) => a - b)).toEqual(original);
+        expect(mixed).not.toEqual(original); // 1 en 50! de que salga igual
+    });
+});
 
 describe("titleCleaner", () => {
     test.each(cases)("%p (artista: %p) → %p", (title, artist, expected) => {

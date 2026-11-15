@@ -91,6 +91,11 @@ export class BotDatabase {
         })();
     }
 
+    /** Quita una canción de los favoritos del usuario. `false` si no estaba */
+    removeFavorite(userId: string, uri: string): boolean {
+        return this.db.query("DELETE FROM favorites WHERE user_id = $userId AND uri = $uri").run({ userId, uri }).changes > 0;
+    }
+
     /** Favoritos del usuario, del más nuevo al más viejo */
     getFavorites(userId: string): FavoriteRow[] {
         return this.db.query<FavoriteRow, { userId: string }>(`

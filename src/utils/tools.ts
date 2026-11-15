@@ -8,6 +8,16 @@ export function chunkArray<T>(arr: T[], size: number): T[][] {
     return result;
 }
 
+/** Copia mezclada al azar (Fisher-Yates); no modifica el original */
+export function shuffle<T>(arr: readonly T[]): T[] {
+    const result = [...arr];
+    for (let i = result.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
+    }
+    return result;
+}
+
 // Palabras que solo describen el video, no la canción. Se buscan como palabras enteras (no "hd" dentro de "Childhood").
 const NOISE_WORDS = "official|oficial|officiel|video|vídeo|videoclip|clip|lyrics?|letra|audio|visuali[sz]er|hd|hq|4k|remaster(?:ed)?|mv"
 const NOISE = new RegExp(String.raw`(?<![\p{L}\p{N}])(?:${NOISE_WORDS})(?![\p{L}\p{N}])`, "iu")
