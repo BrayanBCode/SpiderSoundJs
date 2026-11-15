@@ -116,9 +116,14 @@ async function view(client: BClient, inter: ChatInputCommandInteraction<"cached"
 
     let page = 0
     const name = inter.member.displayName
-    const response = await inter.reply({ ...renderPage(favorites, page, name), flags: MessageFlags.Ephemeral })
+    const { resource } = await inter.reply({ ...renderPage(favorites, page, name), flags: MessageFlags.Ephemeral, withResponse: true })
+    if (!resource?.message) return
 
-    const collector = response.createMessageComponentCollector({ time: VIEW_TIME, filter: i => i.user.id === inter.user.id })
+    // Colector atado a este mensaje y a sus controles: sin esto también atrapaba el ❤️ del reproductor y fallaba con "Unknown interaction"
+    const collector = resource.message.createMessageComponentCollector({
+        time: VIEW_TIME,
+        filter: i => i.user.id === inter.user.id && i.customId.startsWith("fav-"),
+    })
 
     collector.on("collect", async i => {
         try {
