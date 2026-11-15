@@ -1,4 +1,5 @@
-import { Client } from "discord.js";
+import { Client, EmbedBuilder } from "discord.js";
+import { initDevNotifier, notifyDev } from "../../client/devNotifier.js";
 import { DEvent } from "../../classes/events/DEvent.js"
 import logger from "../../client/logger.js";
 import { BClient } from "../../client/BClient.js";
@@ -18,6 +19,12 @@ export default class Ready extends DEvent<'clientReady'> {
         registerSlashCommands(BClient);
 
         logger.info(`Comandos Slash Registrados`);
+
+        initDevNotifier(client);
+        notifyDev(new EmbedBuilder()
+            .setTitle("🟢 Bot en línea")
+            .setColor("Green")
+            .setDescription(`**${client.guilds.cache.size}** servidores en este shard · **${BClient.slashCommands.size}** comandos · Bun ${Bun.version}`));
 
     }
 
