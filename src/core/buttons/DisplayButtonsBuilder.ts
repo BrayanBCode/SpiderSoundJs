@@ -1,4 +1,4 @@
-import { ActionRowBuilder, APIMessageComponentEmoji, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, Message, TextChannel } from "discord.js"
+import { ActionRowBuilder, APIMessageComponentEmoji, AttachmentBuilder, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, Message, TextChannel } from "discord.js"
 import { interactionButtonType, interactionCommandType } from "../../types/types/interactionCommandType.js";
 import { BClient } from "../client/BClient.js";
 import { ButtonInteraction, CacheType, ChannelSelectMenuInteraction, InteractionCollector, MentionableSelectMenuInteraction, RoleSelectMenuInteraction, StringSelectMenuInteraction, UserSelectMenuInteraction } from "discord.js";
@@ -170,11 +170,13 @@ export class DisplayButtonsBuilder {
      * 
      * @param channel Canal donde se enviará el mensaje
      * @param embeds Embeds a incluir en el mensaje
+     * @param files Adjuntos (ej. la portada que usa el embed con attachment://)
      * @returns Mensaje enviado
      */
-    public async send(channel: TextChannel, ...embeds: EmbedBuilder[]) {
+    public async send(channel: TextChannel, embeds: EmbedBuilder[], files: AttachmentBuilder[] = []) {
         const msg = await channel.send({
             embeds,
+            files,
             components: this.actionRows
         })
 

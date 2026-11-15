@@ -23,6 +23,7 @@
   "dependencies": {
     "discord.js": "^14.28.1",
     "moonlink.js": "^5.2.0",
+    "sharp": "^0.35.5",
     "winston": "^3.19.0"
   },
   "devDependencies": {
