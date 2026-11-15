@@ -11,6 +11,7 @@ export default class Ready extends DEvent<'clientReady'> {
 
     execute(BClient: BClient, client: Client<true>): Promise<void> | void {
         logger.info(`Bot ${client.user.displayName} Online`);
+        logger.info(`[Servidores] En ${client.guilds.cache.size} servidores (este shard): ${client.guilds.cache.map(g => g.name).join(", ")}`);
 
         BClient.music.init(process.env.botClientID as string);
 
