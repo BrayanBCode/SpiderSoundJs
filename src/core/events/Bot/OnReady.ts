@@ -10,17 +10,18 @@ export default class Ready extends DEvent<'clientReady'> {
         super('clientReady', { once: true });
     }
 
-    execute(BClient: BClient, client: Client<true>): Promise<void> | void {
+    async execute(BClient: BClient, client: Client<true>): Promise<void> {
         logger.info(`Bot ${client.user.displayName} Online`);
         logger.info(`[Servidores] En ${client.guilds.cache.size} servidores (este shard): ${client.guilds.cache.map(g => g.name).join(", ")}`);
 
+        initDevNotifier(client);
         BClient.music.init(process.env.botClientID as string);
 
-        registerSlashCommands(BClient);
+        // Se espera: los comandos se cargan acá y el aviso de abajo los cuenta
+        await registerSlashCommands(BClient);
 
         logger.info(`Comandos Slash Registrados`);
 
-        initDevNotifier(client);
         notifyDev(new EmbedBuilder()
             .setTitle("🟢 Bot en línea")
             .setColor("Green")
