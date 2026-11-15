@@ -249,7 +249,6 @@ export class PlayerMessage {
 
         return embed
             .setFooter({ text: footer, iconURL: this.client.getGuild(player.guildId)?.iconURL() ?? undefined })
-            .setTimestamp()
     }
 
     /** Qué suena después de la actual, según la cola y la repetición */
