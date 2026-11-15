@@ -83,7 +83,7 @@ Destino: [BrayanBCode/SpiderSoundJs](https://github.com/BrayanBCode/SpiderSoundJ
 ## 6. Mejorar la interfaz "Escuchando"
 
 - [x] Barra de progreso **descartada**: editar cada pocos segundos en cada servidor con música serían miles de llamadas por hora, cerca de los límites de Discord y con parpadeo. En su lugar, "Termina" usa `<t:…:R>`, que Discord actualiza solo; pausada muestra "Va por" (PR #52).
-- [x] Embed nuevo: "Escuchando 🎶" verde o "En pausa ⏸️" gris; artista y duración, Termina, Loop (OFF / Canción / Cola) y Siguiente en líneas de la descripción (las columnas se desalineaban con artistas largos); pie con quién la pidió y la cola. La portada de YouTube va como imagen en 320×180 (Discord no la agranda); las otras fuentes, como miniatura. El botón ⏯️ ya reanuda (miraba `playing`, que moonlink deja en true durante la pausa) (PR #52).
+- [x] Embed nuevo: "Escuchando 🎶" verde o "En pausa ⏸️" gris; artista y duración, Termina, Loop (OFF / Canción / Cola) y Siguiente en líneas de la descripción (las columnas se desalineaban con artistas largos); pie con quién la pidió y la cola. La portada de YouTube va como imagen (320×180; Discord ajusta el embed a su ancho, así que se ve grande); las otras fuentes, como miniatura. Se probó armar una portada chica con `sharp` y se descartó (ver Ideas sueltas). El botón ⏯️ ya reanuda (miraba `playing`, que moonlink deja en true durante la pausa) (PR #52).
 - [x] El mensaje se edita en su lugar cuando cambia algo, escuchando eventos de moonlink.js (pausa, seek, repetición, mezcla, cola); varios cambios seguidos se juntan en una edición (`PlayerMessage.update`). Antes solo cambiaba con la canción (PR #52).
 - [x] Avisos de agregar a la cola: encabezado según el comando (`/play`, `/playnext`, `/forceplay` o "Sonando ahora" si no sonaba nada), título con enlace, posición y cuándo suena; playlist con duración total y las 3 primeras limpias. Se borran solos al minuto (PR #52).
 
@@ -152,4 +152,5 @@ Lo que vaya surgiendo de las etapas anteriores. Anotarlo acá a medida que apare
 _Anotar acá antes de empezarlas._
 
 - Licencia: evaluar pasar `LICENCE.md` a PolyForm Noncommercial (uso comercial solo con permiso). Sin decidir.
+- Tarjeta "Escuchando" generada como imagen: Discord no deja elegir el tamaño de la imagen de un embed. Si se quiere controlar el tamaño de la portada, que sea una imagen propia con varios datos (portada, título, artista, progreso, loop…) y no solo la portada achicada (se probó con `sharp`, 2026-11-15, y no convenció). Requiere `sharp` o un canvas y subir la imagen en cada canción.
 - Hilo "¿Cómo ejecuto el bot?" en Discord: corregir o borrar el mensaje "DEPRECATED bun→npm, lavalink→nodelink" (ya no es cierto).
