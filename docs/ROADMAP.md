@@ -116,6 +116,8 @@ Lo que vaya surgiendo de las etapas anteriores. Anotarlo acá a medida que apare
 - [ ] `BClient` usa `"password"` por defecto si falta `lavalinkPassword` en el `.env`: fallar con un error claro en su lugar.
 - [ ] Dependencia circular entre `BClient` y `PlayerMessage`: evaluar si vale la pena romperla.
 - [x] Logs de `[PlayerMessage]` con el `#canal` y aviso cuando el mensaje "Escuchando" cambia de canal (PR #43).
+- [x] `/help` (lista generada con los comandos cargados) y `/ping` (latencia de respuesta y del gateway); se quitó `/hi` (PR #50).
+- [x] Logs `[Servidores]`: al entrar o salir de un servidor y la lista de servidores al arrancar (PR #50).
 
 ---
 

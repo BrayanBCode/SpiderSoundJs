@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { shuffle, titleCleaner } from "./tools.js";
+import { packLines, shuffle, titleCleaner } from "./tools.js";
 
 // Títulos reales de los logs del bot. El artista es lo que suele mandar YouTube (el nombre del canal).
 const cases: [title: string, artist: string | undefined, expected: string][] = [
@@ -67,5 +67,21 @@ describe("shuffle", () => {
 describe("titleCleaner", () => {
     test.each(cases)("%p (artista: %p) → %p", (title, artist, expected) => {
         expect(titleCleaner(title, artist)).toBe(expected);
+    });
+});
+
+describe("packLines", () => {
+    test("junta líneas sin pasarse del máximo ni cortarlas", () => {
+        const chunks = packLines(["aaaa", "bbbb", "cc", "dddddd"], 10);
+        expect(chunks).toEqual(["aaaa\nbbbb", "cc\ndddddd"]);
+        expect(chunks.every(c => c.length <= 10)).toBe(true);
+    });
+
+    test("una línea más larga que el máximo se recorta", () => {
+        expect(packLines(["x".repeat(15), "y"], 10)).toEqual(["x".repeat(10), "y"]);
+    });
+
+    test("sin líneas no hay textos", () => {
+        expect(packLines([], 10)).toEqual([]);
     });
 });
