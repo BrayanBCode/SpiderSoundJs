@@ -43,6 +43,8 @@
 | `/playlist play` | Carga una playlist en la cola; opcional: `mezclar` |
 | `/playlist ver` | Lista tus playlists, o las canciones de una con menú para quitarlas |
 | `/playlist renombrar` · `/playlist borrar` | Cambia el nombre o borra una playlist (pide confirmación) |
+| `/help` | Lista todos los comandos (se arma sola con los comandos cargados) |
+| `/ping` | Muestra la latencia del bot en ms |
 
 Los comandos que controlan la reproducción solo funcionan si estás en el mismo canal de voz que el bot.
 
