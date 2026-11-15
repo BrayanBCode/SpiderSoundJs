@@ -69,14 +69,14 @@ Destino: [BrayanBCode/SpiderSoundJs](https://github.com/BrayanBCode/SpiderSoundJ
 
 ## 5. Comandos experimentales de playlists de usuario
 
-- [ ] Gestionar favoritos y playlists con **menús de Discord** (select menus, botones, modales).
+- [x] Gestionar favoritos y playlists con **menús de Discord** (select menus, botones, modales).
   - [x] `/favoritos play [cantidad] [mezclar]`: carga los favoritos de quien lo usa en la cola (hasta 100, buscando de a 5) (PR #47).
   - [x] `/favoritos ver`: lista paginada efímera con menú para quitar canciones (PR #47).
   - [x] `/favoritos agregar [busqueda]`: guarda una canción buscada (mismo autocompletado que `/play`, sin pedir canal de voz) o la que suena; no duplica ni quita (PR #48).
   - [x] `/favoritos reproducir` pasa a `/favoritos play`, igual que `/playlist play` (PR #49).
   - [x] `/playlist crear · agregar · play · ver · renombrar · borrar`: hasta 25 playlists de 100 canciones por usuario; `agregar` acepta playlists de YouTube (agrega en orden hasta llenarla, sin repetir); `borrar` pide confirmación; código compartido con `/favoritos` en `src/core/music/savedTracks.ts` (PR #49).
-- [ ] Actualizar el controlador de interfaces propio si hace falta (en SpiderSoundJs existe `DisplayEngine`, más general que `DisplayButtonsBuilder`: evaluar cuál conservar).
-- [ ] Marcarlos como experimentales hasta estabilizarlos.
+- [x] Controlador de interfaces: `DisplayEngine` no existe en este repo (quedó en MultiPurposeBotTS); los menús nuevos usan collectors de discord.js atados a su mensaje y con prefijo de `customId`, sin hacer falta un controlador nuevo. Se conserva `DisplayButtonsBuilder` para el reproductor (PR #49).
+- [x] Marcarlos como experimentales hasta estabilizarlos: la descripción de `/favoritos` y `/playlist` empieza con "🧪 Experimental" (PR #49).
 
 ---
 

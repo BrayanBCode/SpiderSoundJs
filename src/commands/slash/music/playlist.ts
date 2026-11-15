@@ -218,7 +218,7 @@ const subcommands: Record<string, (client: BClient, inter: Inter) => Promise<unk
 
 export default new SlashCommand()
     .setName("playlist")
-    .setDescription("Tus playlists: crealas, agregales canciones y reproducilas.")
+    .setDescription("🧪 Experimental · Tus playlists: crealas, agregales canciones y reproducilas.")
     .setCategory("Music")
     .setExecute(async (client, inter) => {
         try {

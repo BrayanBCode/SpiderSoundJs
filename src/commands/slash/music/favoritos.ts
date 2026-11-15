@@ -74,7 +74,7 @@ async function view(client: BClient, inter: ChatInputCommandInteraction<"cached"
 
 export default new SlashCommand()
     .setName("favoritos")
-    .setDescription("Tus canciones favoritas (las que guardaste con ❤️).")
+    .setDescription("🧪 Experimental · Tus canciones favoritas (las que guardaste con ❤️).")
     .setCategory("Music")
     .setExecute(async (client, inter) => {
         try {
