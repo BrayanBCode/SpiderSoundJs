@@ -104,7 +104,7 @@ Destino: [BrayanBCode/SpiderSoundJs](https://github.com/BrayanBCode/SpiderSoundJ
 
 Lo que vaya surgiendo de las etapas anteriores. Anotarlo acá a medida que aparezca:
 
-- [ ] `titleCleaner` (`src/utils/tools.ts`): revisar el regex que limpia los títulos y sumarle tests. _(en curso)_
+- [x] `titleCleaner` (`src/utils/tools.ts`): regex revisado y 34 tests con títulos reales (PR #44).
 - [ ] `BClient` pide intents privilegiados que no usa (`GuildPresences`, `MessageContent`, `GuildMembers`): quitarlos si nada los necesita.
 - [ ] `BClient` usa `"password"` por defecto si falta `lavalinkPassword` en el `.env`: fallar con un error claro en su lugar.
 - [ ] Dependencia circular entre `BClient` y `PlayerMessage`: evaluar si vale la pena romperla.
