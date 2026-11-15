@@ -35,6 +35,8 @@ services:
             - ./.env:/usr/src/app/.env:ro
             - ./logs:/usr/src/app/logs
             - ./.moonlink:/usr/src/app/.moonlink
+            # Base de datos de favoritos y playlists (bun:sqlite)
+            - ./data:/usr/src/app/data
         depends_on:
             - lavalink # Esto asegura que Lavalink se inicie primero
         restart: always

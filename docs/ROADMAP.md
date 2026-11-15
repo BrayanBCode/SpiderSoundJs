@@ -59,9 +59,11 @@ Destino: [BrayanBCode/SpiderSoundJs](https://github.com/BrayanBCode/SpiderSoundJ
 
 **Decisión:** con Bun, usar **`bun:sqlite`** (incluido en Bun, sin dependencias ni compilación) en `data/bot.db`. `data/` en `.gitignore` y montado como volumen.
 
-- [ ] Tablas de favoritos y playlists por usuario.
-- [ ] Habilitar el botón ❤️: guarda o quita la canción actual de **los favoritos de quien lo pulsa** (respuesta efímera).
-- [ ] Logs: quién agregó/quitó qué.
+- [x] Tablas de favoritos y playlists por usuario.
+- [x] Habilitar el botón ❤️: guarda o quita la canción actual de **los favoritos de quien lo pulsa** (respuesta efímera).
+- [x] Logs: quién agregó/quitó qué.
+
+**Hecho:** `src/core/db/database.ts` (`BotDatabase`) crea `favorites`, `playlists` y `playlist_tracks` al arrancar (WAL y `busy_timeout` para que varios shards compartan el archivo). Se guarda el enlace, título, artista, duración y portada, lo justo para mostrar la canción y volver a buscarla. El ❤️ funciona aunque no estés en el canal de voz (no controla la reproducción). Las playlists solo tienen la tabla: sus funciones llegan con la etapa 5. Tests en `src/core/db/database.test.ts`.
 
 ---
 

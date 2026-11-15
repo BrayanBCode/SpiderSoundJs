@@ -5,10 +5,13 @@ import { loadDiscordEvents } from "../handler/Events/discordEventHandler.js";
 import { loadMoonlinkEvents } from "../handler/Events/moonlinkEventHandler.js";
 import { SlashCommand } from "../classes/SlashCommand.js";
 import { PlayerMessage } from "../buttons/playerMessage.js";
+import { BotDatabase } from "../db/database.js";
 
 export class BClient extends Client {
     music: Manager;
     playerMessage: PlayerMessage;
+    /** Favoritos y playlists por usuario (data/bot.db) */
+    db = new BotDatabase();
 
     slashCommands = new Map<string, SlashCommand>();
 
