@@ -54,3 +54,54 @@ describe("BotDatabase favoritos", () => {
         expect(fav.addedAt).toBeGreaterThan(0);
     });
 });
+
+describe("BotDatabase playlists", () => {
+    let db: BotDatabase;
+    beforeEach(() => { db = new BotDatabase(":memory:"); });
+    afterEach(() => db.close());
+
+    const other: SavedTrack = { ...track, uri: "https://www.youtube.com/watch?v=otra", title: "Otra" };
+
+    test("crear, buscar sin distinguir mayúsculas y no repetir nombres", () => {
+        const rock = db.createPlaylist("user-1", "Rock");
+        expect(rock).toMatchObject({ name: "Rock", trackCount: 0 });
+        expect(db.createPlaylist("user-1", "rock")).toBeNull();
+        expect(db.getPlaylist("user-1", "ROCK")?.id).toBe(rock!.id);
+        // otro usuario puede usar el mismo nombre y no ve las ajenas
+        expect(db.createPlaylist("user-2", "Rock")).not.toBeNull();
+        expect(db.getPlaylists("user-1")).toHaveLength(1);
+    });
+
+    test("agregar mantiene el orden, no duplica y cuenta canciones", () => {
+        const { id } = db.createPlaylist("user-1", "Mix")!;
+        expect(db.addToPlaylist(id, track)).toBe(true);
+        expect(db.addToPlaylist(id, other)).toBe(true);
+        expect(db.addToPlaylist(id, track)).toBe(false);
+        expect(db.getPlaylistTracks(id).map(t => t.title)).toEqual(["Never Gonna Give You Up", "Otra"]);
+        expect(db.getPlaylist("user-1", "mix")?.trackCount).toBe(2);
+    });
+
+    test("quitar por posición y seguir agregando al final", () => {
+        const { id } = db.createPlaylist("user-1", "Mix")!;
+        db.addToPlaylist(id, track);
+        db.addToPlaylist(id, other);
+        const [first] = db.getPlaylistTracks(id);
+        expect(db.removeFromPlaylist(id, first.position)).toBe(true);
+        db.addToPlaylist(id, track);
+        expect(db.getPlaylistTracks(id).map(t => t.title)).toEqual(["Otra", "Never Gonna Give You Up"]);
+    });
+
+    test("renombrar y borrar solo las propias; borrar se lleva las canciones", () => {
+        const mix = db.createPlaylist("user-1", "Mix")!;
+        db.createPlaylist("user-1", "Rock");
+        db.addToPlaylist(mix.id, track);
+
+        expect(db.renamePlaylist("user-1", mix.id, "rock")).toBe(false); // nombre ocupado
+        expect(db.renamePlaylist("user-1", mix.id, "MIX")).toBe(true);   // cambiar mayúsculas de la misma
+        expect(db.renamePlaylist("user-2", mix.id, "Robada")).toBe(false);
+        expect(db.deletePlaylist("user-2", mix.id)).toBe(false);
+
+        expect(db.deletePlaylist("user-1", mix.id)).toBe(true);
+        expect(db.getPlaylistTracks(mix.id)).toEqual([]);
+    });
+});

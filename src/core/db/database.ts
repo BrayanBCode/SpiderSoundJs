@@ -15,6 +15,29 @@ export interface FavoriteRow extends SavedTrack {
     addedAt: number;
 }
 
+export interface PlaylistSummary {
+    id: number;
+    name: string;
+    trackCount: number;
+}
+
+export interface PlaylistTrackRow extends SavedTrack {
+    position: number;
+}
+
+/** Datos de una canción como parámetros con nombre para las consultas */
+const trackParams = (track: SavedTrack) => ({
+    uri: track.uri,
+    title: track.title,
+    author: track.author,
+    duration: track.duration,
+    artworkUrl: track.artworkUrl ?? null,
+});
+
+const PLAYLIST_SUMMARY = `
+    SELECT p.id, p.name, (SELECT COUNT(*) FROM playlist_tracks t WHERE t.playlist_id = p.id) AS trackCount
+    FROM playlists p`;
+
 /**
  * Base de datos del bot (favoritos y playlists por usuario) en un archivo SQLite.
  * `bun:sqlite` viene con Bun: sin dependencias ni compilación.
@@ -80,15 +103,7 @@ export class BotDatabase {
         return this.db.query(`
             INSERT OR IGNORE INTO favorites (user_id, uri, title, author, duration, artwork_url, added_at)
             VALUES ($userId, $uri, $title, $author, $duration, $artworkUrl, $addedAt)`)
-            .run({
-                userId,
-                uri: track.uri,
-                title: track.title,
-                author: track.author,
-                duration: track.duration,
-                artworkUrl: track.artworkUrl ?? null,
-                addedAt: Date.now(),
-            }).changes > 0;
+            .run({ userId, ...trackParams(track), addedAt: Date.now() }).changes > 0;
     }
 
     /** Quita una canción de los favoritos del usuario. `false` si no estaba */
@@ -102,6 +117,73 @@ export class BotDatabase {
             SELECT uri, title, author, duration, artwork_url AS artworkUrl, added_at AS addedAt
             FROM favorites WHERE user_id = $userId ORDER BY added_at DESC`)
             .all({ userId });
+    }
+
+    // ---------- Playlists: el nombre es único por usuario sin distinguir mayúsculas ----------
+
+    /** Crea una playlist vacía. `null` si el usuario ya tiene una con ese nombre */
+    createPlaylist(userId: string, name: string): PlaylistSummary | null {
+        if (this.getPlaylist(userId, name)) return null;
+        const { lastInsertRowid } = this.db.query("INSERT INTO playlists (user_id, name, created_at) VALUES ($userId, $name, $createdAt)")
+            .run({ userId, name, createdAt: Date.now() });
+        return { id: Number(lastInsertRowid), name, trackCount: 0 };
+    }
+
+    /** Playlists del usuario ordenadas por nombre, con cuántas canciones tiene cada una */
+    getPlaylists(userId: string): PlaylistSummary[] {
+        return this.db.query<PlaylistSummary, { userId: string }>(`${PLAYLIST_SUMMARY} WHERE p.user_id = $userId ORDER BY p.name COLLATE NOCASE`)
+            .all({ userId });
+    }
+
+    /** Playlist del usuario por nombre. Solo encuentra las propias */
+    getPlaylist(userId: string, name: string): PlaylistSummary | null {
+        return this.db.query<PlaylistSummary, { userId: string; name: string }>(`${PLAYLIST_SUMMARY} WHERE p.user_id = $userId AND p.name = $name COLLATE NOCASE`)
+            .get({ userId, name });
+    }
+
+    /** `false` si el nombre nuevo ya lo usa otra playlist del usuario */
+    renamePlaylist(userId: string, playlistId: number, newName: string): boolean {
+        const other = this.getPlaylist(userId, newName);
+        if (other && other.id !== playlistId) return false;
+        return this.db.query("UPDATE playlists SET name = $newName WHERE id = $playlistId AND user_id = $userId")
+            .run({ userId, playlistId, newName }).changes > 0;
+    }
+
+    /** Borra la playlist y sus canciones */
+    deletePlaylist(userId: string, playlistId: number): boolean {
+        return this.db.query("DELETE FROM playlists WHERE id = $playlistId AND user_id = $userId")
+            .run({ userId, playlistId }).changes > 0;
+    }
+
+    /** Agrega la canción al final. `false` si ya estaba en esa playlist */
+    addToPlaylist(playlistId: number, track: SavedTrack): boolean {
+        return this.db.transaction(() => {
+            const exists = this.db.query("SELECT 1 FROM playlist_tracks WHERE playlist_id = $playlistId AND uri = $uri")
+                .get({ playlistId, uri: track.uri });
+            if (exists) return false;
+
+            this.db.query(`
+                INSERT INTO playlist_tracks (playlist_id, position, uri, title, author, duration, artwork_url)
+                VALUES ($playlistId,
+                        (SELECT COALESCE(MAX(position), 0) + 1 FROM playlist_tracks WHERE playlist_id = $playlistId),
+                        $uri, $title, $author, $duration, $artworkUrl)`)
+                .run({ playlistId, ...trackParams(track) });
+            return true;
+        })();
+    }
+
+    /** Canciones de la playlist en el orden en que se agregaron */
+    getPlaylistTracks(playlistId: number): PlaylistTrackRow[] {
+        return this.db.query<PlaylistTrackRow, { playlistId: number }>(`
+            SELECT position, uri, title, author, duration, artwork_url AS artworkUrl
+            FROM playlist_tracks WHERE playlist_id = $playlistId ORDER BY position`)
+            .all({ playlistId });
+    }
+
+    /** Quita una canción por su posición (las demás no se renumeran: solo importa el orden) */
+    removeFromPlaylist(playlistId: number, position: number): boolean {
+        return this.db.query("DELETE FROM playlist_tracks WHERE playlist_id = $playlistId AND position = $position")
+            .run({ playlistId, position }).changes > 0;
     }
 
     close() {
