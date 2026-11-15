@@ -205,9 +205,9 @@ export class PlayerMessage {
                 const player = client.getPlayer(inter.guildId!)
                 if (!player) return void await replyNoPlayer(inter as ButtonInteraction<"cached">)
 
-                // Ver la cola es inofensivo; el resto controla la reproducción de quienes están escuchando
+                // Ver la cola o guardar un favorito es inofensivo; el resto controla la reproducción de quienes están escuchando
                 const memberVC = (inter.member as GuildMember | null)?.voice.channelId
-                if (button.custom_id !== "queue" && memberVC !== player.voiceChannelId) {
+                if (!["queue", "favorite"].includes(button.custom_id) && memberVC !== player.voiceChannelId) {
                     logger.info(`[PlayerButtons] ${inter.user.username} intentó usar ${button.custom_id} fuera del canal de voz del bot en ${inter.guild?.name}`)
                     deleteAfterTimer(await replyEmbed({
                         interaction: inter as ButtonInteraction<"cached">,
@@ -335,11 +335,54 @@ export class PlayerMessage {
             new CustomButtonBuilder({
                 custom_id: "favorite",
                 emoji: PLAYER_EMOJIS.favorite,
-                style: ButtonStyle.Secondary,
-                disabled: true // Se habilita cuando estén los favoritos por usuario
-            }, () => {
-                //TODO: guardar/quitar la canción actual de los favoritos del usuario 
-            }),
+                style: ButtonStyle.Secondary
+            },
+                async (client, inter) => {
+                    const track = client.getPlayer(inter.guildId)!.current
+
+                    if (!track?.uri) {
+                        await replyEmbed({
+                            interaction: inter as ButtonInteraction<"cached">,
+                            embed: EmptyEmbed().setDescription("❌ | Esta canción no se puede guardar en favoritos.").setColor("Red"),
+                            ephemeral: true,
+                        })
+                        return
+                    }
+
+                    const title = titleCleaner(track.title, track.author)
+                    let result: "added" | "removed"
+                    try {
+                        result = client.db.toggleFavorite(inter.user.id, {
+                            uri: track.uri,
+                            title: track.title,
+                            author: track.author,
+                            duration: track.duration,
+                            artworkUrl: track.artworkUrl,
+                        })
+                    } catch (err) {
+                        logger.error(`[Favoritos] No se pudo guardar "${track.title}" para ${inter.user.username}:`, err)
+                        await replyEmbed({
+                            interaction: inter as ButtonInteraction<"cached">,
+                            embed: EmptyEmbed().setDescription("❌ | No se pudo actualizar tus favoritos, probá de nuevo en un rato.").setColor("Red"),
+                            ephemeral: true,
+                        })
+                        return
+                    }
+
+                    logger.info(`[Favoritos] ${inter.user.username} ${result === "added" ? "agregó" : "quitó"} "${track.title}" (${track.uri}) en ${inter.guild?.name}`)
+
+                    // Efímero: cada uno ve solo sus favoritos
+                    await replyEmbed({
+                        interaction: inter as ButtonInteraction<"cached">,
+                        embed: EmptyEmbed()
+                            .setDescription(result === "added"
+                                ? `❤️ **${title}** se agregó a tus favoritos.`
+                                : `💔 **${title}** se quitó de tus favoritos.`)
+                            .setColor(result === "added" ? "Green" : "Grey"),
+                        ephemeral: true,
+                    })
+                }
+            ),
             new CustomButtonBuilder({
                 custom_id: "loop",
                 emoji: PLAYER_EMOJIS.loop,

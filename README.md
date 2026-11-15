@@ -17,6 +17,7 @@
 - 📃 Cola interactiva con paginación, `/playnext`, `/forceplay`, `/remove`.
 - 🔁 Repetición de canción o de cola, mezclar, adelantar y retroceder.
 - 🎚️ Mensaje "Escuchando" con botones y emojis propios (tema araña).
+- ❤️ Favoritos por usuario: el botón ❤️ guarda o quita la canción actual (solo lo ve quien lo pulsa).
 - 💤 Se desconecta solo por inactividad o si queda solo en el canal.
 
 ## 🎮 Comandos
@@ -62,6 +63,8 @@ Requisitos: **Docker** con Docker Compose. El bot corre con **Bun** dentro de su
    Levanta tres contenedores: `yt-cipher` (descifrado de YouTube), `lavalink` (audio) y `discord-bot`. Después de cambiar el código, el mismo comando reconstruye la imagen del bot.
 
    Los slash commands se registran solos cada vez que el bot arranca.
+
+   Los favoritos se guardan en `data/bot.db` (SQLite), en la carpeta `data/` del proyecto. Si movés el bot a otra PC, copiá esa carpeta.
 
 ### Desarrollo sin Docker (opcional)
 
