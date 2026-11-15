@@ -72,6 +72,7 @@ Destino: [BrayanBCode/SpiderSoundJs](https://github.com/BrayanBCode/SpiderSoundJ
 - [ ] Gestionar favoritos y playlists con **menús de Discord** (select menus, botones, modales).
   - [x] `/favoritos reproducir [cantidad] [mezclar]`: carga los favoritos de quien lo usa en la cola (hasta 100, buscando de a 5) (PR #47).
   - [x] `/favoritos ver`: lista paginada efímera con menú para quitar canciones (PR #47).
+  - [x] `/favoritos agregar [busqueda]`: guarda una canción buscada (mismo autocompletado que `/play`, sin pedir canal de voz) o la que suena; no duplica ni quita (PR #48).
   - [ ] Playlists: crear, agregar la canción actual, reproducir, renombrar y borrar (las tablas ya existen).
 - [ ] Actualizar el controlador de interfaces propio si hace falta (en SpiderSoundJs existe `DisplayEngine`, más general que `DisplayButtonsBuilder`: evaluar cuál conservar).
 - [ ] Marcarlos como experimentales hasta estabilizarlos.
