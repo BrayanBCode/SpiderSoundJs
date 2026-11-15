@@ -2,8 +2,15 @@ import { ApplicationCommandOptionType, MessageFlags } from "discord.js";
 import { SlashCommand } from "../../../core/classes/SlashCommand.js";
 import logger from "../../../core/client/logger.js";
 import { EmptyEmbed } from "../../../utils/messages.js";
+import { packLines } from "../../../utils/tools.js";
 
 const CATEGORY_TITLES: Record<string, string> = { Music: "🎵 Música", Misc: "✨ Otros" };
+const AUTHOR = "Comandos de Araña Sound 🕷️";
+const FOOTER = "También podés usar los botones del mensaje del reproductor.";
+const DESCRIPTION_MAX = 4096;
+const MESSAGE_MAX = 6000;
+/** El autor y el pie también cuentan para el límite del mensaje */
+const HEADER_CHARS = AUTHOR.length + FOOTER.length;
 
 /** Líneas "/comando sub — descripción" de un comando (una por subcomando si tiene) */
 function commandLines(cmd: SlashCommand): string[] {
@@ -27,14 +34,25 @@ export default new SlashCommand()
                 byCategory.set(category, [...(byCategory.get(category) ?? []), ...commandLines(cmd)]);
             }
 
-            const sections = [...byCategory].map(([category, lines]) => `### ${CATEGORY_TITLES[category] ?? category}\n${lines.join("\n")}`);
-            const embed = EmptyEmbed()
-                .setAuthor({ name: "Comandos de Araña Sound 🕷️", iconURL: client.user?.displayAvatarURL() })
-                .setDescription(sections.join("\n"))
-                .setColor(0x1DB954)
-                .setFooter({ text: "También podés usar los botones del mensaje del reproductor." });
+            const lines = [...byCategory].flatMap(([category, cmdLines]) => [`### ${CATEGORY_TITLES[category] ?? category}`, ...cmdLines]);
 
-            return inter.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+            // Discord: 4096 caracteres por descripción y 6000 entre todos los embeds del mensaje
+            const descriptions: string[] = [];
+            let total = HEADER_CHARS;
+            for (const text of packLines(lines, DESCRIPTION_MAX)) {
+                if (total + text.length > MESSAGE_MAX) {
+                    logger.warn(`[/help] La lista no entra en un mensaje: se mostraron ${descriptions.length} partes`);
+                    break;
+                }
+                descriptions.push(text);
+                total += text.length;
+            }
+
+            const embeds = descriptions.map(text => EmptyEmbed().setDescription(text).setColor(0x1DB954));
+            embeds[0].setAuthor({ name: AUTHOR, iconURL: client.user?.displayAvatarURL() });
+            embeds[embeds.length - 1].setFooter({ text: FOOTER });
+
+            return inter.reply({ embeds, flags: MessageFlags.Ephemeral });
         } catch (err) {
             logger.error(`[/help] Error no controlado en el comando:`, err);
         }

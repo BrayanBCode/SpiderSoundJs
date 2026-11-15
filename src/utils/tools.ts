@@ -8,6 +8,22 @@ export function chunkArray<T>(arr: T[], size: number): T[][] {
     return result;
 }
 
+/** Junta líneas en textos de hasta `max` caracteres (unidas con "\n") sin cortar ninguna, salvo que una sola ya se pase */
+export function packLines(lines: readonly string[], max: number): string[] {
+    const chunks: string[] = [];
+    let current = "";
+    for (const raw of lines) {
+        const line = raw.slice(0, max);
+        if (current && current.length + 1 + line.length > max) {
+            chunks.push(current);
+            current = "";
+        }
+        current = current ? `${current}\n${line}` : line;
+    }
+    if (current) chunks.push(current);
+    return chunks;
+}
+
 /** Copia mezclada al azar (Fisher-Yates); no modifica el original */
 export function shuffle<T>(arr: readonly T[]): T[] {
     const result = [...arr];
