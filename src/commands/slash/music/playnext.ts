@@ -5,6 +5,8 @@ import logger from "../../../core/client/logger.js";
 
 
 class PlayNext extends PlaybackStrategy {
+    protected override addMode = "next" as const
+
     override async addTracks(player: Player, tracks: Track | Track[]): Promise<void> {
         // insert pasa por la API de la cola (eventos y estado) en vez de tocar el array directo
         player.queue.insert(0, tracks)

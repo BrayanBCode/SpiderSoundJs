@@ -6,6 +6,8 @@ import { skipTrack } from "../../../core/music/player.js";
 
 
 class Forceplay extends PlaybackStrategy {
+    protected override addMode = "now" as const
+
     override async addTracks(player: Player, tracks: Track | Track[]): Promise<void> {
         // insert pasa por la API de la cola (eventos y estado) en vez de tocar el array directo
         player.queue.insert(0, tracks)

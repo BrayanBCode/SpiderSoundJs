@@ -82,8 +82,10 @@ Destino: [BrayanBCode/SpiderSoundJs](https://github.com/BrayanBCode/SpiderSoundJ
 
 ## 6. Mejorar la interfaz "Escuchando"
 
-- [ ] **Evaluar el costo antes de implementar** una barra de progreso: requiere editar el mensaje periódicamente (límites de rate de Discord, llamadas a la API por servidor). Medir y decidir intervalo o alternativa (ej. timestamp relativo `<t:...:R>` de Discord, que se actualiza solo sin editar).
-- [ ] Otras mejoras visuales del embed.
+- [x] Barra de progreso **descartada**: editar cada pocos segundos en cada servidor con música serían miles de llamadas por hora, cerca de los límites de Discord y con parpadeo. En su lugar, "Termina" usa `<t:…:R>`, que Discord actualiza solo; pausada muestra "Va por" (PR #52).
+- [x] Embed nuevo: "Escuchando 🎶" verde o "En pausa ⏸️" gris; Artista, Duración, Termina, Repetición (en español) y Siguiente; pie con quién la pidió y la cola (cantidad y duración) (PR #52).
+- [x] El mensaje se edita en su lugar cuando cambia algo, escuchando eventos de moonlink.js (pausa, seek, repetición, mezcla, cola); varios cambios seguidos se juntan en una edición (`PlayerMessage.update`). Antes solo cambiaba con la canción (PR #52).
+- [x] Avisos de agregar a la cola: encabezado según el comando (`/play`, `/playnext`, `/forceplay` o "Sonando ahora" si no sonaba nada), título con enlace, posición y cuándo suena; playlist con duración total y las 3 primeras limpias. Se borran solos al minuto (PR #52).
 
 ---
 
