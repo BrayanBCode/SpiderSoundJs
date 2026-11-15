@@ -44,6 +44,7 @@ export class BClient extends Client {
         try {
             this.music = this.createLavalinkConnection();
             this.on("raw", (packet) => this.music.packetUpdate(packet));
+            this.playerMessage.watch(this.music);
 
         } catch (error) {
             logger.error('Lavalink connection failed', error as Error);

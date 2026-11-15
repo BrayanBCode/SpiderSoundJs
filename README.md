@@ -16,7 +16,7 @@
 - 🎵 YouTube (búsqueda, links y playlists) y **canciones sueltas de Spotify**.
 - 📃 Cola interactiva con paginación, `/playnext`, `/forceplay`, `/remove`.
 - 🔁 Repetición de canción o de cola, mezclar, adelantar y retroceder.
-- 🎚️ Mensaje "Escuchando" con botones y emojis propios (tema araña).
+- 🎚️ Mensaje "Escuchando" con botones y emojis propios (tema araña): muestra cuándo termina, la repetición, la siguiente y la cola, y se actualiza al pausar o cambiar algo.
 - ❤️ Favoritos por usuario: el botón ❤️ guarda o quita la canción actual (solo lo ve quien lo pulsa).
 - 📂 Playlists propias de cada usuario (hasta 25, de 100 canciones), también desde playlists de YouTube.
 - 💤 Se desconecta solo por inactividad o si queda solo en el canal.

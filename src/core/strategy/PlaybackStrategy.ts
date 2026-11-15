@@ -6,6 +6,8 @@ import logger from "../client/logger.js";
 import { Player, SearchResult, Track } from "moonlink.js";
 import { EmptyEmbed, deleteAfterTimer } from "../../utils/messages.js";
 import { formatMS_HHMMSS, titleCleaner } from "../../utils/tools.js";
+import { getRequesterInfo } from "../music/player.js";
+import { discordRelative, startsInMs, totalDuration } from "../music/timing.js";
 
 
 export enum queryErrors {
@@ -25,6 +27,19 @@ export interface IAddToQueueParams {
  */
 const SPOTIFY_UNSUPPORTED = /open\.spotify\.com\/(?:intl-[^/]+\/)?(album|playlist|artist)\//;
 const SPOTIFY_UNSUPPORTED_MSG = "De Spotify por ahora solo se aceptan canciones sueltas (no álbumes, playlists ni artistas).";
+
+/** Los avisos de "agregada a la cola" se borran solos: el chat queda limpio y el reproductor no queda tapado */
+const ADDED_MESSAGE_TIME = 60_000;
+
+/** Dónde quedan las canciones agregadas: al final (/play), después de la actual (/playnext) o sonando ya (/forceplay) */
+export type AddMode = "queue" | "next" | "now";
+
+const ADDED_HEADERS: Record<AddMode | "idle", { track: string; playlist: string }> = {
+    queue: { track: "Agregada a la cola 🎧", playlist: "Playlist agregada a la cola 🎧" },
+    next: { track: "Suena después de la actual ⏭️", playlist: "Playlist después de la actual ⏭️" },
+    now: { track: "Sonando ahora 🎶", playlist: "Playlist sonando ahora 🎶" },
+    idle: { track: "Sonando ahora 🎶", playlist: "Playlist sonando ahora 🎶" },
+};
 
 /** Límite de Discord para el `value` de una opción de autocompletado */
 const AUTOCOMPLETE_VALUE_MAX = 100;
@@ -54,6 +69,9 @@ export abstract class PlaybackStrategy {
 
     /** Si las sugerencias piden estar en un canal de voz. /favoritos agregar lo desactiva: guardar no reproduce */
     protected suggestionsNeedVoice = true;
+
+    /** Dónde quedan las canciones; cambia el encabezado del aviso */
+    protected addMode: AddMode = "queue";
 
     async execute(client: BClient, inter: ChatInputCommandInteraction<"cached">) {
         const GuildID = inter.guildId;
@@ -172,49 +190,57 @@ export abstract class PlaybackStrategy {
 
     /**
      * Agrega los resultados a la cola y responde (editando el mensaje diferido)
-     * con lo que se agregó.
+     * con lo que se agregó. El aviso se borra solo a los ADDED_MESSAGE_TIME.
      */
     private async addToQueue({ player, res, inter }: IAddToQueueParams) {
+        // Si no sonaba nada, lo agregado empieza ya, sea cual sea el comando
+        const mode = !player.playing && !player.current ? "idle" : this.addMode;
+        const requester = getRequesterInfo(inter.member);
+        const embed = EmptyEmbed().setColor("Green");
 
         if (res.loadType === "playlist") {
-            await this.addTracks(player, res.tracks)
+            const tracks = res.tracks;
+            await this.addTracks(player, tracks);
 
-            const embed = EmptyEmbed()
-                .setAuthor({ name: `Agregando ${res.loadType} 🎧` })
+            const query = inter.options.getString("busqueda") ?? "";
+            const first = tracks.slice(0, 3).map((t, i) => `**${i + 1}.** ${titleCleaner(t.title, t.author)} · \`${formatMS_HHMMSS(t.duration)}\``);
+            if (tracks.length > 3) first.push(`…y ${tracks.length - 3} más`);
+
+            embed.setAuthor({ name: ADDED_HEADERS[mode].playlist, iconURL: requester.avatar })
                 .setTitle(res.playlistInfo?.name ?? "Playlist")
-                .setThumbnail(res.tracks[0].artworkUrl ?? "")
-                .setColor('Green')
+                .setURL(/^https?:\/\//.test(query) ? query : null)
+                .setDescription(`**${tracks.length}** canciones · ${formatMS_HHMMSS(totalDuration(tracks))} en total`)
+                .setThumbnail(tracks[0].artworkUrl ?? null)
+                .addFields({ name: "Empieza con", value: first.join("\n").slice(0, 1024) })
+                .setFooter({ text: `Pedido por ${requester.name} · ${player.queue.size} en cola` });
 
-            for (let i = 0; i < Math.min(res.tracks.length, 3); i++) {
-                embed.addFields({
-                    name: `${res.tracks[i].title} `, value: `${res.tracks[i].author} - Duración: ${formatMS_HHMMSS(res.tracks[i].duration)
-                        } `, inline: true
-                });
-            }
-
-            embed.addFields({ name: `Se agregaron: `, value: `${res.tracks.length} canciones más`, inline: false });
-
-            logger.info(`[${inter.commandName}] Playlist "${res.playlistInfo?.name}" (${res.tracks.length} canciones) agregada en ${inter.guild.name}`);
-            await inter.editReply({ embeds: [embed] });
-
+            logger.info(`[${inter.commandName}] Playlist "${res.playlistInfo?.name}" (${tracks.length} canciones) agregada en ${inter.guild.name} (${mode}, cola: ${player.queue.size})`);
         } else {
             const track = res.tracks[0];
+            await this.addTracks(player, track);
 
-            await this.addTracks(player, track)
+            embed.setAuthor({ name: ADDED_HEADERS[mode].track, iconURL: requester.avatar })
+                .setTitle(titleCleaner(track.title, track.author))
+                .setURL(track.uri ?? null)
+                .setThumbnail(track.artworkUrl ?? null)
+                .addFields(
+                    { name: "Artista", value: track.author || "Desconocido", inline: true },
+                    { name: "Duración", value: track.isStream ? "En vivo" : formatMS_HHMMSS(track.duration), inline: true },
+                )
+                .setFooter({ text: `Pedido por ${requester.name}` });
 
-            logger.info(`[${inter.commandName}] "${track.title}" agregada en ${inter.guild.name} (cola: ${player.queue.size})`);
-            await inter.editReply({
-                embeds: [EmptyEmbed()
-                    .setAuthor({ name: `Agregando ${titleCleaner(track.title, track.author)} 🎧` })
-                    .setDescription(`Autor: ${track.author} `)
-                    .setThumbnail(track.artworkUrl ?? "")
-                    .setColor('Green')
-                    .addFields(
-                        { name: "Duración", value: formatMS_HHMMSS(track.duration), inline: true },
-                        { name: "Artista", value: track.author, inline: true }
-                    )]
-            });
+            // Solo si espera turno: posición en la cola y cuándo suena (aprox.: pausas y saltos lo cambian)
+            const index = player.queue.tracks.indexOf(track);
+            if (mode !== "now" && mode !== "idle" && index >= 0) {
+                embed.addFields({ name: "Posición", value: `#${index + 1}`, inline: true });
+                const startsIn = startsInMs(player.current, player.queue.tracks, index);
+                if (startsIn !== undefined) embed.addFields({ name: "Suena", value: `${discordRelative(startsIn)} aprox.` });
+            }
+
+            logger.info(`[${inter.commandName}] "${track.title}" agregada en ${inter.guild.name} (${mode}, posición: ${index + 1}, cola: ${player.queue.size})`);
         }
+
+        deleteAfterTimer(await inter.editReply({ embeds: [embed] }), ADDED_MESSAGE_TIME);
     }
 
     /**

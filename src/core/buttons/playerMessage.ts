@@ -2,12 +2,21 @@ import { ButtonInteraction, ButtonStyle, GuildMember, Message, MessageFlags, Tex
 import { CustomButtonBuilder, DisplayButtonsBuilder, IButtonInteraction } from "./DisplayButtonsBuilder.js"
 import logger from "../client/logger.js"
 import { BClient } from "../client/BClient.js"
-import { Player, Track } from "moonlink.js"
+import { Manager, Player, Track } from "moonlink.js"
 import { deleteAfterTimer, EmptyEmbed, safeDelete, replyEmbed } from "../../utils/messages.js"
 import { replyNoPlayer, skipTrack, getRequesterInfo, seekRelative } from "../music/player.js"
 import { formatMS_HHMMSS, titleCleaner } from "../../utils/tools.js"
 import { QueuePaginator } from "../classes/music/QueuePaginator.js"
 import { PLAYER_EMOJIS } from "./emojis.js"
+import { discordRelative, loopLabel, remainingMs, totalDuration, youtubeCover } from "../music/timing.js"
+
+/** Espera antes de editar por un cambio, para juntar varios en una edición (y que moonlink ya haya aplicado el estado) */
+const UPDATE_DELAY = 1500
+/** Eventos de moonlink.js que cambian lo que muestra el mensaje "Escuchando" */
+const UPDATE_EVENTS = [
+    "playerTriggeredPause", "playerTriggeredResume", "playerTriggeredSeek", "playerChangedLoop",
+    "playerTriggeredShuffle", "queueAdd", "queueRemove", "queueMoveRange", "queueRemoveRange",
+] as const
 
 
 
@@ -47,6 +56,9 @@ export class PlayerMessage {
     /** Canal del último mensaje enviado por servidor; sobrevive al Stop para avisar si el siguiente sale en otro canal */
     private lastChannel = new Map<string, TextChannel>()
 
+    /** Ediciones pendientes por servidor (ver `update`) */
+    private updateTimers = new Map<string, ReturnType<typeof setTimeout>>()
+
 
     constructor(client: BClient) {
         this.MessageContainer = new Map()
@@ -68,6 +80,7 @@ export class PlayerMessage {
      * si el chat ya lo tapó o cambió el canal, se borra y se envía uno nuevo abajo.
      */
     refresh(guildID: string, channelID?: string) {
+        this.cancelUpdate(guildID) // esto ya muestra el estado actual
         return this.enqueue(guildID, async () => {
             const data = this.getData(guildID)
             const sameChannel = data && (!channelID || data.channel.id === channelID)
@@ -83,7 +96,32 @@ export class PlayerMessage {
 
     /** Borra el mensaje "Escuchando" (cuando el player se destruye) */
     remove(guildID: string) {
+        this.cancelUpdate(guildID)
         return this.enqueue(guildID, () => this.delete(guildID))
+    }
+
+    /**
+     * Refleja un cambio (pausa, repetición, cola…) editando el mensaje en su lugar, sin reenviarlo.
+     * Los cambios que llegan seguidos (ej. una playlist entera) se juntan en una sola edición.
+     */
+    update(guildID: string) {
+        if (!this.getData(guildID) || this.updateTimers.has(guildID)) return
+        this.updateTimers.set(guildID, setTimeout(() => {
+            this.updateTimers.delete(guildID)
+            this.enqueue(guildID, () => this.edit(guildID)).catch(err =>
+                logger.debug(`[PlayerMessage] No se pudo actualizar el mensaje en ${guildID}: ${err}`))
+        }, UPDATE_DELAY))
+    }
+
+    private cancelUpdate(guildID: string) {
+        clearTimeout(this.updateTimers.get(guildID))
+        this.updateTimers.delete(guildID)
+    }
+
+    /** Escucha los eventos de moonlink.js que cambian lo que muestra el mensaje: así sirve igual con botones y con comandos */
+    watch(manager: Manager) {
+        for (const event of UPDATE_EVENTS)
+            manager.on(event, (player: Player) => this.update(player.guildId))
     }
 
     /** Actualiza el embed y los botones del mensaje existente. `false` si no se pudo (ej. lo borraron) */
@@ -175,21 +213,51 @@ export class PlayerMessage {
 
     private getPlayingEmbed(track: Track, player: Player) {
         const requester = getRequesterInfo(track.requester)
+        const paused = player.paused
+        const left = remainingMs(track)
 
+        // Pausada no tiene hora de fin: se muestra por dónde va. La marca relativa la actualiza Discord sola
+        const time = paused
+            ? `• Va por: \`${formatMS_HHMMSS(track.position ?? 0)}\``
+            : `• Termina: ${left === undefined ? "`En vivo`" : discordRelative(left)}`
 
-        return EmptyEmbed()
-            .setAuthor({ name: 'Escuchando 🎶', iconURL: requester.avatar })
+        const queued = player.queue.tracks
+        const footer = queued.length
+            ? `Pedido por ${requester.name} · ${queued.length} en cola (${formatMS_HHMMSS(totalDuration(queued))})`
+            : `Pedido por ${requester.name}`
+
+        // Líneas en la descripción y no campos en columnas: un artista largo desalineaba las columnas
+        const description = [
+            `**${track.author || "Desconocido"}** · \`${track.isStream ? "En vivo" : formatMS_HHMMSS(track.duration)}\``,
+            time,
+            `• Loop: \`${loopLabel(player.loop)}\``,
+            `• Siguiente: ${this.nextLabel(player)}`,
+        ].join("\n").slice(0, 4096)
+
+        const embed = EmptyEmbed()
+            .setAuthor({ name: paused ? "En pausa ⏸️" : "Escuchando 🎶", iconURL: requester.avatar })
             .setTitle(titleCleaner(track.title, track.author) ?? "Titulo desconocido")
             .setURL(track.uri ?? "")
-            .setThumbnail(track.artworkUrl ?? "")
-            .addFields(
-                { name: "Artista", value: `\`${track.author ?? "Desconocido"} \``, inline: true },
-                { name: "Duración", value: `\`${formatMS_HHMMSS(track.duration)}\``, inline: true },
-                { name: "loop", value: `\`${player.loop}\``, inline: true },
-            )
-            .setColor(0x1DB954)
-            .setFooter({ text: `Pedido por ${requester.name}`, iconURL: this.client.getGuild(player.guildId)?.iconURL() ?? undefined })
+            .setDescription(description)
+            .setColor(paused ? 0x80848E : 0x1DB954)
+
+        // La portada de YouTube en 320×180 como imagen: Discord no la agranda, así ocupa parte del ancho y no todo.
+        // Las demás fuentes no tienen un tamaño chico garantizado: quedan como miniatura
+        const cover = youtubeCover(track)
+        if (cover) embed.setImage(cover)
+        else embed.setThumbnail(track.artworkUrl ?? null)
+
+        return embed
+            .setFooter({ text: footer, iconURL: this.client.getGuild(player.guildId)?.iconURL() ?? undefined })
             .setTimestamp()
+    }
+
+    /** Qué suena después de la actual, según la cola y la repetición */
+    private nextLabel(player: Player) {
+        if (player.loop === "track") return "Esta misma (repetición de canción)"
+        const next = player.queue.tracks[0]
+        if (next) return `${titleCleaner(next.title, next.author)} · ${next.author}`
+        return player.loop === "queue" ? "Esta misma (repetición de cola)" : "Nada, la cola está vacía"
     }
 
     /**
@@ -288,12 +356,15 @@ export class PlayerMessage {
                 async (client, inter, col) => {
                     const player = client.getPlayer(inter.guildId)!
 
-                    player.playing ? player.pause() : player.resume();
+                    // moonlink deja `playing` en true durante la pausa: lo que dice si está pausado es `paused`
+                    const wasPaused = player.paused
+                    await (wasPaused ? player.resume() : player.pause())
+                    logger.info(`[PlayerButtons] ${inter.user.username} ${wasPaused ? "reanudó" : "pausó"} la reproducción en ${inter.guild?.name}`)
 
                     const ResumePlayMsg = await replyEmbed({
                         interaction: inter as ButtonInteraction<"cached">,
                         embed: EmptyEmbed()
-                            .setDescription(`Reproducción ${player.playing ? "⏸️" : "▶️"}`)
+                            .setDescription(wasPaused ? "▶️ Reproducción reanudada" : "⏸️ Reproducción en pausa")
                     });
 
                     deleteAfterTimer(ResumePlayMsg, 5000)
