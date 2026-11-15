@@ -34,6 +34,8 @@
 | `/clear` | Vacía la cola |
 | `/forward` · `/backward` | Adelanta o retrocede segundos |
 | `/stop` | Detiene y desconecta el bot |
+| `/favoritos reproducir` | Carga tus favoritos (❤️) en la cola; opcional: `cantidad` y `mezclar` |
+| `/favoritos ver` | Muestra tus favoritos (solo vos) y permite quitarlos |
 
 Los comandos que controlan la reproducción solo funcionan si estás en el mismo canal de voz que el bot.
 
