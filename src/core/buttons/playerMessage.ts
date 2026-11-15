@@ -218,8 +218,8 @@ export class PlayerMessage {
 
         // Pausada no tiene hora de fin: se muestra por dónde va. La marca relativa la actualiza Discord sola
         const time = paused
-            ? `⏸️ Va por \`${formatMS_HHMMSS(track.position ?? 0)}\``
-            : `⏱️ Termina ${left === undefined ? "`En vivo`" : discordRelative(left)}`
+            ? `• Va por: \`${formatMS_HHMMSS(track.position ?? 0)}\``
+            : `• Termina: ${left === undefined ? "`En vivo`" : discordRelative(left)}`
 
         const queued = player.queue.tracks
         const footer = queued.length
@@ -230,8 +230,8 @@ export class PlayerMessage {
         const description = [
             `**${track.author || "Desconocido"}** · \`${track.isStream ? "En vivo" : formatMS_HHMMSS(track.duration)}\``,
             time,
-            `🔁 Loop: \`${loopLabel(player.loop)}\``,
-            `⏭️ Siguiente: ${this.nextLabel(player)}`,
+            `• Loop: \`${loopLabel(player.loop)}\``,
+            `• Siguiente: ${this.nextLabel(player)}`,
         ].join("\n").slice(0, 4096)
 
         const embed = EmptyEmbed()
