@@ -77,6 +77,8 @@ Requisitos: **Docker** con Docker Compose. El bot corre con **Bun** dentro de su
 
    Los favoritos y las playlists se guardan en `data/bot.db` (SQLite), en la carpeta `data/` del proyecto. Si movés el bot a otra PC, copiá esa carpeta.
 
+   Opcional: con `DEV_GUILD_ID` en el `.env` (ID de tu servidor), el bot crea ahí `#notificaciones-bot` y avisa arranques, servidores nuevos o perdidos, errores no controlados y caídas de Lavalink. El canal es privado: solo lo ven el dueño del bot (`ownerID`) y los administradores. Necesita el permiso Gestionar canales.
+
 ### Desarrollo sin Docker (opcional)
 
 Con [Bun](https://bun.sh) 1.4+ instalado: `bun install`, levantar solo Lavalink con `docker compose up -d lavalink` (en el `.env`, `lavalinkHost="localhost"`) y correr el bot con `bun start`. Bun lee el `.env` solo y ejecuta TypeScript directo, sin compilar. Para revisar tipos: `bun run typecheck`; para los tests: `bun test`.

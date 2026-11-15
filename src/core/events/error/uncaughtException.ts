@@ -1,24 +1,18 @@
-import { inspect } from "util";
 import logger from "../../client/logger.js";
+import { errorText, notifyError } from "./errorText.js";
 
+/** Cuánto se espera al aviso antes de cerrar el proceso */
+const NOTIFY_TIMEOUT = 3000;
 
 export default {
     name: "uncaughtException",
-    execute(error: Error) {
+    execute(error: unknown) {
+        const text = errorText(error);
+        logger.error(`Uncaught Exception - ${text}`);
 
-        let errorMessage = "";
-
-        if (error instanceof Error) {
-            errorMessage = error.stack || error.message;
-        } else if (typeof error === "object" && error !== null) {
-            errorMessage = inspect(error, { depth: 5 });
-        } else {
-            errorMessage = String(error);
-        }
-
-        logger.error(`Uncaught Exception - ${errorMessage}`);
-        // It is recommended to exit the process after an uncaught exception
-        // as the application state might be corrupted.
-        process.exit(1);
+        // Se cierra el proceso porque el estado puede haber quedado roto (el ShardingManager lo vuelve a lanzar),
+        // pero antes se intenta avisar al dev
+        Promise.race([notifyError("Excepción no controlada (el shard se reinicia)", text), Bun.sleep(NOTIFY_TIMEOUT)])
+            .finally(() => process.exit(1));
     },
 };

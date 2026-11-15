@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { packLines, shuffle, titleCleaner } from "./tools.js";
+import { createCooldown, packLines, shuffle, titleCleaner } from "./tools.js";
 
 // Títulos reales de los logs del bot. El artista es lo que suele mandar YouTube (el nombre del canal).
 const cases: [title: string, artist: string | undefined, expected: string][] = [
@@ -83,5 +83,16 @@ describe("packLines", () => {
 
     test("sin líneas no hay textos", () => {
         expect(packLines([], 10)).toEqual([]);
+    });
+});
+
+describe("createCooldown", () => {
+    test("deja pasar una vez por clave hasta que se cumple el tiempo", () => {
+        const allow = createCooldown(1000);
+        expect(allow("a", 0)).toBe(true);
+        expect(allow("a", 500)).toBe(false);
+        expect(allow("b", 500)).toBe(true);   // otra clave no espera
+        expect(allow("a", 1000)).toBe(true);
+        expect(allow("a", 1500)).toBe(false); // cuenta desde la última vez que pasó
     });
 });

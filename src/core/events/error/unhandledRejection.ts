@@ -1,11 +1,11 @@
-import { inspect } from "util";
 import logger from "../../client/logger.js";
+import { errorText, notifyError } from "./errorText.js";
+
 export default {
     name: "unhandledRejection",
-    execute(reason: any, promise: Promise<any>) {
-
-        let errorMessage = "";
-
-        logger.error(`Unhandled Rejection - ${errorMessage}`);
+    execute(reason: unknown, _promise: Promise<unknown>) {
+        const text = errorText(reason);
+        logger.error(`Unhandled Rejection - ${text}`);
+        notifyError("Promesa rechazada sin manejar", text);
     },
 };

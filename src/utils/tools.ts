@@ -24,6 +24,17 @@ export function packLines(lines: readonly string[], max: number): string[] {
     return chunks;
 }
 
+/** Devuelve `true` la primera vez que se pide una clave y `false` hasta que pasen `ms` desde la última vez que dio `true` */
+export function createCooldown(ms: number) {
+    const last = new Map<string, number>();
+    return (key: string, now = Date.now()) => {
+        const prev = last.get(key);
+        if (prev !== undefined && now - prev < ms) return false;
+        last.set(key, now);
+        return true;
+    };
+}
+
 /** Copia mezclada al azar (Fisher-Yates); no modifica el original */
 export function shuffle<T>(arr: readonly T[]): T[] {
     const result = [...arr];

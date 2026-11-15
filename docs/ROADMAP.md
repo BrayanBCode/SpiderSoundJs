@@ -118,6 +118,7 @@ Lo que vaya surgiendo de las etapas anteriores. Anotarlo acá a medida que apare
 - [x] Logs de `[PlayerMessage]` con el `#canal` y aviso cuando el mensaje "Escuchando" cambia de canal (PR #43).
 - [x] `/help` (lista generada con los comandos cargados) y `/ping` (latencia de respuesta y del gateway); se quitó `/hi` (PR #50).
 - [x] Logs `[Servidores]`: al entrar o salir de un servidor y la lista de servidores al arrancar (PR #50).
+- [x] Avisos al servidor del dev (`DEV_GUILD_ID`) en `#notificaciones-bot` (privado: solo `ownerID` y administradores): bot en línea, servidor nuevo o perdido, error y vuelta de Lavalink, errores no controlados (máximo uno por minuto del mismo). `unhandledRejection` ahora registra el motivo (antes quedaba vacío) y cada shard carga los manejadores de errores (PR #51).
 
 ---
 
