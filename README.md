@@ -18,6 +18,7 @@
 - 🔁 Repetición de canción o de cola, mezclar, adelantar y retroceder.
 - 🎚️ Mensaje "Escuchando" con botones y emojis propios (tema araña).
 - ❤️ Favoritos por usuario: el botón ❤️ guarda o quita la canción actual (solo lo ve quien lo pulsa).
+- 📂 Playlists propias de cada usuario (hasta 25, de 100 canciones), también desde playlists de YouTube.
 - 💤 Se desconecta solo por inactividad o si queda solo en el canal.
 
 ## 🎮 Comandos
@@ -34,9 +35,14 @@
 | `/clear` | Vacía la cola |
 | `/forward` · `/backward` | Adelanta o retrocede segundos |
 | `/stop` | Detiene y desconecta el bot |
-| `/favoritos reproducir` | Carga tus favoritos (❤️) en la cola; opcional: `cantidad` y `mezclar` |
+| `/favoritos play` | Carga tus favoritos (❤️) en la cola; opcional: `cantidad` y `mezclar` |
 | `/favoritos agregar` | Guarda una canción en tus favoritos (con búsqueda, o la que suena si no escribís nada) |
 | `/favoritos ver` | Muestra tus favoritos (solo vos) y permite quitarlos |
+| `/playlist crear` | Crea una playlist vacía |
+| `/playlist agregar` | Agrega una canción, una playlist de YouTube entera o la que suena |
+| `/playlist play` | Carga una playlist en la cola; opcional: `mezclar` |
+| `/playlist ver` | Lista tus playlists, o las canciones de una con menú para quitarlas |
+| `/playlist renombrar` · `/playlist borrar` | Cambia el nombre o borra una playlist (pide confirmación) |
 
 Los comandos que controlan la reproducción solo funcionan si estás en el mismo canal de voz que el bot.
 
@@ -67,7 +73,7 @@ Requisitos: **Docker** con Docker Compose. El bot corre con **Bun** dentro de su
 
    Los slash commands se registran solos cada vez que el bot arranca.
 
-   Los favoritos se guardan en `data/bot.db` (SQLite), en la carpeta `data/` del proyecto. Si movés el bot a otra PC, copiá esa carpeta.
+   Los favoritos y las playlists se guardan en `data/bot.db` (SQLite), en la carpeta `data/` del proyecto. Si movés el bot a otra PC, copiá esa carpeta.
 
 ### Desarrollo sin Docker (opcional)
 
