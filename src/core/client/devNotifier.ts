@@ -1,4 +1,4 @@
-import { APIChannel, ChannelType, Client, EmbedBuilder, Routes } from "discord.js";
+import { APIChannel, ChannelType, Client, EmbedBuilder, OverwriteType, PermissionFlagsBits, Routes } from "discord.js";
 import logger from "./logger.js";
 import { createCooldown } from "../../utils/tools.js";
 
@@ -18,16 +18,34 @@ export function initDevNotifier(c: Client) {
     if (!process.env.DEV_GUILD_ID) logger.info("[Notificaciones] Sin DEV_GUILD_ID en el .env: no se mandan avisos al servidor del dev");
 }
 
-/** Busca el canal de avisos en el servidor del dev o lo crea (hace falta el permiso Gestionar canales) */
+/** Canal privado: oculto para @everyone; lo ven el dueño del bot (ownerID) y el bot. Los administradores lo ven igual (Discord) */
+function privateOverwrites(c: Client, guildId: string) {
+    const view = PermissionFlagsBits.ViewChannel | PermissionFlagsBits.ReadMessageHistory;
+    const overwrites = [
+        // El rol @everyone tiene el mismo ID que el servidor
+        { id: guildId, type: OverwriteType.Role, deny: String(PermissionFlagsBits.ViewChannel) },
+        { id: c.user!.id, type: OverwriteType.Member, allow: String(view | PermissionFlagsBits.SendMessages | PermissionFlagsBits.EmbedLinks) },
+    ];
+    const ownerId = process.env.ownerID;
+    if (ownerId) overwrites.push({ id: ownerId, type: OverwriteType.Member, allow: String(view) });
+    return overwrites;
+}
+
+/** Busca el canal de avisos en el servidor del dev o lo crea (hace falta el permiso Gestionar canales). Siempre lo deja privado */
 async function resolveChannel(c: Client, guildId: string): Promise<string | undefined> {
     try {
+        const permission_overwrites = privateOverwrites(c, guildId);
         const channels = await c.rest.get(Routes.guildChannels(guildId)) as APIChannel[];
         const existing = channels.find(ch => ch.type === ChannelType.GuildText && ch.name === CHANNEL_NAME);
-        if (existing) return existing.id;
+        if (existing) {
+            // Por si se creó antes de que fuera privado o alguien le cambió los permisos
+            await c.rest.patch(Routes.channel(existing.id), { body: { permission_overwrites } });
+            return existing.id;
+        }
 
         // shortcut: si dos shards lo crean a la vez quedan dos canales; con un solo shard no pasa
         const created = await c.rest.post(Routes.guildChannels(guildId), {
-            body: { name: CHANNEL_NAME, type: ChannelType.GuildText, topic: CHANNEL_TOPIC },
+            body: { name: CHANNEL_NAME, type: ChannelType.GuildText, topic: CHANNEL_TOPIC, permission_overwrites },
         }) as APIChannel;
         logger.info(`[Notificaciones] Canal #${CHANNEL_NAME} creado en el servidor del dev (${created.id})`);
         return created.id;
