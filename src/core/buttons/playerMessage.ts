@@ -1,4 +1,4 @@
-import { AttachmentBuilder, ButtonInteraction, ButtonStyle, GuildMember, Message, MessageFlags, TextChannel, User } from "discord.js"
+import { ButtonInteraction, ButtonStyle, GuildMember, Message, MessageFlags, TextChannel, User } from "discord.js"
 import { CustomButtonBuilder, DisplayButtonsBuilder, IButtonInteraction } from "./DisplayButtonsBuilder.js"
 import logger from "../client/logger.js"
 import { BClient } from "../client/BClient.js"
@@ -9,7 +9,6 @@ import { formatMS_HHMMSS, titleCleaner } from "../../utils/tools.js"
 import { QueuePaginator } from "../classes/music/QueuePaginator.js"
 import { PLAYER_EMOJIS } from "./emojis.js"
 import { discordRelative, loopLabel, remainingMs, totalDuration, youtubeCover } from "../music/timing.js"
-import { buildCoverImage, COVER_FILE_NAME } from "../music/coverImage.js"
 
 /** Espera antes de editar por un cambio, para juntar varios en una edición (y que moonlink ya haya aplicado el estado) */
 const UPDATE_DELAY = 1500
@@ -43,9 +42,7 @@ export class PlayerMessage {
     MessageContainer: Map<string, {
         channel: TextChannel,
         Message: Message,
-        view: PlayingButtons,
-        /** Canción cuya portada está adjunta al mensaje (las ediciones sin canción nueva la conservan) */
-        coverUri?: string
+        view: PlayingButtons
     }>
     client: BClient
 
@@ -88,7 +85,7 @@ export class PlayerMessage {
             const data = this.getData(guildID)
             const sameChannel = data && (!channelID || data.channel.id === channelID)
 
-            if (data && sameChannel && data.channel.lastMessageId === data.Message.id && await this.edit(guildID, true))
+            if (data && sameChannel && data.channel.lastMessageId === data.Message.id && await this.edit(guildID))
                 return data.Message
 
             if (data) logger.debug(`[PlayerMessage] Se reenvía el mensaje en ${data.channel.guild.name} (${sameChannel ? "quedó tapado por el chat" : "cambió el canal"})`)
@@ -127,27 +124,15 @@ export class PlayerMessage {
             manager.on(event, (player: Player) => this.update(player.guildId))
     }
 
-    /**
-     * Actualiza el embed y los botones del mensaje existente. `false` si no se pudo (ej. lo borraron).
-     * Con `newTrack` también cambia la portada adjunta; si no, se conserva la que ya tiene.
-     */
-    private async edit(guildID: string, newTrack = false): Promise<boolean> {
+    /** Actualiza el embed y los botones del mensaje existente. `false` si no se pudo (ej. lo borraron) */
+    private async edit(guildID: string): Promise<boolean> {
         const data = this.getData(guildID)
         const player = this.client.getPlayer(guildID)
         if (!data || !player?.current) return false
-        const track = player.current
 
         this.updatePrevButton(data.view, player)
         try {
-            const cover = newTrack ? await this.coverFor(track) : undefined
-            const hasCover = newTrack ? !!cover : !!data.coverUri && data.coverUri === track.uri
-            await data.Message.edit({
-                embeds: [this.getPlayingEmbed(track, player, hasCover)],
-                components: data.view.actionRows,
-                // attachments: [] quita la portada anterior; files sube la nueva
-                ...(newTrack ? { files: cover ? [cover] : [], attachments: [] } : {}),
-            })
-            if (newTrack) data.coverUri = cover ? track.uri ?? undefined : undefined
+            await data.Message.edit({ embeds: [this.getPlayingEmbed(player.current, player)], components: data.view.actionRows })
             logger.debug(`[PlayerMessage] Mensaje "Escuchando" editado para "${player.current.title}" en #${data.channel.name} (${data.channel.guild.name})`)
             return true
         } catch (err) {
@@ -192,8 +177,7 @@ export class PlayerMessage {
 
         this.updatePrevButton(view, player)
 
-        const cover = await this.coverFor(currentTrack)
-        const msg = await view.send(channel, [this.getPlayingEmbed(currentTrack, player, !!cover)], cover ? [cover] : [])
+        const msg = await view.send(channel, this.getPlayingEmbed(currentTrack, player))
 
         if (!this.client.getPlayer(guildID)) {
             logger.debug(`[PlayerMessage] El player se destruyó mientras se enviaba el mensaje, se elimina`)
@@ -207,7 +191,7 @@ export class PlayerMessage {
         this.lastChannel.set(guildID, channel)
 
         logger.debug(`[PlayerMessage] Mensaje "Escuchando" enviado para "${currentTrack.title}" en #${channel.name} (${channel.guild.name})`)
-        this.MessageContainer.set(guildID, { channel, Message: msg, view, coverUri: cover ? currentTrack.uri ?? undefined : undefined })
+        this.MessageContainer.set(guildID, { channel, Message: msg, view })
 
         return msg
     }
@@ -227,15 +211,7 @@ export class PlayerMessage {
         return this.MessageContainer.get(guildID)
     }
 
-    /** Portada armada como adjunto (experimental, ver coverImage.ts). `undefined` si no hay o falló: el embed usa la miniatura */
-    private async coverFor(track: Track): Promise<AttachmentBuilder | undefined> {
-        const url = youtubeCover(track) ?? track.artworkUrl
-        if (!url) return undefined
-        const image = await buildCoverImage(url)
-        return image && new AttachmentBuilder(image, { name: COVER_FILE_NAME })
-    }
-
-    private getPlayingEmbed(track: Track, player: Player, hasCover: boolean) {
+    private getPlayingEmbed(track: Track, player: Player) {
         const requester = getRequesterInfo(track.requester)
         const paused = player.paused
         const left = remainingMs(track)
@@ -265,8 +241,10 @@ export class PlayerMessage {
             .setDescription(description)
             .setColor(paused ? 0x80848E : 0x1DB954)
 
-        // Portada chica armada por el bot (adjunto); si no se pudo, la miniatura de siempre
-        if (hasCover) embed.setImage(`attachment://${COVER_FILE_NAME}`)
+        // La portada de YouTube en 320×180 como imagen: Discord no la agranda, así ocupa parte del ancho y no todo.
+        // Las demás fuentes no tienen un tamaño chico garantizado: quedan como miniatura
+        const cover = youtubeCover(track)
+        if (cover) embed.setImage(cover)
         else embed.setThumbnail(track.artworkUrl ?? null)
 
         return embed
