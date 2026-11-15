@@ -3,7 +3,7 @@
 > Plan de trabajo acordado. Ir **en este orden**, una rama y un PR por etapa (`categoria/implementacion`).
 > Antes de sumar algo que no esté acá, anotarlo en [Ideas sueltas](#ideas-sueltas-no-planificadas) en vez de empezarlo.
 
-Última actualización: 2026-11-13
+Última actualización: 2026-11-14
 
 ---
 
@@ -13,6 +13,8 @@
 - YouTube ✅ · Spotify: solo **canciones sueltas** ✅ (álbumes/playlists/artistas bloqueados por la API de Spotify).
 - Botones del reproductor con **emojis propios** (tema araña). El botón ❤️ está **deshabilitado** esperando la base de datos.
 - Repo actual: SpiderSoundJs (público). Migración en PR #38 y paso a Bun en PR #40. MultiPurposeBotTS queda como respaldo privado (falta archivarlo).
+- Última release: [v3.0.0](https://github.com/BrayanBCode/SpiderSoundJs/releases/tag/v3.0.0) (2026-11-13).
+- Web: https://spiderbotsite.netlify.app/ (repo privado `spider-bot-page`, con su propio roadmap).
 
 ---
 
@@ -102,7 +104,11 @@ Destino: [BrayanBCode/SpiderSoundJs](https://github.com/BrayanBCode/SpiderSoundJ
 
 Lo que vaya surgiendo de las etapas anteriores. Anotarlo acá a medida que aparezca:
 
-- _(vacío)_
+- [ ] `titleCleaner` (`src/utils/tools.ts`): revisar el regex que limpia los títulos y sumarle tests. _(en curso)_
+- [ ] `BClient` pide intents privilegiados que no usa (`GuildPresences`, `MessageContent`, `GuildMembers`): quitarlos si nada los necesita.
+- [ ] `BClient` usa `"password"` por defecto si falta `lavalinkPassword` en el `.env`: fallar con un error claro en su lugar.
+- [ ] Dependencia circular entre `BClient` y `PlayerMessage`: evaluar si vale la pena romperla.
+- [x] Logs de `[PlayerMessage]` con el `#canal` y aviso cuando el mensaje "Escuchando" cambia de canal (PR #43).
 
 ---
 
@@ -132,3 +138,6 @@ Lo que vaya surgiendo de las etapas anteriores. Anotarlo acá a medida que apare
 ## Ideas sueltas (no planificadas)
 
 _Anotar acá antes de empezarlas._
+
+- Licencia: evaluar pasar `LICENCE.md` a PolyForm Noncommercial (uso comercial solo con permiso). Sin decidir.
+- Hilo "¿Cómo ejecuto el bot?" en Discord: corregir o borrar el mensaje "DEPRECATED bun→npm, lavalink→nodelink" (ya no es cierto).
