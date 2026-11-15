@@ -1,82 +1,32 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ComponentType, GuildMember, MessageFlags, StringSelectMenuBuilder } from "discord.js"
-import { Track } from "moonlink.js"
+import { ChatInputCommandInteraction, MessageFlags } from "discord.js"
 import { SlashCommand } from "../../../core/classes/SlashCommand.js"
 import { BClient } from "../../../core/client/BClient.js"
 import logger from "../../../core/client/logger.js"
-import { FavoriteRow } from "../../../core/db/database.js"
-import { PlaybackStrategy, queryErrors, startIfIdle } from "../../../core/strategy/PlaybackStrategy.js"
-import { warnJoinToVC, warnNeedSameVC } from "../../../core/strategy/PlayBackStrategy.messages.js"
-import { checkUserVC } from "../../../core/strategy/PlayBackStrategy.modules.js"
+import { editReplyEmbed, MAX_LOAD, queueSavedTracks, resolveTrackToSave, savedTrackSearch, showSavedList, voiceChannelFor } from "../../../core/music/savedTracks.js"
 import { EmptyEmbed, replyEmbed } from "../../../utils/messages.js"
-import { chunkArray, formatMS_HHMMSS, shuffle, titleCleaner } from "../../../utils/tools.js"
-
-/** Tope de canciones por carga: cada una es una búsqueda en Lavalink */
-const MAX_LOAD = 100
-/** Búsquedas a la vez al cargar favoritos (para no saturar Lavalink ni YouTube) */
-const SEARCH_BATCH = 5
-const PAGE_SIZE = 10
-/** Cuánto tiempo responden los botones y el menú de /favoritos ver */
-const VIEW_TIME = 2 * 60 * 1000
-
-/** Mismas sugerencias que /play, pero sin pedir canal de voz: guardar un favorito no reproduce nada */
-class FavoriteSearch extends PlaybackStrategy {
-    protected suggestionsNeedVoice = false
-}
-const favoriteSearch = new FavoriteSearch()
+import { shuffle, titleCleaner } from "../../../utils/tools.js"
 
 const noFavorites = EmptyEmbed({ description: "Todavía no tenés favoritos: tocá ❤️ en el mensaje del reproductor para guardar la canción que suena." }).setColor("Yellow")
 
 /** /favoritos agregar: guarda una canción buscada, o la que suena si no se escribe nada */
 async function add(client: BClient, inter: ChatInputCommandInteraction<"cached">) {
-    const query = inter.options.getString("busqueda")?.trim()
-    const reply = (description: string, color: "Green" | "Yellow" | "Red") =>
-        inter.editReply({ embeds: [EmptyEmbed({ description }).setColor(color)] })
-
     // Buscar puede tardar más de los 3 s que da Discord; la respuesta la ve solo quien la pide
     await inter.deferReply({ flags: MessageFlags.Ephemeral })
 
-    let track: Track | null | undefined
-    if (!query) {
-        track = client.getPlayer(inter.guildId)?.current
-        if (!track) return reply("Escribí una canción o un enlace en `busqueda`, o usá el comando mientras suena algo.", "Yellow")
-    } else {
-        if (query === queryErrors.NO_RESULTS || query === queryErrors.JOIN_VC) return reply("No se encontraron resultados.", "Yellow")
-
-        const res = await client.music.search({ query, requester: inter.user }).catch(err => {
-            logger.error(`[favoritos] Error buscando "${query}" para /favoritos agregar:`, err)
-            return null
-        })
-        if (res === null) return reply("❌ Ocurrió un error al buscar, intentá de nuevo.", "Red")
-        if (res?.loadType === "playlist") return reply("Solo se pueden guardar canciones sueltas, no playlists.", "Yellow")
-        track = res?.tracks?.[0]
-        if (!track) return reply("No se encontraron resultados.", "Yellow")
-    }
-
-    if (!track.uri) return reply("❌ | Esta canción no se puede guardar en favoritos.", "Red")
+    const track = await resolveTrackToSave(client, inter)
+    if (!track) return
 
     const title = titleCleaner(track.title, track.author)
-    const added = client.db.addFavorite(inter.user.id, {
-        uri: track.uri,
-        title: track.title,
-        author: track.author,
-        duration: track.duration,
-        artworkUrl: track.artworkUrl,
-    })
-
-    if (!added) return reply(`**${title}** ya estaba en tus favoritos.`, "Yellow")
+    if (!client.db.addFavorite(inter.user.id, track)) return editReplyEmbed(inter, `**${title}** ya estaba en tus favoritos.`, "Yellow")
 
     logger.info(`[Favoritos] ${inter.user.username} agregó "${track.title}" (${track.uri}) desde /favoritos agregar en ${inter.guild.name}`)
-    return reply(`❤️ **${title}** se agregó a tus favoritos.`, "Green")
+    return editReplyEmbed(inter, `❤️ **${title}** se agregó a tus favoritos.`, "Green")
 }
 
 /** /favoritos reproducir: carga los favoritos del usuario en la cola */
 async function play(client: BClient, inter: ChatInputCommandInteraction<"cached">) {
-    const VCID = (inter.member as GuildMember).voice.channelId
-    if (!VCID) return warnJoinToVC(inter)
-    if (!checkUserVC(inter)) return
-
-    const existing = client.getPlayer(inter.guildId)
-    if (existing?.connected && existing.voiceChannelId !== VCID) return warnNeedSameVC(inter)
+    const VCID = await voiceChannelFor(client, inter)
+    if (!VCID) return
 
     const favorites = client.db.getFavorites(inter.user.id)
     if (!favorites.length) return replyEmbed({ interaction: inter, embed: noFavorites, ephemeral: true })
@@ -87,33 +37,10 @@ async function play(client: BClient, inter: ChatInputCommandInteraction<"cached"
 
     // Buscar cada enlace puede tardar más de los 3 s que da Discord
     await inter.deferReply()
+    const { tracks, failed, queueSize } = await queueSavedTracks(client, inter, VCID, selected)
+    if (!tracks.length) return editReplyEmbed(inter, "❌ No se pudo cargar ninguno de tus favoritos, probá de nuevo en un rato.", "Red")
 
-    // Se buscan de a SEARCH_BATCH y se conserva el orden elegido
-    const tracks: Track[] = []
-    const failed: FavoriteRow[] = []
-    for (const batch of chunkArray(selected, SEARCH_BATCH)) {
-        const results = await Promise.all(batch.map(fav =>
-            client.music.search({ query: fav.uri, requester: inter.user })
-                .then(res => res?.tracks?.[0])
-                .catch(err => { logger.debug(`[favoritos] Error buscando ${fav.uri}: ${err}`); return undefined })))
-        results.forEach((track, i) => track ? tracks.push(track) : failed.push(batch[i]))
-    }
-
-    if (failed.length) logger.warn(`[favoritos] No se pudieron cargar ${failed.length} favoritos de ${inter.user.username}: ${failed.map(f => f.uri).join(", ")}`)
-
-    if (!tracks.length)
-        return inter.editReply({ embeds: [EmptyEmbed({ description: "❌ No se pudo cargar ninguno de tus favoritos, probá de nuevo en un rato." }).setColor("Red")] })
-
-    const player = client.getPlayerOrDefault(inter, inter.guildId)
-    if (!player.connected) {
-        if (player.voiceChannelId !== VCID) player.setVoiceChannelId(VCID)
-        await player.connect({ selfDeaf: true, selfMute: false })
-    }
-
-    player.queue.add(tracks)
-    await startIfIdle(player)
-
-    logger.info(`[favoritos] ${inter.user.username} cargó ${tracks.length} favoritos${mix ? " mezclados" : ""} en ${inter.guild.name} (fallaron: ${failed.length}, cola: ${player.queue.size})`)
+    logger.info(`[favoritos] ${inter.user.username} cargó ${tracks.length} favoritos${mix ? " mezclados" : ""} en ${inter.guild.name} (fallaron: ${failed.length}, cola: ${queueSize})`)
 
     const embed = EmptyEmbed()
         .setAuthor({ name: `Favoritos de ${inter.member.displayName} ❤️`, iconURL: inter.user.displayAvatarURL() })
@@ -126,73 +53,22 @@ async function play(client: BClient, inter: ChatInputCommandInteraction<"cached"
     return inter.editReply({ embeds: [embed] })
 }
 
-/** Embed y componentes de una página de /favoritos ver */
-function renderPage(favorites: FavoriteRow[], page: number, userName: string) {
-    const pages = Math.max(1, Math.ceil(favorites.length / PAGE_SIZE))
-    const start = page * PAGE_SIZE
-    const items = favorites.slice(start, start + PAGE_SIZE)
-
-    const embed = EmptyEmbed()
-        .setAuthor({ name: `Favoritos de ${userName} ❤️` })
-        .setColor(0x1DB954)
-        .setDescription(items.length
-            ? items.map((fav, i) => `**${start + i + 1}.** [${titleCleaner(fav.title, fav.author)}](${fav.uri}) · ${fav.author} · \`${formatMS_HHMMSS(fav.duration)}\``).join("\n")
-            : "No te quedan favoritos.")
-        .setFooter({ text: `Página ${page + 1}/${pages} · ${favorites.length} favoritos · /favoritos reproducir para escucharlos` })
-
-    const components: ActionRowBuilder<StringSelectMenuBuilder | ButtonBuilder>[] = []
-    if (items.length) components.push(new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-        new StringSelectMenuBuilder()
-            .setCustomId("fav-remove")
-            .setPlaceholder("Quitar de favoritos…")
-            .addOptions(items.map((fav, i) => ({
-                label: `${start + i + 1}. ${titleCleaner(fav.title, fav.author)}`.slice(0, 100),
-                description: fav.author.slice(0, 100),
-                // Momento en que se agregó: identifica la canción aunque la lista cambie desde otra ventana
-                value: String(fav.addedAt),
-            })))))
-    if (pages > 1) components.push(new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder().setCustomId("fav-prev").setEmoji("⬅️").setStyle(ButtonStyle.Secondary).setDisabled(page === 0),
-        new ButtonBuilder().setCustomId("fav-next").setEmoji("➡️").setStyle(ButtonStyle.Secondary).setDisabled(page >= pages - 1)))
-
-    return { embeds: [embed], components }
-}
-
 /** /favoritos ver: lista paginada, solo para quien la pide, con un menú para quitar canciones */
 async function view(client: BClient, inter: ChatInputCommandInteraction<"cached">) {
-    let favorites = client.db.getFavorites(inter.user.id)
-    if (!favorites.length) return replyEmbed({ interaction: inter, embed: noFavorites, ephemeral: true })
+    // Momento en que se agregó: identifica la canción aunque la lista cambie desde otra ventana
+    const load = () => client.db.getFavorites(inter.user.id).map(fav => ({ ...fav, key: String(fav.addedAt) }))
+    if (!load().length) return replyEmbed({ interaction: inter, embed: noFavorites, ephemeral: true })
 
-    let page = 0
-    const name = inter.member.displayName
-    const { resource } = await inter.reply({ ...renderPage(favorites, page, name), flags: MessageFlags.Ephemeral, withResponse: true })
-    if (!resource?.message) return
-
-    // Colector atado a este mensaje y a sus controles: sin esto también atrapaba el ❤️ del reproductor y fallaba con "Unknown interaction"
-    const collector = resource.message.createMessageComponentCollector({
-        time: VIEW_TIME,
-        filter: i => i.user.id === inter.user.id && i.customId.startsWith("fav-"),
+    return showSavedList(inter, {
+        title: `Favoritos de ${inter.member.displayName} ❤️`,
+        idPrefix: "fav",
+        hint: "/favoritos reproducir para escucharlos",
+        load,
+        remove: fav => {
+            if (client.db.removeFavorite(inter.user.id, fav.uri))
+                logger.info(`[Favoritos] ${inter.user.username} quitó "${fav.title}" (${fav.uri}) desde /favoritos ver`)
+        },
     })
-
-    collector.on("collect", async i => {
-        try {
-            if (i.componentType === ComponentType.StringSelect) {
-                const fav = client.db.getFavorites(inter.user.id).find(f => String(f.addedAt) === i.values[0])
-                if (fav && client.db.removeFavorite(inter.user.id, fav.uri))
-                    logger.info(`[Favoritos] ${inter.user.username} quitó "${fav.title}" (${fav.uri}) desde /favoritos ver`)
-                favorites = client.db.getFavorites(inter.user.id)
-            } else if (i.customId === "fav-prev") page--
-            else if (i.customId === "fav-next") page++
-
-            page = Math.min(Math.max(page, 0), Math.max(0, Math.ceil(favorites.length / PAGE_SIZE) - 1))
-            await i.update(renderPage(favorites, page, name))
-        } catch (err) {
-            logger.error(`[favoritos] Error en /favoritos ver de ${inter.user.username}:`, err)
-        }
-    })
-
-    // Al vencer, se sacan los controles para que no queden botones que no responden
-    collector.on("end", () => { inter.editReply({ components: [] }).catch(() => { }) })
 }
 
 export default new SlashCommand()
@@ -211,7 +87,7 @@ export default new SlashCommand()
     })
     .setAutoComplete(async (client, inter) => {
         try {
-            await favoriteSearch.autocomplete(client, inter)
+            await savedTrackSearch.autocomplete(client, inter)
         } catch (err) {
             logger.error(`[/favoritos] Error en el autocompletado:`, err)
         }
