@@ -30,33 +30,43 @@ type Color = "Green" | "Yellow" | "Red"
 export const editReplyEmbed = (inter: ChatInputCommandInteraction<"cached">, description: string, color: Color) =>
     inter.editReply({ embeds: [EmptyEmbed({ description }).setColor(color)] })
 
+const toSaved = (track: Track): SavedTrack => ({ uri: track.uri!, title: track.title, author: track.author, duration: track.duration, artworkUrl: track.artworkUrl })
+
 /**
- * Qué canción guardar: la de la opción `busqueda` o, si está vacía, la que suena.
- * Requiere `deferReply` hecho. Si no hay canción, ya respondió y devuelve `undefined`.
+ * Qué guardar: lo de la opción `busqueda` o, si está vacía, la canción que suena.
+ * Con `allowPlaylist`, un enlace de playlist devuelve todas sus canciones (y su nombre).
+ * Requiere `deferReply` hecho. Si no hay nada que guardar, ya respondió y devuelve `undefined`.
  */
-export async function resolveTrackToSave(client: BClient, inter: ChatInputCommandInteraction<"cached">): Promise<SavedTrack | undefined> {
+export async function resolveTracksToSave(client: BClient, inter: ChatInputCommandInteraction<"cached">, allowPlaylist = false)
+    : Promise<{ tracks: SavedTrack[], playlistName?: string } | undefined> {
     const query = inter.options.getString("busqueda")?.trim()
 
-    let track: Track | null | undefined
     if (!query) {
-        track = client.getPlayer(inter.guildId)?.current
+        const track = client.getPlayer(inter.guildId)?.current
         if (!track) return void await editReplyEmbed(inter, "Escribí una canción o un enlace en `busqueda`, o usá el comando mientras suena algo.", "Yellow")
-    } else {
-        if (query === queryErrors.NO_RESULTS || query === queryErrors.JOIN_VC) return void await editReplyEmbed(inter, "No se encontraron resultados.", "Yellow")
-
-        const res = await client.music.search({ query, requester: inter.user }).catch(err => {
-            logger.error(`[${inter.commandName}] Error buscando "${query}":`, err)
-            return null
-        })
-        if (res === null) return void await editReplyEmbed(inter, "❌ Ocurrió un error al buscar, intentá de nuevo.", "Red")
-        if (res?.loadType === "playlist") return void await editReplyEmbed(inter, "Solo se pueden guardar canciones sueltas, no playlists.", "Yellow")
-        track = res?.tracks?.[0]
-        if (!track) return void await editReplyEmbed(inter, "No se encontraron resultados.", "Yellow")
+        if (!track.uri) return void await editReplyEmbed(inter, "❌ | Esta canción no se puede guardar.", "Red")
+        return { tracks: [toSaved(track)] }
     }
 
-    if (!track.uri) return void await editReplyEmbed(inter, "❌ | Esta canción no se puede guardar.", "Red")
+    if (query === queryErrors.NO_RESULTS || query === queryErrors.JOIN_VC) return void await editReplyEmbed(inter, "No se encontraron resultados.", "Yellow")
 
-    return { uri: track.uri, title: track.title, author: track.author, duration: track.duration, artworkUrl: track.artworkUrl }
+    const res = await client.music.search({ query, requester: inter.user }).catch(err => {
+        logger.error(`[${inter.commandName}] Error buscando "${query}":`, err)
+        return null
+    })
+    if (res === null) return void await editReplyEmbed(inter, "❌ Ocurrió un error al buscar, intentá de nuevo.", "Red")
+
+    if (res?.loadType === "playlist") {
+        if (!allowPlaylist) return void await editReplyEmbed(inter, "Acá solo se pueden guardar canciones sueltas, no playlists.", "Yellow")
+        const tracks = res.tracks.filter((t: Track) => t.uri).map(toSaved)
+        if (!tracks.length) return void await editReplyEmbed(inter, "La playlist no tiene canciones que se puedan guardar.", "Yellow")
+        return { tracks, playlistName: res.playlistInfo?.name ?? "Playlist" }
+    }
+
+    const track = res?.tracks?.[0]
+    if (!track) return void await editReplyEmbed(inter, "No se encontraron resultados.", "Yellow")
+    if (!track.uri) return void await editReplyEmbed(inter, "❌ | Esta canción no se puede guardar.", "Red")
+    return { tracks: [toSaved(track)] }
 }
 
 /** Mismos chequeos de voz que /play. Devuelve el canal o `undefined` si ya avisó al usuario */

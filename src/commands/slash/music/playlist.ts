@@ -3,7 +3,7 @@ import { SlashCommand } from "../../../core/classes/SlashCommand.js"
 import { BClient } from "../../../core/client/BClient.js"
 import logger from "../../../core/client/logger.js"
 import { PlaylistSummary } from "../../../core/db/database.js"
-import { editReplyEmbed, MAX_LOAD, queueSavedTracks, resolveTrackToSave, savedTrackSearch, showSavedList, voiceChannelFor } from "../../../core/music/savedTracks.js"
+import { editReplyEmbed, MAX_LOAD, queueSavedTracks, resolveTracksToSave, savedTrackSearch, showSavedList, voiceChannelFor } from "../../../core/music/savedTracks.js"
 import { EmptyEmbed, replyEmbed } from "../../../utils/messages.js"
 import { shuffle, titleCleaner } from "../../../utils/tools.js"
 
@@ -52,14 +52,37 @@ async function add(client: BClient, inter: Inter) {
     if (playlist.trackCount >= MAX_TRACKS)
         return editReplyEmbed(inter, `**${playlist.name}** ya tiene ${MAX_TRACKS} canciones, que es el máximo.`, "Yellow")
 
-    const track = await resolveTrackToSave(client, inter)
-    if (!track) return
+    // Acepta enlaces de playlists (ej. de YouTube): se agregan todas sus canciones
+    const resolved = await resolveTracksToSave(client, inter, true)
+    if (!resolved) return
 
-    const title = titleCleaner(track.title, track.author)
-    if (!client.db.addToPlaylist(playlist.id, track)) return editReplyEmbed(inter, `**${title}** ya estaba en **${playlist.name}**.`, "Yellow")
+    if (!resolved.playlistName) {
+        const [track] = resolved.tracks
+        const title = titleCleaner(track.title, track.author)
+        if (!client.db.addToPlaylist(playlist.id, track)) return editReplyEmbed(inter, `**${title}** ya estaba en **${playlist.name}**.`, "Yellow")
 
-    logger.info(`[Playlist] ${inter.user.username} agregó "${track.title}" (${track.uri}) a "${playlist.name}" en ${inter.guild.name}`)
-    return editReplyEmbed(inter, `➕ **${title}** se agregó a **${playlist.name}** (${playlist.trackCount + 1} canciones).`, "Green")
+        logger.info(`[Playlist] ${inter.user.username} agregó "${track.title}" (${track.uri}) a "${playlist.name}" en ${inter.guild.name}`)
+        return editReplyEmbed(inter, `➕ **${title}** se agregó a **${playlist.name}** (${playlist.trackCount + 1} canciones).`, "Green")
+    }
+
+    // Se agregan en orden hasta llenar el lugar libre; las repetidas se saltean sin ocupar lugar
+    let added = 0, repeated = 0, free = MAX_TRACKS - playlist.trackCount
+    for (const track of resolved.tracks) {
+        if (added >= free) break
+        if (client.db.addToPlaylist(playlist.id, track)) added++
+        else repeated++
+    }
+    const leftOut = resolved.tracks.length - added - repeated
+
+    logger.info(`[Playlist] ${inter.user.username} agregó ${added} canciones de la playlist "${resolved.playlistName}" a "${playlist.name}" en ${inter.guild.name} (repetidas: ${repeated}, sin lugar: ${leftOut})`)
+
+    const notes = [
+        repeated ? `${repeated} ya estaban` : "",
+        leftOut ? `${leftOut} no entraron (máximo ${MAX_TRACKS} por playlist)` : "",
+    ].filter(Boolean).join(" · ")
+    return editReplyEmbed(inter,
+        `➕ Se agregaron **${added}** canciones de **${resolved.playlistName}** a **${playlist.name}** (${playlist.trackCount + added} canciones).${notes ? `\n${notes}` : ""}`,
+        added ? "Green" : "Yellow")
 }
 
 async function play(client: BClient, inter: Inter) {
@@ -119,7 +142,7 @@ async function view(client: BClient, inter: Inter) {
     return showSavedList(inter, {
         title: `${playlist.name} 📁`,
         idPrefix: "pl",
-        hint: "/playlist reproducir para escucharla",
+        hint: "/playlist play para escucharla",
         load,
         remove: item => {
             if (client.db.removeFromPlaylist(playlist.id, Number(item.key)))
@@ -190,7 +213,7 @@ async function autocomplete(client: BClient, inter: AutocompleteInteraction) {
 }
 
 const subcommands: Record<string, (client: BClient, inter: Inter) => Promise<unknown>> = {
-    crear: create, agregar: add, reproducir: play, ver: view, renombrar: rename, borrar: remove,
+    crear: create, agregar: add, play, ver: view, renombrar: rename, borrar: remove,
 }
 
 export default new SlashCommand()
@@ -217,11 +240,11 @@ export default new SlashCommand()
         .addStringOption(o => o.setName("nombre").setDescription("Nombre de la playlist.").setRequired(true).setMaxLength(NAME_MAX)))
     .addSubcommand(sub => sub
         .setName("agregar")
-        .setDescription("Agrega una canción a una playlist (la que suena, si no escribís nada).")
+        .setDescription("Agrega una canción o una playlist de YouTube (o la que suena, si no escribís nada).")
         .addStringOption(o => o.setName("playlist").setDescription("A qué playlist.").setRequired(true).setAutocomplete(true))
-        .addStringOption(o => o.setName("busqueda").setDescription("Nombre de la canción, artista o enlace.").setAutocomplete(true)))
+        .addStringOption(o => o.setName("busqueda").setDescription("Nombre de la canción, artista, o enlace de una canción o playlist.").setAutocomplete(true)))
     .addSubcommand(sub => sub
-        .setName("reproducir")
+        .setName("play")
         .setDescription("Agrega una playlist a la cola.")
         .addStringOption(o => o.setName("playlist").setDescription("Cuál reproducir.").setRequired(true).setAutocomplete(true))
         .addBooleanOption(o => o.setName("mezclar").setDescription("Mezclarla al azar (si no, va en el orden en que se agregaron).")))

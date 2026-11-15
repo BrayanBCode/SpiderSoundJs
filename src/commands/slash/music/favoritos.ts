@@ -2,7 +2,7 @@ import { ChatInputCommandInteraction, MessageFlags } from "discord.js"
 import { SlashCommand } from "../../../core/classes/SlashCommand.js"
 import { BClient } from "../../../core/client/BClient.js"
 import logger from "../../../core/client/logger.js"
-import { editReplyEmbed, MAX_LOAD, queueSavedTracks, resolveTrackToSave, savedTrackSearch, showSavedList, voiceChannelFor } from "../../../core/music/savedTracks.js"
+import { editReplyEmbed, MAX_LOAD, queueSavedTracks, resolveTracksToSave, savedTrackSearch, showSavedList, voiceChannelFor } from "../../../core/music/savedTracks.js"
 import { EmptyEmbed, replyEmbed } from "../../../utils/messages.js"
 import { shuffle, titleCleaner } from "../../../utils/tools.js"
 
@@ -13,8 +13,9 @@ async function add(client: BClient, inter: ChatInputCommandInteraction<"cached">
     // Buscar puede tardar más de los 3 s que da Discord; la respuesta la ve solo quien la pide
     await inter.deferReply({ flags: MessageFlags.Ephemeral })
 
-    const track = await resolveTrackToSave(client, inter)
-    if (!track) return
+    const resolved = await resolveTracksToSave(client, inter)
+    if (!resolved) return
+    const [track] = resolved.tracks
 
     const title = titleCleaner(track.title, track.author)
     if (!client.db.addFavorite(inter.user.id, track)) return editReplyEmbed(inter, `**${title}** ya estaba en tus favoritos.`, "Yellow")
