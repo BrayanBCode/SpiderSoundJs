@@ -6,6 +6,7 @@
   "scripts": {
     "start": "bun src/shards.ts",
     "typecheck": "tsc --noEmit",
+    "test": "bun test",
     "docker": "docker compose up --build -d"
   },
   "repository": {
