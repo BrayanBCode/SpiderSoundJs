@@ -3,7 +3,7 @@
 > Plan de trabajo acordado. Ir **en este orden**, una rama y un PR por etapa (`categoria/implementacion`).
 > Antes de sumar algo que no esté acá, anotarlo en [Ideas sueltas](#ideas-sueltas-no-planificadas) en vez de empezarlo.
 
-Última actualización: 2026-11-14
+Última actualización: 2026-11-15
 
 ---
 
@@ -11,7 +11,7 @@
 
 - Bot funcionando en Docker: **Bun** + **Lavalink 4.2** + plugin de YouTube (versión elegida al arrancar: release o snapshot) + **yt-cipher** + **moonlink.js 5.2**.
 - YouTube ✅ · Spotify: solo **canciones sueltas** ✅ (álbumes/playlists/artistas bloqueados por la API de Spotify).
-- Botones del reproductor con **emojis propios** (tema araña). El botón ❤️ está **deshabilitado** esperando la base de datos.
+- Botones del reproductor con **emojis propios** (tema araña). El botón ❤️ guarda favoritos en SQLite (`data/bot.db`).
 - Repo actual: SpiderSoundJs (público). Migración en PR #38 y paso a Bun en PR #40. MultiPurposeBotTS queda como respaldo privado (falta archivarlo).
 - Última release: [v3.0.0](https://github.com/BrayanBCode/SpiderSoundJs/releases/tag/v3.0.0) (2026-11-13).
 - Web: https://spiderbotsite.netlify.app/ (repo privado `spider-bot-page`, con su propio roadmap).
@@ -70,10 +70,11 @@ Destino: [BrayanBCode/SpiderSoundJs](https://github.com/BrayanBCode/SpiderSoundJ
 ## 5. Comandos experimentales de playlists de usuario
 
 - [ ] Gestionar favoritos y playlists con **menús de Discord** (select menus, botones, modales).
-  - [x] `/favoritos reproducir [cantidad] [mezclar]`: carga los favoritos de quien lo usa en la cola (hasta 100, buscando de a 5) (PR #47).
+  - [x] `/favoritos play [cantidad] [mezclar]`: carga los favoritos de quien lo usa en la cola (hasta 100, buscando de a 5) (PR #47).
   - [x] `/favoritos ver`: lista paginada efímera con menú para quitar canciones (PR #47).
   - [x] `/favoritos agregar [busqueda]`: guarda una canción buscada (mismo autocompletado que `/play`, sin pedir canal de voz) o la que suena; no duplica ni quita (PR #48).
-  - [ ] Playlists: crear, agregar la canción actual, reproducir, renombrar y borrar (las tablas ya existen).
+  - [x] `/favoritos reproducir` pasa a `/favoritos play`, igual que `/playlist play` (PR #49).
+  - [x] `/playlist crear · agregar · play · ver · renombrar · borrar`: hasta 25 playlists de 100 canciones por usuario; `agregar` acepta playlists de YouTube (agrega en orden hasta llenarla, sin repetir); `borrar` pide confirmación; código compartido con `/favoritos` en `src/core/music/savedTracks.ts` (PR #49).
 - [ ] Actualizar el controlador de interfaces propio si hace falta (en SpiderSoundJs existe `DisplayEngine`, más general que `DisplayButtonsBuilder`: evaluar cuál conservar).
 - [ ] Marcarlos como experimentales hasta estabilizarlos.
 
@@ -138,7 +139,7 @@ Lo que vaya surgiendo de las etapas anteriores. Anotarlo acá a medida que apare
 
 - Álbumes / playlists / artistas de Spotify (bloqueado por la API de Spotify).
 - Volver a NodeLink (mismos problemas con Spotify; Lavalink funciona).
-- Playlists compartidas entre usuarios, importar playlists externas.
+- Playlists compartidas entre usuarios; importar playlists de Spotify.
 - Letras de canciones.
 
 ## Ideas sueltas (no planificadas)
