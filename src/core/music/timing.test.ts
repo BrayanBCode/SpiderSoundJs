@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
-import { discordRelative, loopLabel, remainingMs, startsInMs, totalDuration } from "./timing.js";
+import { discordRelative, loopLabel, remainingMs, startsInMs, totalDuration, youtubeCover } from "./timing.js";
 
 const song = (duration: number, position = 0) => ({ duration, position });
 const live = { duration: 0, isStream: true };
 
 describe("timing", () => {
     test("loopLabel traduce los modos de moonlink", () => {
-        expect(loopLabel("off")).toBe("Apagada");
+        expect(loopLabel("off")).toBe("OFF");
         expect(loopLabel("track")).toBe("Canción");
         expect(loopLabel("queue")).toBe("Cola");
     });
@@ -32,5 +32,11 @@ describe("timing", () => {
 
     test("discordRelative arma la marca en segundos", () => {
         expect(discordRelative(90_500, 1_000_000)).toBe("<t:1090:R>");
+    });
+
+    test("youtubeCover solo arma la portada chica para YouTube", () => {
+        expect(youtubeCover({ sourceName: "youtube", identifier: "dQw4w9WgXcQ" })).toBe("https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg");
+        expect(youtubeCover({ sourceName: "spotify", identifier: "abc" })).toBeUndefined();
+        expect(youtubeCover({ sourceName: "youtube" })).toBeUndefined();
     });
 });

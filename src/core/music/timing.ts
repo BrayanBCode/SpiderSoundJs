@@ -9,9 +9,9 @@ export interface TimedTrack {
 
 export type LoopMode = "off" | "track" | "queue" | string;
 
-const LOOP_LABELS: Record<string, string> = { off: "Apagada", track: "Canción", queue: "Cola" };
+const LOOP_LABELS: Record<string, string> = { off: "OFF", track: "Canción", queue: "Cola" };
 
-/** Nombre en español del modo de repetición */
+/** Cómo se muestra el modo de repetición (loop) */
 export const loopLabel = (loop: LoopMode) => LOOP_LABELS[loop] ?? loop;
 
 /** Cuánto le falta a la canción, en ms. `undefined` si es una transmisión en vivo */
@@ -38,3 +38,9 @@ export function startsInMs(current: TimedTrack | null | undefined, queue: readon
 
 /** Marca de Discord `<t:…:R>` ("en 3 minutos"), que cada cliente actualiza solo sin editar el mensaje */
 export const discordRelative = (msFromNow: number, now = Date.now()) => `<t:${Math.floor((now + msFromNow) / 1000)}:R>`;
+
+/** Portada de YouTube en 320×180 (mqdefault: 16:9, sin franjas negras). `undefined` si no es de YouTube */
+export function youtubeCover(track: { sourceName?: string; identifier?: string }): string | undefined {
+    if (track.sourceName !== "youtube" || !track.identifier) return undefined;
+    return `https://i.ytimg.com/vi/${encodeURIComponent(track.identifier)}/mqdefault.jpg`;
+}

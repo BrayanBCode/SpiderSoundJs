@@ -8,7 +8,7 @@ import { replyNoPlayer, skipTrack, getRequesterInfo, seekRelative } from "../mus
 import { formatMS_HHMMSS, titleCleaner } from "../../utils/tools.js"
 import { QueuePaginator } from "../classes/music/QueuePaginator.js"
 import { PLAYER_EMOJIS } from "./emojis.js"
-import { discordRelative, loopLabel, remainingMs, totalDuration } from "../music/timing.js"
+import { discordRelative, loopLabel, remainingMs, totalDuration, youtubeCover } from "../music/timing.js"
 
 /** Espera antes de editar por un cambio, para juntar varios en una edición (y que moonlink ya haya aplicado el estado) */
 const UPDATE_DELAY = 1500
@@ -217,28 +217,37 @@ export class PlayerMessage {
         const left = remainingMs(track)
 
         // Pausada no tiene hora de fin: se muestra por dónde va. La marca relativa la actualiza Discord sola
-        const timeField = paused
-            ? { name: "Va por", value: `\`${formatMS_HHMMSS(track.position ?? 0)}\`` }
-            : { name: "Termina", value: left === undefined ? "En vivo" : discordRelative(left) }
+        const time = paused
+            ? `⏸️ Va por \`${formatMS_HHMMSS(track.position ?? 0)}\``
+            : `⏱️ Termina ${left === undefined ? "`En vivo`" : discordRelative(left)}`
 
         const queued = player.queue.tracks
         const footer = queued.length
             ? `Pedido por ${requester.name} · ${queued.length} en cola (${formatMS_HHMMSS(totalDuration(queued))})`
             : `Pedido por ${requester.name}`
 
-        return EmptyEmbed()
+        // Líneas en la descripción y no campos en columnas: un artista largo desalineaba las columnas
+        const description = [
+            `**${track.author || "Desconocido"}** · \`${track.isStream ? "En vivo" : formatMS_HHMMSS(track.duration)}\``,
+            time,
+            `🔁 Loop: \`${loopLabel(player.loop)}\``,
+            `⏭️ Siguiente: ${this.nextLabel(player)}`,
+        ].join("\n").slice(0, 4096)
+
+        const embed = EmptyEmbed()
             .setAuthor({ name: paused ? "En pausa ⏸️" : "Escuchando 🎶", iconURL: requester.avatar })
             .setTitle(titleCleaner(track.title, track.author) ?? "Titulo desconocido")
             .setURL(track.uri ?? "")
-            .setThumbnail(track.artworkUrl ?? "")
-            .addFields(
-                { name: "Artista", value: `\`${track.author ?? "Desconocido"}\``, inline: true },
-                { name: "Duración", value: `\`${track.isStream ? "En vivo" : formatMS_HHMMSS(track.duration)}\``, inline: true },
-                { ...timeField, inline: true },
-                { name: "Repetición", value: `\`${loopLabel(player.loop)}\``, inline: true },
-                { name: "Siguiente", value: this.nextLabel(player).slice(0, 1024), inline: true },
-            )
+            .setDescription(description)
             .setColor(paused ? 0x80848E : 0x1DB954)
+
+        // La portada de YouTube en 320×180 como imagen: Discord no la agranda, así ocupa parte del ancho y no todo.
+        // Las demás fuentes no tienen un tamaño chico garantizado: quedan como miniatura
+        const cover = youtubeCover(track)
+        if (cover) embed.setImage(cover)
+        else embed.setThumbnail(track.artworkUrl ?? null)
+
+        return embed
             .setFooter({ text: footer, iconURL: this.client.getGuild(player.guildId)?.iconURL() ?? undefined })
             .setTimestamp()
     }
@@ -347,12 +356,15 @@ export class PlayerMessage {
                 async (client, inter, col) => {
                     const player = client.getPlayer(inter.guildId)!
 
-                    player.playing ? player.pause() : player.resume();
+                    // moonlink deja `playing` en true durante la pausa: lo que dice si está pausado es `paused`
+                    const wasPaused = player.paused
+                    await (wasPaused ? player.resume() : player.pause())
+                    logger.info(`[PlayerButtons] ${inter.user.username} ${wasPaused ? "reanudó" : "pausó"} la reproducción en ${inter.guild?.name}`)
 
                     const ResumePlayMsg = await replyEmbed({
                         interaction: inter as ButtonInteraction<"cached">,
                         embed: EmptyEmbed()
-                            .setDescription(`Reproducción ${player.playing ? "⏸️" : "▶️"}`)
+                            .setDescription(wasPaused ? "▶️ Reproducción reanudada" : "⏸️ Reproducción en pausa")
                     });
 
                     deleteAfterTimer(ResumePlayMsg, 5000)
