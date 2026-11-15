@@ -24,7 +24,7 @@ async function add(client: BClient, inter: ChatInputCommandInteraction<"cached">
     return editReplyEmbed(inter, `❤️ **${title}** se agregó a tus favoritos.`, "Green")
 }
 
-/** /favoritos reproducir: carga los favoritos del usuario en la cola */
+/** /favoritos play: carga los favoritos del usuario en la cola */
 async function play(client: BClient, inter: ChatInputCommandInteraction<"cached">) {
     const VCID = await voiceChannelFor(client, inter)
     if (!VCID) return
@@ -63,7 +63,7 @@ async function view(client: BClient, inter: ChatInputCommandInteraction<"cached"
     return showSavedList(inter, {
         title: `Favoritos de ${inter.member.displayName} ❤️`,
         idPrefix: "fav",
-        hint: "/favoritos reproducir para escucharlos",
+        hint: "/favoritos play para escucharlos",
         load,
         remove: fav => {
             if (client.db.removeFavorite(inter.user.id, fav.uri))
@@ -79,7 +79,7 @@ export default new SlashCommand()
     .setExecute(async (client, inter) => {
         try {
             const sub = inter.options.getSubcommand()
-            if (sub === "reproducir") await play(client, inter)
+            if (sub === "play") await play(client, inter)
             else if (sub === "agregar") await add(client, inter)
             else await view(client, inter)
         } catch (err) {
@@ -94,7 +94,7 @@ export default new SlashCommand()
         }
     })
     .addSubcommand(sub => sub
-        .setName("reproducir")
+        .setName("play")
         .setDescription("Agrega tus favoritos a la cola.")
         .addIntegerOption(o => o
             .setName("cantidad")

@@ -119,7 +119,7 @@ interface SavedListOptions {
     title: string
     /** Prefijo de los customId, para que el colector solo atienda sus controles */
     idPrefix: string
-    /** Texto del pie, ej. "/favoritos reproducir para escucharlos" */
+    /** Texto del pie, ej. "/favoritos play para escucharlos" */
     hint: string
     load: () => SavedListItem[]
     /** Quita la canción (y deja el log). Se llama con la versión recién leída de la lista */
