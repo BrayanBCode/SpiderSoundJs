@@ -13,7 +13,7 @@
 - YouTube ✅ · Spotify: solo **canciones sueltas** ✅ (álbumes/playlists/artistas bloqueados por la API de Spotify).
 - Botones del reproductor con **emojis propios** (tema araña). El botón ❤️ guarda favoritos en SQLite (`data/bot.db`).
 - Repo actual: SpiderSoundJs (público). Migración en PR #38 y paso a Bun en PR #40. MultiPurposeBotTS queda como respaldo privado (falta archivarlo).
-- Última release: [v3.0.0](https://github.com/BrayanBCode/SpiderSoundJs/releases/tag/v3.0.0) (2026-11-13).
+- Última release: [v3.1.0](https://github.com/BrayanBCode/SpiderSoundJs/releases/tag/v3.1.0) (2026-11-15): favoritos, playlists, `/help`, `/ping`, avisos al dev y mensaje "Escuchando" nuevo.
 - Web: https://spiderbotsite.netlify.app/ (repo privado `spider-bot-page`, con su propio roadmap).
 
 ---
