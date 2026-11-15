@@ -54,6 +54,18 @@ Los comandos que controlan la reproducción solo funcionan si estás en el mismo
 
 Requisitos: **Docker** con Docker Compose. El bot corre con **Bun** dentro de su contenedor: no hace falta instalar nada más.
 
+### Antes de empezar: tu app en el Developer Portal
+
+En el [Developer Portal](https://discord.com/developers/applications) creá una aplicación (o usá una que ya tengas) y revisá:
+
+- **Bot → Privileged Gateway Intents**: activá **Presence Intent**, **Server Members Intent** y **Message Content Intent**. El bot los pide al conectarse; si alguno está apagado, Discord lo rechaza con `Used disallowed intents` y no arranca.
+- **Bot → Authorization Flow**: **Requires OAuth2 Code Grant** tiene que quedar **apagado** (si no, la invitación falla). **Public Bot** prendido si querés que otros lo inviten a sus servidores; apagado si es solo para vos.
+- **Bot → Token**: el `token` del `.env` (con *Reset Token*). No lo compartas ni lo subas a ningún lado.
+- **General Information → Application ID**: es el `botClientID` del `.env`. Tu propio ID de usuario de Discord va en `ownerID`.
+- **Invitar el bot**: en **OAuth2 → URL Generator** marcá los scopes `bot` y `applications.commands`, y estos permisos: Ver canales, Enviar mensajes, Insertar enlaces, Leer el historial de mensajes, Usar emojis externos, Conectar y Hablar. Abrí la URL generada y elegí tu servidor.
+
+### Instalación
+
 1. **Configuración**
 
    ```bash
