@@ -4,7 +4,7 @@ import { SlashCommand } from "../../../core/classes/SlashCommand.js"
 import { BClient } from "../../../core/client/BClient.js"
 import logger from "../../../core/client/logger.js"
 import { FavoriteRow } from "../../../core/db/database.js"
-import { startIfIdle } from "../../../core/strategy/PlaybackStrategy.js"
+import { PlaybackStrategy, queryErrors, startIfIdle } from "../../../core/strategy/PlaybackStrategy.js"
 import { warnJoinToVC, warnNeedSameVC } from "../../../core/strategy/PlayBackStrategy.messages.js"
 import { checkUserVC } from "../../../core/strategy/PlayBackStrategy.modules.js"
 import { EmptyEmbed, replyEmbed } from "../../../utils/messages.js"
@@ -18,7 +18,56 @@ const PAGE_SIZE = 10
 /** Cuánto tiempo responden los botones y el menú de /favoritos ver */
 const VIEW_TIME = 2 * 60 * 1000
 
+/** Mismas sugerencias que /play, pero sin pedir canal de voz: guardar un favorito no reproduce nada */
+class FavoriteSearch extends PlaybackStrategy {
+    protected suggestionsNeedVoice = false
+}
+const favoriteSearch = new FavoriteSearch()
+
 const noFavorites = EmptyEmbed({ description: "Todavía no tenés favoritos: tocá ❤️ en el mensaje del reproductor para guardar la canción que suena." }).setColor("Yellow")
+
+/** /favoritos agregar: guarda una canción buscada, o la que suena si no se escribe nada */
+async function add(client: BClient, inter: ChatInputCommandInteraction<"cached">) {
+    const query = inter.options.getString("busqueda")?.trim()
+    const reply = (description: string, color: "Green" | "Yellow" | "Red") =>
+        inter.editReply({ embeds: [EmptyEmbed({ description }).setColor(color)] })
+
+    // Buscar puede tardar más de los 3 s que da Discord; la respuesta la ve solo quien la pide
+    await inter.deferReply({ flags: MessageFlags.Ephemeral })
+
+    let track: Track | null | undefined
+    if (!query) {
+        track = client.getPlayer(inter.guildId)?.current
+        if (!track) return reply("Escribí una canción o un enlace en `busqueda`, o usá el comando mientras suena algo.", "Yellow")
+    } else {
+        if (query === queryErrors.NO_RESULTS || query === queryErrors.JOIN_VC) return reply("No se encontraron resultados.", "Yellow")
+
+        const res = await client.music.search({ query, requester: inter.user }).catch(err => {
+            logger.error(`[favoritos] Error buscando "${query}" para /favoritos agregar:`, err)
+            return null
+        })
+        if (res === null) return reply("❌ Ocurrió un error al buscar, intentá de nuevo.", "Red")
+        if (res?.loadType === "playlist") return reply("Solo se pueden guardar canciones sueltas, no playlists.", "Yellow")
+        track = res?.tracks?.[0]
+        if (!track) return reply("No se encontraron resultados.", "Yellow")
+    }
+
+    if (!track.uri) return reply("❌ | Esta canción no se puede guardar en favoritos.", "Red")
+
+    const title = titleCleaner(track.title, track.author)
+    const added = client.db.addFavorite(inter.user.id, {
+        uri: track.uri,
+        title: track.title,
+        author: track.author,
+        duration: track.duration,
+        artworkUrl: track.artworkUrl,
+    })
+
+    if (!added) return reply(`**${title}** ya estaba en tus favoritos.`, "Yellow")
+
+    logger.info(`[Favoritos] ${inter.user.username} agregó "${track.title}" (${track.uri}) desde /favoritos agregar en ${inter.guild.name}`)
+    return reply(`❤️ **${title}** se agregó a tus favoritos.`, "Green")
+}
 
 /** /favoritos reproducir: carga los favoritos del usuario en la cola */
 async function play(client: BClient, inter: ChatInputCommandInteraction<"cached">) {
@@ -154,9 +203,17 @@ export default new SlashCommand()
         try {
             const sub = inter.options.getSubcommand()
             if (sub === "reproducir") await play(client, inter)
+            else if (sub === "agregar") await add(client, inter)
             else await view(client, inter)
         } catch (err) {
             logger.error(`[/favoritos] Error no controlado en el comando:`, err)
+        }
+    })
+    .setAutoComplete(async (client, inter) => {
+        try {
+            await favoriteSearch.autocomplete(client, inter)
+        } catch (err) {
+            logger.error(`[/favoritos] Error en el autocompletado:`, err)
         }
     })
     .addSubcommand(sub => sub
@@ -170,6 +227,13 @@ export default new SlashCommand()
         .addBooleanOption(o => o
             .setName("mezclar")
             .setDescription("Mezclarlas al azar (si no, van de la más nueva a la más vieja).")))
+    .addSubcommand(sub => sub
+        .setName("agregar")
+        .setDescription("Guarda una canción en tus favoritos (la que suena, si no escribís nada).")
+        .addStringOption(o => o
+            .setName("busqueda")
+            .setDescription("Nombre de la canción, artista o enlace.")
+            .setAutocomplete(true)))
     .addSubcommand(sub => sub
         .setName("ver")
         .setDescription("Muestra tus favoritos (solo vos los ves) y permite quitarlos."))

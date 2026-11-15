@@ -52,6 +52,9 @@ export async function startIfIdle(player: Player) {
 
 export abstract class PlaybackStrategy {
 
+    /** Si las sugerencias piden estar en un canal de voz. /favoritos agregar lo desactiva: guardar no reproduce */
+    protected suggestionsNeedVoice = true;
+
     async execute(client: BClient, inter: ChatInputCommandInteraction<"cached">) {
         const GuildID = inter.guildId;
         if (!GuildID) return;
@@ -123,12 +126,14 @@ export abstract class PlaybackStrategy {
         const GuildID = inter.guildId;
         if (!GuildID) return;
 
-        const VCID = (inter.member as GuildMember).voice.channelId;
-        if (!VCID) return inter.respond([{ name: "Debes unirte a un canal de voz para buscar canciones", value: queryErrors.JOIN_VC }]);
+        if (this.suggestionsNeedVoice) {
+            const VCID = (inter.member as GuildMember).voice.channelId;
+            if (!VCID) return inter.respond([{ name: "Debes unirte a un canal de voz para buscar canciones", value: queryErrors.JOIN_VC }]);
 
-        const player = client.getPlayer(GuildID);
-        if (player?.connected && player.voiceChannelId !== VCID)
-            return inter.respond([{ name: "Debes unirte al mismo canal de voz que el bot", value: queryErrors.JOIN_VC }]);
+            const player = client.getPlayer(GuildID);
+            if (player?.connected && player.voiceChannelId !== VCID)
+                return inter.respond([{ name: "Debes unirte al mismo canal de voz que el bot", value: queryErrors.JOIN_VC }]);
+        }
 
         const focusedQuery = inter.options.getFocused().trim();
         if (!focusedQuery.length) return inter.respond([]);

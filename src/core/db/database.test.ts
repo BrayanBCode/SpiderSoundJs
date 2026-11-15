@@ -31,6 +31,12 @@ describe("BotDatabase favoritos", () => {
         expect(db.getFavorites("user-2")).toHaveLength(1);
     });
 
+    test("addFavorite agrega una sola vez y nunca quita", () => {
+        expect(db.addFavorite("user-1", track)).toBe(true);
+        expect(db.addFavorite("user-1", track)).toBe(false);
+        expect(db.getFavorites("user-1")).toHaveLength(1);
+    });
+
     test("removeFavorite quita solo la del usuario y avisa si no estaba", () => {
         db.toggleFavorite("user-1", track);
         db.toggleFavorite("user-2", track);

@@ -68,27 +68,27 @@ export class BotDatabase {
             )`);
     }
 
-    /** Agrega la canción a los favoritos del usuario, o la quita si ya estaba */
+    /** Agrega la canción a los favoritos del usuario, o la quita si ya estaba (botón ❤️) */
     toggleFavorite(userId: string, track: SavedTrack): "added" | "removed" {
-        return this.db.transaction(() => {
-            const removed = this.db.query("DELETE FROM favorites WHERE user_id = $userId AND uri = $uri")
-                .run({ userId, uri: track.uri });
-            if (removed.changes > 0) return "removed" as const;
+        return this.db.transaction(() =>
+            this.removeFavorite(userId, track.uri) ? "removed" as const : (this.addFavorite(userId, track), "added" as const)
+        )();
+    }
 
-            this.db.query(`
-                INSERT INTO favorites (user_id, uri, title, author, duration, artwork_url, added_at)
-                VALUES ($userId, $uri, $title, $author, $duration, $artworkUrl, $addedAt)`)
-                .run({
-                    userId,
-                    uri: track.uri,
-                    title: track.title,
-                    author: track.author,
-                    duration: track.duration,
-                    artworkUrl: track.artworkUrl ?? null,
-                    addedAt: Date.now(),
-                });
-            return "added" as const;
-        })();
+    /** Agrega la canción a los favoritos del usuario. `false` si ya estaba (no la duplica ni la quita) */
+    addFavorite(userId: string, track: SavedTrack): boolean {
+        return this.db.query(`
+            INSERT OR IGNORE INTO favorites (user_id, uri, title, author, duration, artwork_url, added_at)
+            VALUES ($userId, $uri, $title, $author, $duration, $artworkUrl, $addedAt)`)
+            .run({
+                userId,
+                uri: track.uri,
+                title: track.title,
+                author: track.author,
+                duration: track.duration,
+                artworkUrl: track.artworkUrl ?? null,
+                addedAt: Date.now(),
+            }).changes > 0;
     }
 
     /** Quita una canción de los favoritos del usuario. `false` si no estaba */
