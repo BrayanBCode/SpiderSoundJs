@@ -13,6 +13,7 @@
 - YouTube ✅ · Spotify: solo **canciones sueltas** ✅ (álbumes/playlists/artistas bloqueados por la API de Spotify).
 - Botones del reproductor con **emojis propios** (tema araña). El botón ❤️ guarda favoritos en SQLite (`data/bot.db`).
 - Repo actual: SpiderSoundJs (público). Migración en PR #38 y paso a Bun en PR #40. MultiPurposeBotTS queda como respaldo privado (falta archivarlo).
+- Licencia: **Apache 2.0** con archivo `NOTICE` (crédito a BrayanBCode), desde 2026-11-15. Antes era una licencia propia sin uso comercial.
 - Última release: [v3.1.0](https://github.com/BrayanBCode/SpiderSoundJs/releases/tag/v3.1.0) (2026-11-15): favoritos, playlists, `/help`, `/ping`, avisos al dev y mensaje "Escuchando" nuevo.
 - Web: https://spiderbotsite.netlify.app/ (repo privado `spider-bot-page`, con su propio roadmap).
 
@@ -151,6 +152,5 @@ Lo que vaya surgiendo de las etapas anteriores. Anotarlo acá a medida que apare
 
 _Anotar acá antes de empezarlas._
 
-- Licencia: evaluar pasar `LICENCE.md` a PolyForm Noncommercial (uso comercial solo con permiso). Sin decidir.
 - Tarjeta "Escuchando" generada como imagen: Discord no deja elegir el tamaño de la imagen de un embed. Si se quiere controlar el tamaño de la portada, que sea una imagen propia con varios datos (portada, título, artista, progreso, loop…) y no solo la portada achicada (se probó con `sharp`, 2026-11-15, y no convenció). Requiere `sharp` o un canvas y subir la imagen en cada canción.
 - Hilo "¿Cómo ejecuto el bot?" en Discord: corregir o borrar el mensaje "DEPRECATED bun→npm, lavalink→nodelink" (ya no es cierto).

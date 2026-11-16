@@ -110,9 +110,13 @@ Los íconos están en [`assets/emojis/`](assets/emojis). Los IDs de [`src/core/b
 
 ## 📄 Licencia
 
-Este proyecto usa una [licencia propia](LICENCE.md): uso personal o educativo, **sin fines comerciales** y con **atribución obligatoria** a BrayanBCode. No se permite redistribuir el código tal cual sin permiso.
+Este proyecto usa la [licencia Apache 2.0](LICENSE): podés usarlo, modificarlo y redistribuirlo, **también con fines comerciales**.
 
-> Si vas a usar partes del código, por favor da créditos.
+Si redistribuís el código (tal cual o modificado), tenés que:
+
+- Incluir una copia de la [licencia](LICENSE) y del archivo [NOTICE](NOTICE), que da el crédito a **BrayanBCode**.
+- Marcar los archivos que cambiaste.
+- No usar el nombre del autor para promocionar tu versión sin permiso.
 
 ## ✨ Autor
 
