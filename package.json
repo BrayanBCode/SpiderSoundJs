@@ -14,7 +14,7 @@
     "url": "git+https://github.com/BrayanBCode/MultiPurposeBotTS.git"
   },
   "author": "Codu",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/BrayanBCode/MultiPurposeBotTS/issues"
   },
