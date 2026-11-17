@@ -14,7 +14,7 @@
 - Botones del reproductor con **emojis propios** (tema araña). El botón ❤️ guarda favoritos en SQLite (`data/bot.db`).
 - Repo actual: SpiderSoundJs (público). Migración en PR #38 y paso a Bun en PR #40. MultiPurposeBotTS queda como respaldo privado (falta archivarlo).
 - Licencia: **Apache 2.0** con archivo `NOTICE` (crédito a BrayanBCode), desde 2026-11-15. Antes era una licencia propia sin uso comercial.
-- Última release: [v3.1.0](https://github.com/BrayanBCode/SpiderSoundJs/releases/tag/v3.1.0) (2026-11-15): favoritos, playlists, `/help`, `/ping`, avisos al dev y mensaje "Escuchando" nuevo.
+- Última release: [v3.2.0](https://github.com/BrayanBCode/SpiderSoundJs/releases/tag/v3.2.0) (2026-11-17): álbumes, playlists y artistas de Spotify, cola nueva, `/loop`, `/shuffle`, `/move`, `/help` por secciones, límites de recursos y licencia Apache 2.0.
 - Web: https://spiderbotsite.netlify.app/ (repo privado `spider-bot-page`, con su propio roadmap).
 
 ---
