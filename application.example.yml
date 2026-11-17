@@ -68,6 +68,9 @@ plugins:
             clientSecret: "tu-client-secret-de-spotify"
             countryCode: US
             playlistLoadLimit: 6
+            # Playlists, álbumes y artistas por la API del reproductor web (token anónimo): la API oficial ya no deja leerlos a apps nuevas
+            preferPartnerApi: true
+            customTokenEndpoint: "http://spotify-tokener:8080/api/token"  # contenedor de docker-compose.yml
     youtube:
         remoteCipher:
             url: "http://yt-cipher:8001"

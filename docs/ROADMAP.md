@@ -9,8 +9,8 @@
 
 ## Estado actual
 
-- Bot funcionando en Docker: **Bun** + **Lavalink 4.2** + plugin de YouTube (versión elegida al arrancar: release o snapshot) + **yt-cipher** + **moonlink.js 5.2**.
-- YouTube ✅ · Spotify: solo **canciones sueltas** ✅ (álbumes/playlists/artistas bloqueados por la API de Spotify).
+- Bot funcionando en Docker: **Bun** + **Lavalink 4.2** + plugin de YouTube (versión elegida al arrancar: release o snapshot) + **yt-cipher** + **spotify-tokener** + **moonlink.js 5.2**.
+- YouTube ✅ · Spotify ✅: canciones, álbumes, playlists públicas y artistas (top 10). La API oficial bloquea a apps nuevas todo menos canciones, así que LavaSrc usa la API del reproductor web (`preferPartnerApi`) con el token anónimo del contenedor **spotify-tokener** (2026-11-17). Las playlists privadas o armadas para una cuenta (Daily Mix) no cargan.
 - Botones del reproductor con **emojis propios** (tema araña). El botón ❤️ guarda favoritos en SQLite (`data/bot.db`).
 - Repo actual: SpiderSoundJs (público). Migración en PR #38 y paso a Bun en PR #40. MultiPurposeBotTS queda como respaldo privado (falta archivarlo).
 - Licencia: **Apache 2.0** con archivo `NOTICE` (crédito a BrayanBCode), desde 2026-11-15. Antes era una licencia propia sin uso comercial.
@@ -137,14 +137,14 @@ Lo que vaya surgiendo de las etapas anteriores. Anotarlo acá a medida que apare
 - Si YouTube deja de sonar: revisar `docker compose logs lavalink` (motivo por cliente). Si aparece `oauth2 token fetch: 400`, regenerar el refresh token. El log arranca con `[YouTubePlugin]` y la versión del plugin en uso; si la última del canal falla, probar el otro canal (`YOUTUBE_PLUGIN_CHANNEL` en `.env`) o dejarlo vacío para usar la versión fija de `application.yml`, y recrear Lavalink (`docker compose up -d lavalink`).
 - **Emojis de botones**: para cambiar uno hay que borrarlo y volver a subirlo (cambia el ID) y actualizar `src/core/buttons/emojis.ts`. Fuentes en `assets/emojis/`.
 - Calidad de audio (opcional): `resamplingQuality: LOW → HIGH` en `application.yml`; lo que más pesa es el bitrate del canal de voz.
-- No probado aún: mover el bot de canal con música sonando; pegar un álbum de Spotify en Discord.
+- Si álbumes, playlists o artistas de Spotify dejan de cargar: revisar `docker compose logs spotify-tokener` y buscar `Partner API failed` en los logs de Lavalink. Puede que Spotify haya cambiado algo y haga falta actualizar la imagen (`docker compose pull spotify-tokener`) o LavaSrc.
+- No probado aún: mover el bot de canal con música sonando.
 
 ---
 
 ## Fuera de alcance (por ahora)
 
-- Álbumes / playlists / artistas de Spotify (bloqueado por la API de Spotify).
-- Volver a NodeLink (mismos problemas con Spotify; Lavalink funciona).
+- Volver a NodeLink (Lavalink funciona).
 - Playlists compartidas entre usuarios; importar playlists de Spotify.
 - Letras de canciones.
 

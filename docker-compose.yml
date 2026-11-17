@@ -6,6 +6,12 @@ services:
             - API_TOKEN=${YT_CIPHER_TOKEN}
         restart: always
 
+    # Token anónimo de Spotify (con Chrome sin ventana) para que LavaSrc cargue playlists, álbumes y artistas.
+    # Sin puertos publicados: solo lo usa Lavalink por la red interna.
+    spotify-tokener:
+        image: ghcr.io/topi314/spotify-tokener:master
+        restart: always
+
     lavalink:
         image: ghcr.io/lavalink-devs/lavalink:4
         # Antes de arrancar Lavalink elige la versión del plugin de YouTube (ver lavalink-entrypoint.sh)
@@ -21,6 +27,7 @@ services:
             - ./plugins:/opt/Lavalink/plugins
         depends_on:
             - yt-cipher
+            - spotify-tokener
         restart: always
 
     discord-bot:

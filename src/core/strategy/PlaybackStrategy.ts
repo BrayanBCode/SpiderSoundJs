@@ -22,11 +22,12 @@ export interface IAddToQueueParams {
 }
 
 /**
- * Links de Spotify que no se pueden cargar: Spotify bloquea a las apps nuevas los endpoints
- * por lotes que LavaSrc usa para álbumes, playlists y artistas. Las canciones sueltas sí funcionan.
+ * Álbumes, playlists y artistas de Spotify: LavaSrc los carga con el token anónimo de spotify-tokener
+ * (la API oficial los bloquea a apps nuevas). Si fallan, suele ser una playlist privada o generada para
+ * una cuenta (Daily Mix, Descubrimiento semanal) o que el contenedor spotify-tokener no está andando.
  */
-const SPOTIFY_UNSUPPORTED = /open\.spotify\.com\/(?:intl-[^/]+\/)?(album|playlist|artist)\//;
-const SPOTIFY_UNSUPPORTED_MSG = "De Spotify por ahora solo se aceptan canciones sueltas (no álbumes, playlists ni artistas).";
+const SPOTIFY_COLLECTION = /open\.spotify\.com\/(?:intl-[^/]+\/)?(album|playlist|artist)\//;
+const SPOTIFY_COLLECTION_MSG = "No se pudo cargar eso de Spotify. Si es una playlist, fijate que sea pública: las privadas y las armadas para tu cuenta (Daily Mix, Descubrimiento semanal) no se pueden leer.";
 
 /** Los avisos de "agregada a la cola" se borran solos: el chat queda limpio y el reproductor no queda tapado */
 const ADDED_MESSAGE_TIME = 60_000;
@@ -100,9 +101,9 @@ export abstract class PlaybackStrategy {
             const results: SearchResult | undefined = await client.music.search({ query, source: src, requester: inter.user });
 
             if (!results?.tracks?.length) {
-                const spotifyType = query.match(SPOTIFY_UNSUPPORTED)?.[1];
-                logger.info(`[${inter.commandName}] Sin resultados para "${query}" (loadType: ${results?.loadType ?? "desconocido"}${spotifyType ? `, ${spotifyType} de Spotify no soportado` : ""})`);
-                return this.editReplyAndDelete(inter, EmptyEmbed({ description: spotifyType ? SPOTIFY_UNSUPPORTED_MSG : "No se encontraron resultados" }).setColor("Red"));
+                const spotifyType = query.match(SPOTIFY_COLLECTION)?.[1];
+                logger.info(`[${inter.commandName}] Sin resultados para "${query}" (loadType: ${results?.loadType ?? "desconocido"}${spotifyType ? `, ${spotifyType} de Spotify sin cargar` : ""})`);
+                return this.editReplyAndDelete(inter, EmptyEmbed({ description: spotifyType ? SPOTIFY_COLLECTION_MSG : "No se encontraron resultados" }).setColor("Red"));
             }
 
             const player = client.getPlayerOrDefault(inter, GuildID);
@@ -159,7 +160,7 @@ export abstract class PlaybackStrategy {
         const res: SearchResult | undefined = await client.music.search({ query: focusedQuery, requester: inter.user });
 
         if (!res?.tracks?.length) {
-            const name = SPOTIFY_UNSUPPORTED.test(focusedQuery) ? SPOTIFY_UNSUPPORTED_MSG : "No se encontraron resultados";
+            const name = SPOTIFY_COLLECTION.test(focusedQuery) ? "No se pudo cargar de Spotify (¿es una playlist privada?)" : "No se encontraron resultados";
             return inter.respond([{ name: name.slice(0, 100), value: queryErrors.NO_RESULTS }]);
         }
 
