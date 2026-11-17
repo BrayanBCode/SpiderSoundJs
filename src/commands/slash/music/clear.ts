@@ -4,7 +4,7 @@ import { SlashCommand } from "../../../core/classes/SlashCommand.js";
 
 export default new SlashCommand()
     .setName("clear")
-    .setDescription("Limpia la lista de reproducción.")
+    .setDescription("Vacía la cola (la canción actual sigue sonando).")
     .setCategory("Music")
 
     .setExecute(

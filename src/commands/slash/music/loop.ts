@@ -6,7 +6,7 @@ import logger from "../../../core/client/logger.js";
 
 export default new SlashCommand()
     .setName("loop")
-    .setDescription("Cambia la repetición: OFF, canción o cola. Sin elegir, pasa a la siguiente (como el botón).")
+    .setDescription("Repetición: OFF, canción o cola (sin elegir, pasa a la siguiente, como el botón).")
     .setCategory("Music")
     .setExecute(
         async (client, inter) => {

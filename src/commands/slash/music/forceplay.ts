@@ -23,7 +23,7 @@ const forcePlay = new Forceplay()
 
 export default new SlashCommand()
     .setName("forceplay")
-    .setDescription("Reproduce una canción en la lista de reproducción, ignorando la cola.")
+    .setDescription("Reproduce una canción ya, cortando la que suena (la cola sigue igual).")
     .setCategory("Music")
     .setExecute(async (client, inter) => {
         try {

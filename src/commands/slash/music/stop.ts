@@ -5,7 +5,7 @@ import { requireListener } from "../../../core/music/player.js";
 
 export default new SlashCommand()
     .setName("stop")
-    .setDescription("Detiene la reproducción y limpia la lista de reproducción.")
+    .setDescription("Detiene la música, vacía la cola y desconecta el bot.")
     .setCategory("Music")
     .setExecute(
         async (client, inter) => {

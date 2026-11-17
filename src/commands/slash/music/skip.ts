@@ -6,7 +6,7 @@ import logger from "../../../core/client/logger.js";
 
 export default new SlashCommand()
     .setName("skip")
-    .setDescription("Salta la canción actual o a la posición especificada en la lista de reproducción.")
+    .setDescription("Pasa a la siguiente canción, o salta a una posición de la cola sin borrar las del medio.")
     .setCategory("Music")
     .setExecute(
         async (client, inter) => {

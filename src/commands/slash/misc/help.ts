@@ -4,7 +4,15 @@ import logger from "../../../core/client/logger.js";
 import { EmptyEmbed } from "../../../utils/messages.js";
 import { packLines } from "../../../utils/tools.js";
 
-const CATEGORY_TITLES: Record<string, string> = { Music: "🎵 Música", Misc: "✨ Otros" };
+/** Secciones en el orden en que se muestran (las mismas que la página de comandos de la web) */
+const SECTIONS: { title: string; commands: string[] }[] = [
+    { title: "▶️ Reproducción", commands: ["play", "playnext", "forceplay", "pause", "resume", "stop"] },
+    { title: "📃 Cola", commands: ["queue", "skip", "move", "remove", "shuffle", "clear"] },
+    { title: "🎛️ Control", commands: ["loop", "forward", "backward"] },
+    { title: "❤️ Favoritos y playlists", commands: ["favoritos", "playlist"] },
+];
+/** Un comando nuevo que no está en ninguna sección aparece igual, acá */
+const OTHERS_TITLE = "✨ Otros";
 const AUTHOR = "Comandos de Araña Sound 🕷️";
 const FOOTER = "También podés usar los botones del mensaje del reproductor.";
 const DESCRIPTION_MAX = 4096;
@@ -26,15 +34,17 @@ export default new SlashCommand()
     .setCategory("Misc")
     .setExecute(async (client, inter) => {
         try {
-            // Se arma con los comandos cargados: un comando nuevo aparece solo
-            const byCategory = new Map<string, string[]>();
-            const commands = [...client.slashCommands.values()].sort((a, b) => a.name.localeCompare(b.name));
-            for (const cmd of commands) {
-                const category = cmd.getCategory ?? "Misc";
-                byCategory.set(category, [...(byCategory.get(category) ?? []), ...commandLines(cmd)]);
-            }
+            // Se arma con los comandos cargados (descripción incluida): solo el orden y las secciones están acá
+            const loaded = client.slashCommands;
+            const placed = new Set(SECTIONS.flatMap(s => s.commands));
+            const others = [...loaded.values()].filter(cmd => !placed.has(cmd.name)).sort((a, b) => a.name.localeCompare(b.name));
 
-            const lines = [...byCategory].flatMap(([category, cmdLines]) => [`### ${CATEGORY_TITLES[category] ?? category}`, ...cmdLines]);
+            const sections = [
+                ...SECTIONS.map(s => ({ title: s.title, cmds: s.commands.flatMap(name => loaded.get(name) ?? []) })),
+                { title: OTHERS_TITLE, cmds: others },
+            ].filter(s => s.cmds.length);
+
+            const lines = sections.flatMap(s => [`### ${s.title}`, ...s.cmds.flatMap(commandLines)]);
 
             // Discord: 4096 caracteres por descripción y 6000 entre todos los embeds del mensaje
             const descriptions: string[] = [];

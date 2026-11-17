@@ -10,7 +10,7 @@ const play = new Play()
 
 export default new SlashCommand()
     .setName("play")
-    .setDescription("Inicia o agrega una cancion a la lista de reproducción.")
+    .setDescription("Reproduce o agrega a la cola una canción, álbum o playlist (búsqueda o enlace de YouTube o Spotify).")
     .setCategory("Music")
     .setExecute(
         async (client, inter) => {
