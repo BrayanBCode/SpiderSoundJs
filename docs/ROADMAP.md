@@ -115,9 +115,9 @@ Destino: [BrayanBCode/SpiderSoundJs](https://github.com/BrayanBCode/SpiderSoundJ
 Lo que vaya surgiendo de las etapas anteriores. Anotarlo acá a medida que aparezca:
 
 - [x] `titleCleaner` (`src/utils/tools.ts`): regex revisado y 34 tests con títulos reales (PR #44).
-- [ ] `BClient` pide intents privilegiados que no usa (`GuildPresences`, `MessageContent`, `GuildMembers`): quitarlos si nada los necesita.
-- [ ] `BClient` usa `"password"` por defecto si falta `lavalinkPassword` en el `.env`: fallar con un error claro en su lugar.
-- [ ] Dependencia circular entre `BClient` y `PlayerMessage`: evaluar si vale la pena romperla.
+- [x] `BClient` pedía 11 intents (3 privilegiados) y usaba 2: quedan `Guilds` y `GuildVoiceStates`, sin partials. Ya no hay que activar intents en el Developer Portal. Para los roles por reacción (etapa 9) habrá que sumar `GuildMessageReactions` y los partials de mensaje y reacción.
+- [x] Si falta `lavalinkPassword` en el `.env`, el bot no arranca y lo dice (antes probaba con `"password"`).
+- [x] Dependencia circular entre `BClient` y `PlayerMessage`: `PlayerMessage` solo usaba el tipo, así que pasa a `import type` y el ciclo desaparece en tiempo de ejecución. No hizo falta reestructurar.
 - [x] Logs de `[PlayerMessage]` con el `#canal` y aviso cuando el mensaje "Escuchando" cambia de canal (PR #43).
 - [x] `/help` (lista generada con los comandos cargados) y `/ping` (latencia de respuesta y del gateway); se quitó `/hi` (PR #50).
 - [x] Logs `[Servidores]`: al entrar o salir de un servidor y la lista de servidores al arrancar (PR #50).

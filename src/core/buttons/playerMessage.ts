@@ -1,7 +1,7 @@
 import { ButtonInteraction, ButtonStyle, GuildMember, Message, MessageFlags, TextChannel, User } from "discord.js"
 import { CustomButtonBuilder, DisplayButtonsBuilder, IButtonInteraction } from "./DisplayButtonsBuilder.js"
 import logger from "../client/logger.js"
-import { BClient } from "../client/BClient.js"
+import type { BClient } from "../client/BClient.js"
 import { Manager, Player, Track } from "moonlink.js"
 import { deleteAfterTimer, EmptyEmbed, safeDelete, replyEmbed } from "../../utils/messages.js"
 import { replyNoPlayer, skipTrack, getRequesterInfo, seekRelative } from "../music/player.js"
