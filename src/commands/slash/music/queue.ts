@@ -1,5 +1,6 @@
 import { QueuePaginator } from "../../../core/classes/music/QueuePaginator.js";
 import { SlashCommand } from "../../../core/classes/SlashCommand.js";
+import { MessageFlags } from "discord.js";
 import { EmptyEmbed } from "../../../utils/messages.js";
 
 export default new SlashCommand()
@@ -12,14 +13,14 @@ export default new SlashCommand()
 
             const player = client.getPlayer(inter.guildId);
 
-            if (!player || player.queue.tracks.length === 0) return inter.reply({
+            if (!player || (!player.current && player.queue.tracks.length === 0)) return inter.reply({
                 embeds: [
                     EmptyEmbed()
                         .setDescription("La lista de reproducción está vacía, utiliza /play para agregar canciones.")
-                ]
+                ],
+                flags: MessageFlags.Ephemeral
             });
 
-            const paginator = new QueuePaginator({ interaction: inter, items: player.queue.tracks })
-            await paginator.reply(true)
+            await new QueuePaginator({ interaction: inter, player }).reply()
         }
     )
