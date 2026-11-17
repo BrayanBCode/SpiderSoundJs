@@ -12,7 +12,7 @@ export interface IQueuePaginatorOpt {
 }
 
 /**
- * Cola paginada, solo visible para quien la pidió (/queue o el botón 📜).
+ * Cola paginada, solo visible para quien la pidió (/queue o el botón 📜). Se borra sola a los 2 minutos.
  * Cada página se arma de nuevo con la cola del momento: si alguien agrega o salta canciones, se ve al cambiar de página.
  */
 export class QueuePaginator {
@@ -40,16 +40,17 @@ export class QueuePaginator {
             .setColor(0x1DB954);
 
         const first = index === 0, last = index === pages - 1;
-        const button = (id: string, emoji: string, disabled: boolean, style = ButtonStyle.Secondary) =>
-            new ButtonBuilder().setCustomId(`queue_${id}`).setEmoji(emoji).setStyle(style).setDisabled(disabled);
+        const button = (id: string, emoji: string, disabled: boolean) =>
+            new ButtonBuilder().setCustomId(`queue_${id}`).setEmoji(emoji).setStyle(ButtonStyle.Secondary).setDisabled(disabled);
 
+        // Discord admite 5 botones por fila: no hay botón de cerrar porque el mensaje efímero ya trae "Descartar"
+        // y se borra solo al terminar el colector
         const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
             button("first", "⏮", first),
             button("prev", "◀", first),
             new ButtonBuilder().setCustomId("queue_page").setLabel(`${index + 1}/${pages}`).setStyle(ButtonStyle.Secondary).setDisabled(true),
             button("next", "▶", last),
             button("last", "⏭", last),
-            button("close", "✖", false, ButtonStyle.Danger),
         );
 
         return { index, embeds: [embed], components: [row] };
@@ -67,11 +68,6 @@ export class QueuePaginator {
 
         collector.on("collect", async (btn) => {
             try {
-                if (btn.customId === "queue_close") {
-                    await btn.deferUpdate();
-                    return void collector.stop("close");
-                }
-
                 const pages = queuePageCount({ tracks: this.player.queue.tracks, loop: this.player.loop });
                 const target = { queue_first: 0, queue_prev: index - 1, queue_next: index + 1, queue_last: pages - 1 }[btn.customId] ?? index;
                 ({ index, ...view } = this.render(target));
