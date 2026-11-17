@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { queuePage, queuePageCount, type QueueTrack } from "./queueView.js";
+import { queuePage, queuePageCount, type QueueTrack } from "../../../src/core/music/queueView.js";
 
 const song = (n: number, extra: Partial<QueueTrack> = {}): QueueTrack =>
     ({ title: `Canción ${n}`, author: "Artista", duration: 60_000, uri: `https://youtu.be/${n}`, ...extra });

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { BotDatabase, SavedTrack } from "./database.js";
+import { BotDatabase, SavedTrack } from "../../../src/core/db/database.js";
 
 const track: SavedTrack = {
     uri: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",

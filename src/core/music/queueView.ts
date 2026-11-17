@@ -1,4 +1,4 @@
-// Texto de la cola (/queue y botón 📜), sin Discord de por medio: se prueba en queueView.test.ts
+// Texto de la cola (/queue y botón 📜), sin Discord de por medio: se prueba en test/core/music/queueView.test.ts
 import { formatMS_HHMMSS, titleCleaner } from "../../utils/tools.js";
 import { loopLabel, totalDuration, type LoopMode, type TimedTrack } from "./timing.js";
 

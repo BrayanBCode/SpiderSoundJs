@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { createCooldown, packLines, shuffle, titleCleaner } from "./tools.js";
+import { createCooldown, packLines, shuffle, titleCleaner } from "../../src/utils/tools.js";
 
 // Títulos reales de los logs del bot. El artista es lo que suele mandar YouTube (el nombre del canal).
 const cases: [title: string, artist: string | undefined, expected: string][] = [

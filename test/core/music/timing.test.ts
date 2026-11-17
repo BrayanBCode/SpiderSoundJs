@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { discordRelative, loopLabel, loopMessage, nextLoopMode, remainingMs, startsInMs, totalDuration, youtubeCover } from "./timing.js";
+import { discordRelative, loopLabel, loopMessage, nextLoopMode, remainingMs, startsInMs, totalDuration, youtubeCover } from "../../../src/core/music/timing.js";
 
 const song = (duration: number, position = 0) => ({ duration, position });
 const live = { duration: 0, isStream: true };

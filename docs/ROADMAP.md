@@ -64,7 +64,7 @@ Destino: [BrayanBCode/SpiderSoundJs](https://github.com/BrayanBCode/SpiderSoundJ
 - [x] Habilitar el botón ❤️: guarda o quita la canción actual de **los favoritos de quien lo pulsa** (respuesta efímera).
 - [x] Logs: quién agregó/quitó qué.
 
-**Hecho:** `src/core/db/database.ts` (`BotDatabase`) crea `favorites`, `playlists` y `playlist_tracks` al arrancar (WAL y `busy_timeout` para que varios shards compartan el archivo). Se guarda el enlace, título, artista, duración y portada, lo justo para mostrar la canción y volver a buscarla. El ❤️ funciona aunque no estés en el canal de voz (no controla la reproducción). Las playlists solo tienen la tabla: sus funciones llegan con la etapa 5. Tests en `src/core/db/database.test.ts`.
+**Hecho:** `src/core/db/database.ts` (`BotDatabase`) crea `favorites`, `playlists` y `playlist_tracks` al arrancar (WAL y `busy_timeout` para que varios shards compartan el archivo). Se guarda el enlace, título, artista, duración y portada, lo justo para mostrar la canción y volver a buscarla. El ❤️ funciona aunque no estés en el canal de voz (no controla la reproducción). Las playlists solo tienen la tabla: sus funciones llegan con la etapa 5. Tests en `test/core/db/database.test.ts`.
 
 ---
 
@@ -118,7 +118,7 @@ Lo que vaya surgiendo de las etapas anteriores. Anotarlo acá a medida que apare
 - [x] `BClient` pedía 11 intents (3 privilegiados) y usaba 2: quedan `Guilds` y `GuildVoiceStates`, sin partials. Ya no hay que activar intents en el Developer Portal. Para los roles por reacción (etapa 9) habrá que sumar `GuildMessageReactions` y los partials de mensaje y reacción.
 - [x] Si falta `lavalinkPassword` en el `.env`, el bot no arranca y lo dice (antes probaba con `"password"`).
 - [x] Dependencia circular entre `BClient` y `PlayerMessage`: `PlayerMessage` solo usaba el tipo, así que pasa a `import type` y el ciclo desaparece en tiempo de ejecución. No hizo falta reestructurar.
-- [ ] Tests en una carpeta aparte, como en Maven: `src/` con el código y `test/` con la misma estructura (`src/core/music/timing.ts` → `test/core/music/timing.test.ts`). Hoy están al lado de cada archivo (`timing.test.ts`, `queueView.test.ts`, `tools.test.ts`, `database.test.ts`). Hay que sumar `test/` al `include` del `tsconfig.json` para el typecheck; `bun test` los encuentra solo.
+- [x] Tests en una carpeta aparte, como en Maven: `src/` con el código y `test/` con la misma estructura (`src/core/music/timing.ts` → `test/core/music/timing.test.ts`). `test/` está en el `include` del `tsconfig.json` para el typecheck; `bun test` los encuentra solo. La imagen de Docker solo copia `src/`, así que los tests ya no entran en ella (2026-11-17).
 - [x] Mejoras visibles (2026-11-17): estado del bot "Escuchando /play · N servidores" (se actualiza al entrar o salir de un servidor), comandos `/loop` (con `modo` opcional) y `/shuffle` (antes solo eran botones), `/move` para reordenar la cola, y `/skip` con el mismo formato que los avisos de agregar a la cola. El botón 🔁 y `/loop` comparten la lógica (`nextLoopMode`, `loopMessage`).
 - [x] `/queue` y el botón 📜 con diseño nuevo (2026-11-17): lo que suena, 10 canciones por página en una línea cada una (título hasta 32 caracteres, artista hasta 18), pie con página, total y loop, y botones ⏮ ◀ `1/N` ▶ ⏭ que se desactivan en los bordes (Discord admite 5 por fila). Solo la ve quien la pide y cada página se arma con la cola del momento (`src/core/music/queueView.ts`).
 - [x] Logs de `[PlayerMessage]` con el `#canal` y aviso cuando el mensaje "Escuchando" cambia de canal (PR #43).
