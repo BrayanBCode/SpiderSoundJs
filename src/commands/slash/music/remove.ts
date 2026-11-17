@@ -5,7 +5,7 @@ import logger from "../../../core/client/logger.js";
 
 export default new SlashCommand()
     .setName("remove")
-    .setDescription("Elimina la canción en la posición indicada de la lista de reproducción.")
+    .setDescription("Quita de la cola la canción en esa posición.")
     .setCategory("Music")
     .setExecute(
         async (client, inter) => {

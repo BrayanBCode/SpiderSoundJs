@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { discordRelative, loopLabel, remainingMs, startsInMs, totalDuration, youtubeCover } from "./timing.js";
+import { discordRelative, loopLabel, loopMessage, nextLoopMode, remainingMs, startsInMs, totalDuration, youtubeCover } from "./timing.js";
 
 const song = (duration: number, position = 0) => ({ duration, position });
 const live = { duration: 0, isStream: true };
@@ -9,6 +9,15 @@ describe("timing", () => {
         expect(loopLabel("off")).toBe("OFF");
         expect(loopLabel("track")).toBe("Canción");
         expect(loopLabel("queue")).toBe("Cola");
+    });
+
+    test("nextLoopMode rota OFF → Canción → Cola → OFF y loopMessage lo anuncia", () => {
+        expect(nextLoopMode("off")).toBe("track");
+        expect(nextLoopMode("track")).toBe("queue");
+        expect(nextLoopMode("queue")).toBe("off");
+        expect(nextLoopMode("raro")).toBe("off");
+        expect(loopMessage("track")).toBe("🔂 Loop: **Canción**");
+        expect(loopMessage("off")).toBe("▶️ Loop: **OFF**");
     });
 
     test("remainingMs descuenta lo escuchado y no tiene fin en vivo", () => {

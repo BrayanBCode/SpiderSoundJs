@@ -5,7 +5,7 @@ import { EmptyEmbed } from "../../../utils/messages.js";
 
 export default new SlashCommand()
     .setName("queue")
-    .setDescription("Muestra la lista de reproducción actual.")
+    .setDescription("Muestra lo que suena y lo que sigue en la cola (solo vos la ves).")
     .setCategory("Music")
     .setExecute(
         async (client, inter) => {

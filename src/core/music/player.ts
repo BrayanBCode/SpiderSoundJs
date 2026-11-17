@@ -4,7 +4,7 @@ import logger from "../client/logger.js";
 import type { BClient } from "../client/BClient.js";
 import { ISimpleEmbedReply } from "../../types/interface/ISimpleEmbedReply.js";
 import { deleteAfterTimer, EmptyEmbed, replyEmbed } from "../../utils/messages.js";
-import { formatMS_HHMMSS } from "../../utils/tools.js";
+import { formatMS_HHMMSS, titleCleaner } from "../../utils/tools.js";
 
 // Helpers del reproductor: comprobaciones de oyente, salto, seek y datos de la canción.
 
@@ -125,4 +125,19 @@ export async function respondQueuePositions(client: BClient, inter: Autocomplete
         name: `${startIndex + i + 1} - ${track.title}`.slice(0, 100),
         value: startIndex + i + 1,
     })));
+}
+
+/**
+ * Aviso de una acción sobre una canción (/skip, /move), con el mismo formato que los de agregar a la cola:
+ * encabezado con el avatar, título limpio con enlace, artista y duración, portada y quién lo pidió.
+ */
+export function trackActionEmbed(header: string, track: Track, user: { name: string; avatar?: string }, extra = "") {
+    return EmptyEmbed()
+        .setAuthor({ name: header, iconURL: user.avatar })
+        .setTitle(titleCleaner(track.title, track.author) || track.title)
+        .setURL(track.uri ?? null)
+        .setDescription(`**${track.author || "Desconocido"}** · \`${track.isStream ? "En vivo" : formatMS_HHMMSS(track.duration)}\`${extra}`)
+        .setThumbnail(track.artworkUrl ?? null)
+        .setFooter({ text: `Pedido por ${user.name}` })
+        .setColor("Green");
 }

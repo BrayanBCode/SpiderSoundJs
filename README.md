@@ -14,7 +14,7 @@
 ## 📦 Características
 
 - 🎵 YouTube (búsqueda, links y playlists) y Spotify (canciones, álbumes, playlists públicas y artistas).
-- 📃 Cola interactiva con paginación, `/playnext`, `/forceplay`, `/remove`.
+- 📃 Cola interactiva con paginación, `/playnext`, `/forceplay`, `/remove`, `/move`, `/loop` y `/shuffle`.
 - 🔁 Repetición de canción o de cola, mezclar, adelantar y retroceder.
 - 🎚️ Mensaje "Escuchando" con botones y emojis propios (tema araña): muestra cuándo termina, la repetición, la siguiente y la cola, y se actualiza al pausar o cambiar algo.
 - ❤️ Favoritos por usuario: el botón ❤️ guarda o quita la canción actual (solo lo ve quien lo pulsa).
@@ -31,7 +31,10 @@
 | `/pause` · `/resume` | Pausa o reanuda la canción |
 | `/skip` | Salta a la siguiente o a una posición de la cola (desde 1, como en `/queue`) |
 | `/remove` | Quita una canción de la cola por su posición |
+| `/move` | Mueve una canción de la cola a otra posición |
 | `/queue` | Muestra la cola |
+| `/loop` | Repetición: OFF, canción o cola (sin elegir, pasa a la siguiente) |
+| `/shuffle` | Mezcla la cola |
 | `/clear` | Vacía la cola |
 | `/forward` · `/backward` | Adelanta o retrocede segundos |
 | `/stop` | Detiene y desconecta el bot |

@@ -21,7 +21,7 @@ const playNext = new PlayNext()
 
 export default new SlashCommand()
     .setName("playnext")
-    .setDescription("Reproduce la siguiente canción en la lista de reproducción.")
+    .setDescription("Agrega una canción para que suene justo después de la actual.")
     .setCategory("Music")
     .setExecute(async (client, inter) => {
         try {

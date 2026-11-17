@@ -5,7 +5,7 @@ import logger from "../../../core/client/logger.js";
 
 export default new SlashCommand()
     .setName("forward")
-    .setDescription("Avanza la canción actual en una cantidad específica de segundos.")
+    .setDescription("Adelanta la canción actual unos segundos (10 si no indicás).")
     .setCategory("Music")
 
     .setExecute(

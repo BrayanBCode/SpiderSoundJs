@@ -5,7 +5,7 @@ import logger from "../../../core/client/logger.js";
 
 export default new SlashCommand()
     .setName("backward")
-    .setDescription("Retrocede la canción actual en una cantidad específica de segundos.")
+    .setDescription("Retrocede la canción actual unos segundos (10 si no indicás).")
     .setCategory("Music")
 
     .setExecute(
