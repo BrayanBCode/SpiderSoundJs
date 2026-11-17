@@ -67,7 +67,12 @@ plugins:
             clientId: "tu-client-id-de-spotify"
             clientSecret: "tu-client-secret-de-spotify"
             countryCode: US
-            playlistLoadLimit: 6
+            # Páginas de 100 canciones. Con Partner API, LavaSrc pide el ISRC de cada canción de a una (~0,3 s c/u):
+            # 1 página ≈ 30 s. Con más, una playlist grande supera los 100 s que espera moonlink.js y nunca se agrega.
+            playlistLoadLimit: 1
+            # Playlists, álbumes y artistas por la API del reproductor web (token anónimo): la API oficial ya no deja leerlos a apps nuevas
+            preferPartnerApi: true
+            customTokenEndpoint: "http://spotify-tokener:8080/api/token"  # contenedor de docker-compose.yml
     youtube:
         remoteCipher:
             url: "http://yt-cipher:8001"

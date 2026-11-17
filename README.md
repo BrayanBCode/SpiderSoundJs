@@ -13,7 +13,7 @@
 
 ## 📦 Características
 
-- 🎵 YouTube (búsqueda, links y playlists) y **canciones sueltas de Spotify**.
+- 🎵 YouTube (búsqueda, links y playlists) y Spotify (canciones, álbumes, playlists públicas y artistas).
 - 📃 Cola interactiva con paginación, `/playnext`, `/forceplay`, `/remove`.
 - 🔁 Repetición de canción o de cola, mezclar, adelantar y retroceder.
 - 🎚️ Mensaje "Escuchando" con botones y emojis propios (tema araña): muestra cuándo termina, la repetición, la siguiente y la cola, y se actualiza al pausar o cambiar algo.
@@ -83,7 +83,7 @@ En el [Developer Portal](https://discord.com/developers/applications) creá una 
    docker compose up --build -d
    ```
 
-   Levanta tres contenedores: `yt-cipher` (descifrado de YouTube), `lavalink` (audio) y `discord-bot`. Después de cambiar el código, el mismo comando reconstruye la imagen del bot.
+   Levanta cuatro contenedores: `yt-cipher` (descifrado de YouTube), `spotify-tokener` (token de Spotify para álbumes, playlists y artistas), `lavalink` (audio) y `discord-bot`. Después de cambiar el código, el mismo comando reconstruye la imagen del bot.
 
    Los slash commands se registran solos cada vez que el bot arranca.
 

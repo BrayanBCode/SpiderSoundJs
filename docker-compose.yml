@@ -1,9 +1,25 @@
+# Límites de recursos (medidos el 2026-11-17 con una canción sonando, en reposo y pidiendo un token de Spotify):
+# cada uno queda por encima del pico medido, con margen. Un límite igual a la media cortaría los picos:
+# por RAM Docker mata el contenedor (OOM) y por CPU el audio se entrecorta. `cpus: 1` = un núcleo entero.
+# Si un contenedor se reinicia solo, revisar `docker stats` y `docker inspect -f '{{.State.OOMKilled}}' <contenedor>`.
 services:
     yt-cipher:
         image: ghcr.io/kikkia/yt-cipher:master
         environment:
             - OVERRIDE_PLAYER_VARIANT=IAS
             - API_TOKEN=${YT_CIPHER_TOKEN}
+        # Medido: ~156 MB, CPU casi 0
+        mem_limit: 384m
+        cpus: 1
+        restart: always
+
+    # Token anónimo de Spotify (con Chrome sin ventana) para que LavaSrc cargue playlists, álbumes y artistas.
+    # Sin puertos publicados: solo lo usa Lavalink por la red interna.
+    spotify-tokener:
+        image: ghcr.io/topi314/spotify-tokener:master
+        # Medido: ~128 MB en reposo; al pedir un token, 183 MB y un núcleo casi entero durante ~1 s
+        mem_limit: 512m
+        cpus: 1
         restart: always
 
     lavalink:
@@ -12,6 +28,8 @@ services:
         entrypoint: ['sh', '/opt/Lavalink/lavalink-entrypoint.sh']
         environment:
             - YOUTUBE_PLUGIN_CHANNEL=${YOUTUBE_PLUGIN_CHANNEL:-}
+            # Sin -Xmx la JVM se reservaba ~4 GB de heap; con una canción usa ~140 MB
+            - JAVA_TOOL_OPTIONS=-Xmx512m
         ports:
             # Solo accesible desde esta PC (para correr el bot fuera de Docker); el bot en Docker usa la red interna
             - '127.0.0.1:2333:2333'
@@ -21,6 +39,11 @@ services:
             - ./plugins:/opt/Lavalink/plugins
         depends_on:
             - yt-cipher
+            - spotify-tokener
+        # Medido: ~410 MB (434 MB de pico), CPU media 4 % con picos de 42 % al cargar canciones.
+        # 1 GB = heap de 512 MB + lo que la JVM usa fuera del heap (hilos, buffers de audio, plugins)
+        mem_limit: 1g
+        cpus: 1.5
         restart: always
 
     discord-bot:
@@ -39,4 +62,7 @@ services:
             - ./data:/usr/src/app/data
         depends_on:
             - lavalink # Esto asegura que Lavalink se inicie primero
+        # Medido: ~67 MB (71 de pico), CPU casi 0
+        mem_limit: 256m
+        cpus: 0.5
         restart: always

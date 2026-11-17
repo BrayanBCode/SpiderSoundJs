@@ -22,11 +22,14 @@ export interface IAddToQueueParams {
 }
 
 /**
- * Links de Spotify que no se pueden cargar: Spotify bloquea a las apps nuevas los endpoints
- * por lotes que LavaSrc usa para álbumes, playlists y artistas. Las canciones sueltas sí funcionan.
+ * Álbumes, playlists y artistas de Spotify: LavaSrc los carga con el token anónimo de spotify-tokener
+ * (la API oficial los bloquea a apps nuevas). Si fallan, suele ser una playlist privada o generada para
+ * una cuenta (Daily Mix, Descubrimiento semanal) o que el contenedor spotify-tokener no está andando.
  */
-const SPOTIFY_UNSUPPORTED = /open\.spotify\.com\/(?:intl-[^/]+\/)?(album|playlist|artist)\//;
-const SPOTIFY_UNSUPPORTED_MSG = "De Spotify por ahora solo se aceptan canciones sueltas (no álbumes, playlists ni artistas).";
+const SPOTIFY_COLLECTION = /open\.spotify\.com\/(?:intl-[^/]+\/)?(album|playlist|artist)\//;
+/** Tope de canciones por playlist de Spotify: `playlistLoadLimit` (páginas de 100) en application.yml */
+const SPOTIFY_PLAYLIST_MAX = 100;
+const SPOTIFY_COLLECTION_MSG = "No se pudo cargar eso de Spotify. Si es una playlist, fijate que sea pública: las privadas y las armadas para tu cuenta (Daily Mix, Descubrimiento semanal) no se pueden leer.";
 
 /** Los avisos de "agregada a la cola" se borran solos: el chat queda limpio y el reproductor no queda tapado */
 const ADDED_MESSAGE_TIME = 60_000;
@@ -97,12 +100,17 @@ export abstract class PlaybackStrategy {
         logger.info(`[${inter.commandName}] ${inter.user.username} pidió "${query}" en ${inter.guild.name}`);
 
         try {
-            const results: SearchResult | undefined = await client.music.search({ query, source: src, requester: inter.user });
+            let results: SearchResult | undefined = await client.music.search({ query, source: src, requester: inter.user });
+            // spotify-tokener a veces falla al pedir un token nuevo (al arrancar o al renovarlo cada hora) y al segundo intento anda
+            if (results?.loadType === "error" && SPOTIFY_COLLECTION.test(query)) {
+                logger.warn(`[${inter.commandName}] Spotify dio error al cargar "${query}", reintentando una vez`);
+                results = await client.music.search({ query, source: src, requester: inter.user });
+            }
 
             if (!results?.tracks?.length) {
-                const spotifyType = query.match(SPOTIFY_UNSUPPORTED)?.[1];
-                logger.info(`[${inter.commandName}] Sin resultados para "${query}" (loadType: ${results?.loadType ?? "desconocido"}${spotifyType ? `, ${spotifyType} de Spotify no soportado` : ""})`);
-                return this.editReplyAndDelete(inter, EmptyEmbed({ description: spotifyType ? SPOTIFY_UNSUPPORTED_MSG : "No se encontraron resultados" }).setColor("Red"));
+                const spotifyType = query.match(SPOTIFY_COLLECTION)?.[1];
+                logger.info(`[${inter.commandName}] Sin resultados para "${query}" (loadType: ${results?.loadType ?? "desconocido"}${spotifyType ? `, ${spotifyType} de Spotify sin cargar` : ""})`);
+                return this.editReplyAndDelete(inter, EmptyEmbed({ description: spotifyType ? SPOTIFY_COLLECTION_MSG : "No se encontraron resultados" }).setColor("Red"));
             }
 
             const player = client.getPlayerOrDefault(inter, GuildID);
@@ -156,10 +164,18 @@ export abstract class PlaybackStrategy {
         const focusedQuery = inter.options.getFocused().trim();
         if (!focusedQuery.length) return inter.respond([]);
 
+        // Álbumes y playlists de Spotify tardan en cargar (LavaSrc pide el ISRC de cada canción): no se cargan
+        // para sugerir, solo al enviar. Si no, cada tecla lanzaba una carga larga más en Lavalink.
+        const spotifyType = focusedQuery.match(SPOTIFY_COLLECTION)?.[1];
+        if (spotifyType) {
+            if (focusedQuery.length > AUTOCOMPLETE_VALUE_MAX) return inter.respond([]);
+            return inter.respond([{ name: `Spotify (${spotifyType}): se carga al enviar, puede tardar unos segundos`, value: focusedQuery }]);
+        }
+
         const res: SearchResult | undefined = await client.music.search({ query: focusedQuery, requester: inter.user });
 
         if (!res?.tracks?.length) {
-            const name = SPOTIFY_UNSUPPORTED.test(focusedQuery) ? SPOTIFY_UNSUPPORTED_MSG : "No se encontraron resultados";
+            const name = "No se encontraron resultados";
             return inter.respond([{ name: name.slice(0, 100), value: queryErrors.NO_RESULTS }]);
         }
 
@@ -209,7 +225,8 @@ export abstract class PlaybackStrategy {
             embed.setAuthor({ name: ADDED_HEADERS[mode].playlist, iconURL: requester.avatar })
                 .setTitle(res.playlistInfo?.name ?? "Playlist")
                 .setURL(/^https?:\/\//.test(query) ? query : null)
-                .setDescription(`**${tracks.length}** canciones · ${formatMS_HHMMSS(totalDuration(tracks))} en total`)
+                .setDescription(`**${tracks.length}** canciones · ${formatMS_HHMMSS(totalDuration(tracks))} en total`
+                    + (tracks.length >= SPOTIFY_PLAYLIST_MAX && SPOTIFY_COLLECTION.test(query) ? `\n-# De Spotify se cargan las primeras ${SPOTIFY_PLAYLIST_MAX}` : ""))
                 .setThumbnail(tracks[0].artworkUrl ?? null)
                 .addFields({ name: "Empieza con", value: first.join("\n").slice(0, 1024) })
                 .setFooter({ text: `Pedido por ${requester.name} · ${player.queue.size} en cola` });
