@@ -1,240 +1,89 @@
-import { ChatInputCommandInteraction, ButtonInteraction, TextChannel, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, InteractionReplyOptions, MessageFlags, Message } from "discord.js";
-import { Player, SearchResult, Track } from "moonlink.js";
-import { EmptyEmbed, safeDelete } from "../../../utils/messages.js";
-import { chunkArray, formatMS_HHMMSS } from "../../../utils/tools.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, ComponentType, MessageFlags } from "discord.js";
+import { Player } from "moonlink.js";
+import { EmptyEmbed } from "../../../utils/messages.js";
 import logger from "../../client/logger.js";
+import { queuePage, queuePageCount } from "../../music/queueView.js";
 
 export interface IQueuePaginatorOpt {
     interaction: ChatInputCommandInteraction<"cached"> | ButtonInteraction<"cached">;
-    items: Track[];
-    textChannel?: TextChannel;
-    pageSize?: number;
-    timer?: number;
-
-}
-
-
-export interface IQueuePaginator {
-    interaction: ChatInputCommandInteraction<"cached"> | ButtonInteraction<"cached">;
-    items: Track[];
-    pageSize?: number;
-    time?: number;
-}
-
-
-export interface IClassQueuePaginator {
-    interaction: ChatInputCommandInteraction<"cached"> | ButtonInteraction<"cached">;
-    items: Track[];
-    textChannel?: TextChannel;
-    pageSize: number;
-    timer?: number;
-
-    reply(ephemeral: boolean): any;
-    followUp(ephemeral: boolean): any;
-    send(): any;
-
-}
-
-
-export interface IAddToQueueParams {
     player: Player;
-    res: SearchResult;
-    query: string;
-    inter: ChatInputCommandInteraction<"cached">;
+    /** Cuánto queda abierta antes de borrarse */
+    timer?: number;
 }
 
+/**
+ * Cola paginada, solo visible para quien la pidió (/queue o el botón 📜).
+ * Cada página se arma de nuevo con la cola del momento: si alguien agrega o salta canciones, se ve al cambiar de página.
+ */
+export class QueuePaginator {
+    private interaction: IQueuePaginatorOpt["interaction"];
+    private player: Player;
+    private timer: number;
 
-export class QueuePaginator implements IClassQueuePaginator {
-
-    interaction: ChatInputCommandInteraction<"cached"> | ButtonInteraction<"cached">;
-    items: Track[];
-    textChannel?: TextChannel;
-    pageSize: number;
-    timer?: number;
-    pages: EmbedBuilder[]
-
-    constructor({ interaction, textChannel, items, pageSize = 10, timer = 60 * 1000 }: IQueuePaginatorOpt) {
-        this.interaction = interaction
-        this.textChannel = textChannel
-        this.items = items
-        this.pageSize = pageSize
-        this.timer = timer
-        this.pages = []
-
-        this.createPages()
-
+    constructor({ interaction, player, timer = 2 * 60 * 1000 }: IQueuePaginatorOpt) {
+        this.interaction = interaction;
+        this.player = player;
+        this.timer = timer;
     }
 
-    getButtons() {
+    private render(page: number) {
+        const { index, pages, description, footer } = queuePage({
+            current: this.player.current,
+            tracks: this.player.queue.tracks,
+            loop: this.player.loop,
+        }, page);
 
-        if (!this.pages.length) return undefined
+        const embed = EmptyEmbed()
+            .setAuthor({ name: "Cola de reproducción 📜" })
+            .setDescription(description)
+            .setFooter({ text: footer })
+            .setColor(0x1DB954);
 
-        return new ActionRowBuilder<ButtonBuilder>()
-            .addComponents(
-                new ButtonBuilder().setCustomId("first").setEmoji("⏪").setStyle(ButtonStyle.Primary),
-                new ButtonBuilder().setCustomId("prev").setEmoji("◀").setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId("next").setEmoji("▶").setStyle(ButtonStyle.Secondary),
-                new ButtonBuilder().setCustomId("last").setEmoji("⏩").setStyle(ButtonStyle.Primary),
-                new ButtonBuilder().setCustomId("stop").setEmoji("⏹").setStyle(ButtonStyle.Danger)
-            );
+        const first = index === 0, last = index === pages - 1;
+        const button = (id: string, emoji: string, disabled: boolean, style = ButtonStyle.Secondary) =>
+            new ButtonBuilder().setCustomId(`queue_${id}`).setEmoji(emoji).setStyle(style).setDisabled(disabled);
 
+        const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+            button("first", "⏮", first),
+            button("prev", "◀", first),
+            new ButtonBuilder().setCustomId("queue_page").setLabel(`${index + 1}/${pages}`).setStyle(ButtonStyle.Secondary).setDisabled(true),
+            button("next", "▶", last),
+            button("last", "⏭", last),
+            button("close", "✖", false, ButtonStyle.Danger),
+        );
+
+        return { index, embeds: [embed], components: [row] };
     }
 
-    async reply(ephemeral: boolean = false) {
+    async reply() {
+        let { index, ...view } = this.render(0);
+        const response = await this.interaction.reply({ ...view, flags: MessageFlags.Ephemeral, withResponse: true });
+        const message = response.resource?.message;
+        if (!message) return;
 
-        const buttons = this.getButtons()
-        const initialPage = this.pages[0];
+        logger.debug(`[QueuePaginator] ${this.interaction.user.username} abrió la cola (${this.player.queue.size} canciones) en ${this.interaction.guild.name}`);
 
-        if (!buttons) return await this.interaction.reply({
-            embeds: [
-                EmptyEmbed()
-                    .setDescription("No hay canciones en la lista.")
-            ]
-        })
+        const collector = message.createMessageComponentCollector({ componentType: ComponentType.Button, time: this.timer });
 
-        const opt: InteractionReplyOptions = {
-            embeds: [initialPage],
-            components: [buttons],
-
-        }
-
-        if (ephemeral) opt.flags = MessageFlags.Ephemeral
-
-        const msg = await this.interaction.reply(opt)
-
-        const message = await msg.fetch()
-
-        this.handleCollector(message);
-
-        return message
-
-    }
-
-    async followUp(ephemeral: boolean = false) {
-
-        const buttons = this.getButtons()
-        const initialPage = this.pages[0];
-
-
-        if (!buttons) return this.interaction.followUp({
-            embeds: [EmptyEmbed()
-                .setDescription("No hay canciones en la lista.")
-            ], flags: MessageFlags.Ephemeral
-        })
-
-        const opt: InteractionReplyOptions = {
-            embeds: [initialPage],
-            components: [buttons],
-
-        }
-
-        if (ephemeral) opt.flags = MessageFlags.Ephemeral
-
-        const msg = await this.interaction.followUp(opt)
-
-        const message = await msg.fetch()
-
-        this.handleCollector(message);
-
-        return message
-
-    }
-
-    async send() {
-        const buttons = this.getButtons()
-        const initialPage = this.pages[0];
-
-
-        if (!this.textChannel) throw new Error("[QueuePaginator] Falta el valor textChannel")
-
-        if (!buttons) return this.interaction.followUp({
-            embeds: [EmptyEmbed()
-                .setDescription("No hay canciones en la lista.")
-            ]
-        })
-
-        const msg = await this.interaction.reply({
-            embeds: [initialPage],
-            components: [buttons],
-        })
-
-        const message = await msg.fetch()
-
-        this.handleCollector(message);
-
-        return message
-    }
-
-    private handleCollector(message: Message) {
-        let currentPage = 0;
-        const collector = message.createMessageComponentCollector({
-            time: this.timer
-        });
-
-        collector.on("collect", async (interaction) => {
-
+        collector.on("collect", async (btn) => {
             try {
-                if (interaction.user.id !== this.interaction.user.id) {
-                    return interaction.reply({ content: "No puedes usar este paginador.", ephemeral: true });
+                if (btn.customId === "queue_close") {
+                    await btn.deferUpdate();
+                    return void collector.stop("close");
                 }
 
-                switch (interaction.customId) {
-                    case "first":
-                        currentPage = 0;
-                        break;
-                    case "prev":
-                        if (currentPage > 0) currentPage--;
-                        break;
-                    case "next":
-                        if (currentPage < this.pages.length - 1) currentPage++;
-                        break;
-                    case "last":
-                        currentPage = this.pages.length - 1;
-                        break;
-                    case "stop":
-                        await interaction.update({
-                            components: [],
-                        })
-
-                        collector.stop()
-                        return;
-                }
-
-                await interaction.update({
-                    embeds: [this.pages[currentPage]],
-                    components: [message.components[0]]
-                });
+                const pages = queuePageCount({ tracks: this.player.queue.tracks, loop: this.player.loop });
+                const target = { queue_first: 0, queue_prev: index - 1, queue_next: index + 1, queue_last: pages - 1 }[btn.customId] ?? index;
+                ({ index, ...view } = this.render(target));
+                await btn.update(view);
             } catch (error) {
-                logger.error("[QueuePaginator - collector.on] ", error)
+                logger.error("[QueuePaginator] Error al cambiar de página", error);
             }
         });
 
-        collector.on("end", (_collected, reason) => {
-            if (reason === "messageDelete") return
-            safeDelete(message, "QueuePaginator")
+        // Es efímero: se borra con la interacción original (un mensaje efímero no se puede borrar como uno normal)
+        collector.on("end", () => {
+            this.interaction.deleteReply().catch(() => undefined);
         });
     }
-
-    private createPages() {
-        const chunkedTracks = chunkArray(this.items, this.pageSize)
-
-        this.pages.push(...chunkedTracks.map(
-            (tracks, index) => {
-                return EmptyEmbed()
-                    .setTitle("Lista de Reproducción")
-                    .addFields(...tracks.map((track, subIndex) => {
-                        const globalIndex = index * this.pageSize + subIndex + 1; // Índice global
-                        return {
-                            name: `🎵${globalIndex}. ${track.title}`,
-                            value: `duración: ${formatMS_HHMMSS(track.duration)}`
-                        }
-                    }))
-            })
-        )
-    }
-
-
-
-
 }
-

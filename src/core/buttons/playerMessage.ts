@@ -304,25 +304,8 @@ export class PlayerMessage {
                 async (client, inter, col) => {
                     const player = client.getPlayer(inter.guildId)!
 
-                    if (!player.queue.tracks.length) {
-                        return inter.reply({
-                            embeds: [
-                                EmptyEmbed()
-                                    .setDescription("La lista de reproducción está vacía, utiliza /play para agregar canciones.")
-                                    .setColor("Yellow")
-                            ],
-                            flags: MessageFlags.Ephemeral
-                        });
-                    }
-
-                    const queue = player.queue.tracks;
-
-                    const paginator = new QueuePaginator({
-                        interaction: inter as ButtonInteraction<"cached">,
-                        items: queue,
-                    });
-
-                    return paginator.reply();
+                    // Aunque la cola esté vacía muestra lo que suena (y "No hay más canciones en la cola")
+                    return new QueuePaginator({ interaction: inter as ButtonInteraction<"cached">, player }).reply();
                 }
             ),
             new CustomButtonBuilder({
