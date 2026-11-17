@@ -13,16 +13,16 @@
 - Bot funcionando en Docker: **Bun** + **Lavalink 4.2** + plugin de YouTube (versión elegida al arrancar: release o snapshot) + **yt-cipher** + **spotify-tokener** + **moonlink.js 5.2**.
 - YouTube ✅ · Spotify ✅: canciones, álbumes, playlists públicas y artistas (top 10). La API oficial bloquea a apps nuevas todo menos canciones, así que LavaSrc usa la API del reproductor web (`preferPartnerApi`) con el token anónimo del contenedor **spotify-tokener** (2026-11-17). Las playlists privadas o armadas para una cuenta (Daily Mix) no cargan. De cada playlist se cargan las primeras **100** (~30 s): LavaSrc pide el ISRC de cada canción de a una y con más se pasaba de los 100 s que espera moonlink.js. El bot reintenta una vez si el token falla.
 - Botones del reproductor con **emojis propios** (tema araña). El botón ❤️ guarda favoritos en SQLite (`data/bot.db`).
-- Repo actual: SpiderSoundJs (público). Migración en PR #38 y paso a Bun en PR #40. MultiPurposeBotTS queda como respaldo privado (falta archivarlo).
+- Repo actual: SpiderSound (público; se llamaba SpiderSoundJs hasta el 2026-11-17, GitHub redirige los links viejos). Migración en PR #38 y paso a Bun en PR #40. MultiPurposeBotTS queda como respaldo privado (falta archivarlo).
 - Licencia: **Apache 2.0** con archivo `NOTICE` (crédito a BrayanBCode), desde 2026-11-15. Antes era una licencia propia sin uso comercial.
-- Última release: [v3.2.0](https://github.com/BrayanBCode/SpiderSoundJs/releases/tag/v3.2.0) (2026-11-17): álbumes, playlists y artistas de Spotify, cola nueva, `/loop`, `/shuffle`, `/move`, `/help` por secciones, límites de recursos y licencia Apache 2.0.
+- Última release: [v3.2.0](https://github.com/BrayanBCode/SpiderSound/releases/tag/v3.2.0) (2026-11-17): álbumes, playlists y artistas de Spotify, cola nueva, `/loop`, `/shuffle`, `/move`, `/help` por secciones, límites de recursos y licencia Apache 2.0.
 - Web: https://spiderbotsite.netlify.app/ (repo privado `spider-bot-page`, con su propio roadmap).
 
 ---
 
 ## 1. Mudanza al repo de Araña Sound
 
-Destino: [BrayanBCode/SpiderSoundJs](https://github.com/BrayanBCode/SpiderSoundJs) — **público**.
+Destino: [BrayanBCode/SpiderSound](https://github.com/BrayanBCode/SpiderSound) — **público**.
 
 - [x] Revisar ramas/PRs abiertos de SpiderSoundJs antes de tocar nada.
 - [x] Rama `chore/migracion-desde-multipurpose` que reemplace el contenido en **un solo commit**.
