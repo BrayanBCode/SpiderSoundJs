@@ -1,4 +1,4 @@
-import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, Client, GatewayIntentBits, Partials, VoiceChannel } from "discord.js";
+import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, Client, GatewayIntentBits, VoiceChannel } from "discord.js";
 import { Manager } from "moonlink.js";
 import logger from "./logger.js";
 import { loadDiscordEvents } from "../handler/Events/discordEventHandler.js";
@@ -17,25 +17,13 @@ export class BClient extends Client {
 
     constructor() {
         super({
+            // Solo lo que el bot usa: servidores y canales (Guilds) y quién está en cada canal de voz (GuildVoiceStates).
+            // Los comandos y botones llegan como interacciones, que no necesitan intents. Ninguno es privilegiado,
+            // así que no hay que activar nada en el Developer Portal.
             intents: [
                 GatewayIntentBits.Guilds,
-                GatewayIntentBits.GuildInvites,
-                GatewayIntentBits.GuildMembers,
-                GatewayIntentBits.GuildMessages,
-                GatewayIntentBits.GuildPresences,
-                GatewayIntentBits.DirectMessages,
-                GatewayIntentBits.MessageContent,
-                GatewayIntentBits.GuildModeration,
                 GatewayIntentBits.GuildVoiceStates,
-                GatewayIntentBits.GuildExpressions,
-                GatewayIntentBits.GuildMessageReactions
             ],
-            partials: [
-                Partials.Channel,
-                Partials.Reaction,
-                Partials.Message,
-                Partials.GuildMember
-            ]
         })
 
         this.playerMessage = new PlayerMessage(this);
@@ -100,10 +88,13 @@ export class BClient extends Client {
 
     private createLavalinkConnection() {
         // Defaults = el servicio "lavalink" de docker-compose; fuera de Docker se usa lo del .env
+        const password = process.env.lavalinkPassword;
+        if (!password) throw new Error("Falta lavalinkPassword en el .env (tiene que ser igual a server.password de application.yml)");
+
         const node = {
             identifier: "SpiderSound",
             host: process.env.lavalinkHost ?? "lavalink",
-            password: process.env.lavalinkPassword ?? "password",
+            password,
             port: Number(process.env.lavalinkPort ?? 2333),
             secure: process.env.lavalinkSecure === "true",
         };

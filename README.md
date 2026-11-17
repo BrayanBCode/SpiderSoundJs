@@ -58,7 +58,7 @@ Requisitos: **Docker** con Docker Compose. El bot corre con **Bun** dentro de su
 
 En el [Developer Portal](https://discord.com/developers/applications) creá una aplicación (o usá una que ya tengas) y revisá:
 
-- **Bot → Privileged Gateway Intents**: activá **Presence Intent**, **Server Members Intent** y **Message Content Intent**. El bot los pide al conectarse; si alguno está apagado, Discord lo rechaza con `Used disallowed intents` y no arranca.
+- **Bot → Privileged Gateway Intents**: no hace falta activar ninguno. El bot solo usa intents comunes (servidores y canales de voz).
 - **Bot → Authorization Flow**: **Requires OAuth2 Code Grant** tiene que quedar **apagado** (si no, la invitación falla). **Public Bot** prendido si querés que otros lo inviten a sus servidores; apagado si es solo para vos.
 - **Bot → Token**: el `token` del `.env` (con *Reset Token*). No lo compartas ni lo subas a ningún lado.
 - **General Information → Application ID**: es el `botClientID` del `.env`. Tu propio ID de usuario de Discord va en `ownerID`.
