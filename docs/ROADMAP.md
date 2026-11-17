@@ -1,7 +1,7 @@
 # Roadmap — Araña Sound
 
 > Plan de trabajo acordado. Ir **en este orden**, una rama y un PR por etapa (`categoria/implementacion`).
-> Ramas: cada cambio sale de `Development` en una rama `categoria/implementacion` y vuelve por PR a `Development`. Cada release es un PR de `Development` a `main` (desde 2026-11-17).
+> Ramas: cada cambio sale de `Development` en una rama `categoria/implementacion` y vuelve por PR a `Development`. Antes de abrir el PR se trae lo último de `Development` a la rama (`git merge origin/Development`) y los conflictos se resuelven en la rama, así el merge a `Development` queda limpio. Cada release es un PR de `Development` a `main` (desde 2026-11-17).
 > Antes de sumar algo que no esté acá, anotarlo en [Ideas sueltas](#ideas-sueltas-no-planificadas) en vez de empezarlo.
 
 Última actualización: 2026-11-17
