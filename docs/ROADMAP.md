@@ -1,6 +1,7 @@
 # Roadmap — Araña Sound
 
 > Plan de trabajo acordado. Ir **en este orden**, una rama y un PR por etapa (`categoria/implementacion`).
+> Ramas: cada cambio sale de `Development` en una rama `categoria/implementacion` y vuelve por PR a `Development`. Cada release es un PR de `Development` a `main` (desde 2026-11-17).
 > Antes de sumar algo que no esté acá, anotarlo en [Ideas sueltas](#ideas-sueltas-no-planificadas) en vez de empezarlo.
 
 Última actualización: 2026-11-17
