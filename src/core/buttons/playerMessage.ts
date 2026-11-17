@@ -8,7 +8,7 @@ import { replyNoPlayer, skipTrack, getRequesterInfo, seekRelative } from "../mus
 import { formatMS_HHMMSS, titleCleaner } from "../../utils/tools.js"
 import { QueuePaginator } from "../classes/music/QueuePaginator.js"
 import { PLAYER_EMOJIS } from "./emojis.js"
-import { discordRelative, loopLabel, remainingMs, totalDuration, youtubeCover } from "../music/timing.js"
+import { discordRelative, loopLabel, loopMessage, nextLoopMode, remainingMs, totalDuration, youtubeCover } from "../music/timing.js"
 
 /** Espera antes de editar por un cambio, para juntar varios en una edición (y que moonlink ya haya aplicado el estado) */
 const UPDATE_DELAY = 1500
@@ -443,38 +443,10 @@ export class PlayerMessage {
             },
                 async (client, inter, col) => {
                     const player = client.getPlayer(inter.guildId)!
-
-                    if (player.loop === "off") {
-                        player.setLoop("track");
-                        await inter.reply({
-                            embeds: [
-                                EmptyEmbed()
-                                    .setDescription("🔁 Repetición de la **canción** activada")
-                                    .setColor("Green")
-                            ],
-                            flags: MessageFlags.Ephemeral
-                        });
-                    } else if (player.loop === "track") {
-                        player.setLoop("queue");
-                        await inter.reply({
-                            embeds: [
-                                EmptyEmbed()
-                                    .setDescription("🔂 Repetición de la **cola** activada")
-                                    .setColor("Green")
-                            ],
-                            flags: MessageFlags.Ephemeral
-                        });
-                    } else {
-                        player.setLoop("off");
-                        await inter.reply({
-                            embeds: [
-                                EmptyEmbed()
-                                    .setDescription("🔁 Repetición desactivada")
-                                    .setColor("Green")
-                            ],
-                            flags: MessageFlags.Ephemeral
-                        });
-                    }
+                    const mode = nextLoopMode(player.loop)
+                    player.setLoop(mode)
+                    logger.info(`[PlayerButtons] ${inter.user.username} cambió el loop a ${mode} en ${inter.guild?.name}`)
+                    await inter.reply({ embeds: [EmptyEmbed().setDescription(loopMessage(mode)).setColor("Green")], flags: MessageFlags.Ephemeral })
                 }
             ),
             new CustomButtonBuilder({

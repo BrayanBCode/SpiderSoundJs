@@ -14,6 +14,15 @@ const LOOP_LABELS: Record<string, string> = { off: "OFF", track: "Canción", que
 /** Cómo se muestra el modo de repetición (loop) */
 export const loopLabel = (loop: LoopMode) => LOOP_LABELS[loop] ?? loop;
 
+export const LOOP_MODES = ["off", "track", "queue"] as const;
+const LOOP_ICONS: Record<string, string> = { off: "▶️", track: "🔂", queue: "🔁" };
+
+/** Siguiente modo de loop al tocar el botón o usar /loop sin elegir: OFF → Canción → Cola → OFF */
+export const nextLoopMode = (loop: LoopMode) => LOOP_MODES[(LOOP_MODES.indexOf(loop as typeof LOOP_MODES[number]) + 1) % LOOP_MODES.length];
+
+/** Aviso al cambiar el loop: "🔂 Loop: **Canción**" */
+export const loopMessage = (loop: LoopMode) => `${LOOP_ICONS[loop] ?? "🔁"} Loop: **${loopLabel(loop)}**`;
+
 /** Cuánto le falta a la canción, en ms. `undefined` si es una transmisión en vivo */
 export function remainingMs(track: TimedTrack): number | undefined {
     if (track.isStream) return undefined;

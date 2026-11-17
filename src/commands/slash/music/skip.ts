@@ -1,6 +1,6 @@
 import { SlashCommand } from "../../../core/classes/SlashCommand.js"
 import { EmptyEmbed, deleteAfterTimer, replyEmbed } from "../../../utils/messages.js";
-import { requireListener, respondQueuePositions, skipTrack } from "../../../core/music/player.js";
+import { getRequesterInfo, requireListener, respondQueuePositions, skipTrack, trackActionEmbed } from "../../../core/music/player.js";
 import logger from "../../../core/client/logger.js";
 
 
@@ -42,23 +42,8 @@ export default new SlashCommand()
 
             logger.info(`[/skip] ${inter.user.username} saltó a "${track.title}" (posición ${pos}) en ${inter.guild.name}`);
 
-            return inter.reply({
-                embeds: [
-                    EmptyEmbed()
-                        .setAuthor({ name: "⏭️ | Salto de canción", iconURL: inter.user.displayAvatarURL() })
-                        .addFields([
-                            { name: "title", value: `[${track.title}](${track.uri})`, inline: true },
-                            { name: "artist", value: track.author, inline: true },
-                        ])
-                        .setThumbnail(track.artworkUrl ?? "")
-                        .setFooter({ text: `Solicitado por: ${inter.user.tag}` })
-                        .setColor("Green")
-
-                ]
-            })
-
-
-
+            const header = pos > 1 ? `Saltó a la posición ${pos} ⏭️` : "Siguiente canción ⏭️";
+            return inter.reply({ embeds: [trackActionEmbed(header, track, getRequesterInfo(inter.member))] });
         }
     )
     .setAutoComplete((client, inter) => respondQueuePositions(client, inter))
