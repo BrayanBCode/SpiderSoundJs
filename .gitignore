@@ -11,3 +11,5 @@ application.yml
 # base de datos local
 data/
 /graphify-out
+# configuración local del editor
+.vscode/
