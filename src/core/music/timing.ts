@@ -1,4 +1,4 @@
-// Cálculos de tiempo del reproductor, sin Discord ni Lavalink de por medio (se prueban en timing.test.ts)
+// Cálculos de tiempo del reproductor, sin Discord ni Lavalink de por medio (se prueban en test/core/music/timing.test.ts)
 
 /** Lo mínimo de una canción para calcular tiempos (sirve con los Track de moonlink.js) */
 export interface TimedTrack {
