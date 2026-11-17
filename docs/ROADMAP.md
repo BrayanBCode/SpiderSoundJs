@@ -3,7 +3,7 @@
 > Plan de trabajo acordado. Ir **en este orden**, una rama y un PR por etapa (`categoria/implementacion`).
 > Antes de sumar algo que no esté acá, anotarlo en [Ideas sueltas](#ideas-sueltas-no-planificadas) en vez de empezarlo.
 
-Última actualización: 2026-11-15
+Última actualización: 2026-11-17
 
 ---
 
@@ -131,6 +131,18 @@ Lo que vaya surgiendo de las etapas anteriores. Anotarlo acá a medida que apare
 
 - [ ] Roles por reacción (reaction roles).
 - [ ] Otros comandos generales (definir lista antes de empezar).
+
+---
+
+## 10. Bot en inglés
+
+**Objetivo:** que cada servidor pueda usar el bot en inglés. Hoy todos los textos están en español y escritos en el código.
+
+- [ ] Juntar los textos del bot en un solo lugar por idioma (respuestas, avisos, embeds del reproductor y de la cola, errores) en vez de tenerlos repartidos en cada comando.
+- [ ] Versión en inglés de todos esos textos.
+- [ ] Nombres, descripciones y opciones de los comandos en inglés con las localizaciones de Discord (`setNameLocalizations` / `setDescriptionLocalizations`): cada usuario los ve en el idioma de su Discord.
+- [ ] Elegir el idioma de las respuestas: por defecto el del servidor (`guild.preferredLocale`), con un comando para cambiarlo, guardado en `data/bot.db`.
+- [ ] README en inglés (o un `README.en.md`) y la web con versión en inglés.
 
 ---
 
