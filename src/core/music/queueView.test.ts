@@ -39,6 +39,14 @@ describe("queueView", () => {
         expect(line).not.toContain("](");
     });
 
+    test("título y artista largos no pasan de su largo máximo", () => {
+        const page = queuePage({ tracks: [song(1, { title: "x".repeat(80), author: "y".repeat(40) })], loop: "off" }, 0);
+        const line = page.description.split("\n")[0];
+        expect(line).toContain(`${"x".repeat(31)}…`);
+        expect(line).toContain(`${"y".repeat(17)}…`);
+        expect(line).not.toContain("x".repeat(32));
+    });
+
     test("en vivo no tiene duración", () => {
         expect(queuePage({ tracks: [song(1, { isStream: true })], loop: "off" }, 0).description).toContain("`En vivo`");
     });

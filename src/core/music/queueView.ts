@@ -15,14 +15,18 @@ export interface QueueState {
 }
 
 export const QUEUE_PAGE_SIZE = 10;
-const TITLE_MAX = 60;
+// Una línea por canción en el ancho de un embed (~55 caracteres): título y artista se cortan para no partirse en dos
+const TITLE_MAX = 32;
+const AUTHOR_MAX = 18;
+/** La línea de "Sonando" ya lleva el prefijo y el tiempo: el título entra más corto */
+const CURRENT_TITLE_MAX = 24;
 
 const code = (text: string) => `\`${text}\``;
 const cut = (text: string, max: number) => text.length > max ? `${text.slice(0, max - 1)}…` : text;
 
 /** Título limpio, cortado y con enlace (si es un enlace normal: los corchetes rompen el formato de Discord) */
-function linkedTitle(track: QueueTrack) {
-    const title = cut(titleCleaner(track.title, track.author) || track.title || "Sin título", TITLE_MAX).replace(/[[\]]/g, "");
+function linkedTitle(track: QueueTrack, max = TITLE_MAX) {
+    const title = cut(titleCleaner(track.title, track.author) || track.title || "Sin título", max).replace(/[[\]]/g, "");
     return track.uri && /^https?:\/\/\S+$/.test(track.uri) ? `[${title}](${track.uri})` : `**${title}**`;
 }
 
@@ -41,13 +45,13 @@ export function queuePage(state: QueueState, page: number, pageSize = QUEUE_PAGE
     const current = state.current;
     if (current) {
         const time = current.isStream ? "En vivo" : `${formatMS_HHMMSS(current.position ?? 0)} / ${formatMS_HHMMSS(current.duration)}`;
-        lines.push(`▶ **Sonando:** ${linkedTitle(current)} · ${cut(current.author || "Desconocido", 40)} ${code(time)}`, "");
+        lines.push(`▶ **Sonando:** ${linkedTitle(current, CURRENT_TITLE_MAX)} · ${cut(current.author || "Desconocido", AUTHOR_MAX)} ${code(time)}`, "");
     }
 
     const slice = state.tracks.slice(start, start + pageSize);
     if (slice.length) {
         lines.push(...slice.map((track, i) =>
-            `${code(`${start + i + 1}.`)} ${linkedTitle(track)} · ${cut(track.author || "Desconocido", 40)} ${code(durationLabel(track))}`));
+            `${code(`${start + i + 1}.`)} ${linkedTitle(track)} · ${cut(track.author || "Desconocido", AUTHOR_MAX)} ${code(durationLabel(track))}`));
     } else {
         lines.push("No hay más canciones en la cola. Usá /play para agregar.");
     }
