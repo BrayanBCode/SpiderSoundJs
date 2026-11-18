@@ -1,0 +1,27 @@
+diff --git a/dist/src/entities/Player.js b/dist/src/entities/Player.js
+index 25e8660ca0abcc113f045f1e6b895326947e7c06..fd64f239932ba977dfef70b800f700e1d2a5d258 100644
+--- a/dist/src/entities/Player.js
++++ b/dist/src/entities/Player.js
+@@ -163,11 +163,9 @@ class Player {
+                 const voicePayload = {
+                     sessionId: this.voice.sessionId,
+                     token: this.voice.token,
+-                    endpoint: this.voice.endpoint
++                    endpoint: this.voice.endpoint,
++                    channelId: this.voiceChannelId
+                 };
+-                if (this.node.isNodeLink) {
+-                    voicePayload.channelId = this.voiceChannelId;
+-                }
+                 await this.sendPlayerUpdate({ voice: voicePayload }, true);
+             }
+             this.queue.unshift(currentTrack);
+@@ -731,7 +729,7 @@ class Player {
+                 sessionId: this.voice.sessionId,
+                 token: this.voice.token,
+                 endpoint: this.voice.endpoint,
+-                ...(this.node.isNodeLink ? { channelId: this.voiceChannelId } : {})
++                channelId: this.voiceChannelId
+             }
+             : null;
+         if (voicePayload) {
