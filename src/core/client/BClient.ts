@@ -8,7 +8,7 @@ import { PlayerMessage } from "../buttons/playerMessage.js";
 import { BotDatabase } from "../db/database.js";
 
 /** Mensajes de debug de moonlink.js que sirven para entender cortes al reanudar o reconectar */
-const MOONLINK_RECOVERY_DEBUG = /recover|restart|reconnect|connection lost|resum|voice data|disconnected/i;
+const MOONLINK_RECOVERY_DEBUG = /recover|restart|reconnect|connection lost|resum|voice data|disconnected|WebSocket closed/i;
 
 export class BClient extends Client {
     music: Manager;
