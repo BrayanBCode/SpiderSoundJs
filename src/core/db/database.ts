@@ -89,6 +89,26 @@ export class BotDatabase {
                 artwork_url TEXT,
                 PRIMARY KEY (playlist_id, position)
             )`);
+
+        // Ajustes por servidor: por ahora solo el volumen con el que arranca el reproductor (/volume predeterminado)
+        this.db.run(`
+            CREATE TABLE IF NOT EXISTS guild_settings (
+                guild_id TEXT PRIMARY KEY,
+                volume   INTEGER
+            )`);
+    }
+
+    /** Volumen por defecto del servidor. `null` si nunca se eligió uno */
+    getGuildVolume(guildId: string): number | null {
+        return this.db.query<{ volume: number | null }, { guildId: string }>("SELECT volume FROM guild_settings WHERE guild_id = $guildId")
+            .get({ guildId })?.volume ?? null;
+    }
+
+    setGuildVolume(guildId: string, volume: number) {
+        this.db.query(`
+            INSERT INTO guild_settings (guild_id, volume) VALUES ($guildId, $volume)
+            ON CONFLICT (guild_id) DO UPDATE SET volume = excluded.volume`)
+            .run({ guildId, volume });
     }
 
     /** Agrega la canción a los favoritos del usuario, o la quita si ya estaba (botón ❤️) */
