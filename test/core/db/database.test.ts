@@ -105,3 +105,18 @@ describe("BotDatabase playlists", () => {
         expect(db.getPlaylistTracks(mix.id)).toEqual([]);
     });
 });
+
+describe("BotDatabase volumen por servidor", () => {
+    let db: BotDatabase;
+    beforeEach(() => { db = new BotDatabase(":memory:"); });
+    afterEach(() => db.close());
+
+    test("sin elegir es null; se guarda, se pisa y no se mezcla entre servidores", () => {
+        expect(db.getGuildVolume("guild-1")).toBeNull();
+        db.setGuildVolume("guild-1", 30);
+        db.setGuildVolume("guild-1", 45);
+        db.setGuildVolume("guild-2", 10);
+        expect(db.getGuildVolume("guild-1")).toBe(45);
+        expect(db.getGuildVolume("guild-2")).toBe(10);
+    });
+});
