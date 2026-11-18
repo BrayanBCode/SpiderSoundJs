@@ -14,7 +14,7 @@ import { discordRelative, loopLabel, loopMessage, nextLoopMode, remainingMs, tot
 const UPDATE_DELAY = 1500
 /** Eventos de moonlink.js que cambian lo que muestra el mensaje "Escuchando" */
 const UPDATE_EVENTS = [
-    "playerTriggeredPause", "playerTriggeredResume", "playerTriggeredSeek", "playerChangedLoop",
+    "playerTriggeredPause", "playerTriggeredResume", "playerTriggeredSeek", "playerChangedLoop", "playerChangedVolume",
     "playerTriggeredShuffle", "queueAdd", "queueRemove", "queueMoveRange", "queueRemoveRange",
 ] as const
 
@@ -230,7 +230,7 @@ export class PlayerMessage {
         const description = [
             `**${track.author || "Desconocido"}** · \`${track.isStream ? "En vivo" : formatMS_HHMMSS(track.duration)}\``,
             time,
-            `• Loop: \`${loopLabel(player.loop)}\``,
+            `• Loop: \`${loopLabel(player.loop)}\` · Volumen: \`${player.volume}%\``,
             `• Siguiente: ${this.nextLabel(player)}`,
         ].join("\n").slice(0, 4096)
 

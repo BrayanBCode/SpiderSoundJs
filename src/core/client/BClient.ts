@@ -8,7 +8,7 @@ import { PlayerMessage } from "../buttons/playerMessage.js";
 import { BotDatabase } from "../db/database.js";
 
 /** Volumen con el que arranca el reproductor si el servidor no eligió otro con /volume predeterminado */
-export const DEFAULT_VOLUME = 5;
+export const DEFAULT_VOLUME = 10;
 
 export class BClient extends Client {
     music: Manager;
