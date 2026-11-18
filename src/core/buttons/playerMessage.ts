@@ -12,6 +12,12 @@ import { discordRelative, loopLabel, loopMessage, nextLoopMode, remainingMs, tot
 
 /** Espera antes de editar por un cambio, para juntar varios en una edición (y que moonlink ya haya aplicado el estado) */
 const UPDATE_DELAY = 1500
+/** Títulos del embed "Escuchando" (ver getPlayingEmbed): así se reconoce un mensaje del reproductor de un proceso anterior */
+const PLAYING_AUTHOR = "Escuchando 🎶"
+const PAUSED_AUTHOR = "En pausa ⏸️"
+const PLAYER_AUTHORS = [PLAYING_AUTHOR, PAUSED_AUTHOR]
+/** Cuántos mensajes del canal se revisan al reanudar buscando el mensaje viejo */
+const STALE_SEARCH_LIMIT = 50
 /** Eventos de moonlink.js que cambian lo que muestra el mensaje "Escuchando" */
 const UPDATE_EVENTS = [
     "playerTriggeredPause", "playerTriggeredResume", "playerTriggeredSeek", "playerChangedLoop",
@@ -89,6 +95,27 @@ export class PlayerMessage {
                 return data.Message
 
             if (data) logger.debug(`[PlayerMessage] Se reenvía el mensaje en ${data.channel.guild.name} (${sameChannel ? "quedó tapado por el chat" : "cambió el canal"})`)
+            await this.delete(guildID)
+            return this.send(guildID, channelID)
+        })
+    }
+
+    /**
+     * Después de reiniciar el bot con la sesión de Lavalink reanudada: el mensaje "Escuchando" del proceso
+     * anterior quedó en el canal con botones muertos (su collector murió con el proceso) y no se conoce su ID.
+     * Se buscan los mensajes "Escuchando"/"En pausa" del bot entre los últimos del canal, se borran y se manda uno nuevo.
+     */
+    adopt(guildID: string, channelID: string) {
+        return this.enqueue(guildID, async () => {
+            const channel = this.client.getTextChannel(channelID) as TextChannel | null
+            if (!channel) return undefined
+
+            const recent = await channel.messages.fetch({ limit: STALE_SEARCH_LIMIT }).catch(() => undefined)
+            const stale = [...(recent?.values() ?? [])].filter(m =>
+                m.author.id === this.client.user?.id && PLAYER_AUTHORS.includes(m.embeds[0]?.author?.name ?? ""))
+            for (const message of stale) await safeDelete(message, "PlayerMessage")
+            logger.info(`[PlayerMessage] Reproductor reanudado en ${channel.guild.name}: ${stale.length} mensaje(s) "Escuchando" viejo(s) borrado(s) en #${channel.name}, se envía uno nuevo`)
+
             await this.delete(guildID)
             return this.send(guildID, channelID)
         })
@@ -235,7 +262,7 @@ export class PlayerMessage {
         ].join("\n").slice(0, 4096)
 
         const embed = EmptyEmbed()
-            .setAuthor({ name: paused ? "En pausa ⏸️" : "Escuchando 🎶", iconURL: requester.avatar })
+            .setAuthor({ name: paused ? PAUSED_AUTHOR : PLAYING_AUTHOR, iconURL: requester.avatar })
             .setTitle(titleCleaner(track.title, track.author) ?? "Titulo desconocido")
             .setURL(track.uri ?? "")
             .setDescription(description)
