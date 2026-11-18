@@ -30,7 +30,10 @@ def section($commits; $name; f): [$commits[] | select(f)] as $c
       # Discord: 4096 caracteres por descripción
       description: ((if ($list | length) > 3800 then $list[0:3800] + "…" else $list end) + "\n\n" + $more),
       color: (if $branch == "main" then 1947988 elif $branch == "Development" then 5793266 else 8947584 end),
-      footer: { text: "\(.repository.full_name) · \($branch) · " + plural([.commits[] | (.added + .removed + .modified)[]] | unique | length; "archivo cambiado"; "archivos cambiados") },
+      # Las listas de archivos no siempre vienen en el evento (en Actions llegan vacías): sin ellas no se cuenta
+      footer: { text: "\(.repository.full_name) · \($branch)"
+        + ([.commits[] | ((.added // []) + (.removed // []) + (.modified // []))[]] | unique | length
+           | if . > 0 then " · " + plural(.; "archivo cambiado"; "archivos cambiados") else "" end) },
       timestamp: .head_commit.timestamp
     }]
   }
