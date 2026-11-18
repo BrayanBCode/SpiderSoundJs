@@ -19,7 +19,8 @@ export default new SlashCommand()
                     ephemeral: true,
                 }), 15000);
 
-            player.queue.shuffle();
+            // player.shuffle (no queue.shuffle): emite playerTriggeredShuffle y el PlayerMessage actualiza "Siguiente"
+            player.shuffle();
             logger.info(`[/shuffle] ${inter.user.username} mezcló ${player.queue.size} canciones en ${inter.guild.name}`);
 
             return inter.reply({ embeds: [EmptyEmbed().setDescription(`🔀 Cola mezclada (${player.queue.size} canciones)`).setColor("Green")] });
