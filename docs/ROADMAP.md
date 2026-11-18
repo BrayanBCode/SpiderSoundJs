@@ -15,7 +15,7 @@
 - Botones del reproductor con **emojis propios** (tema araña). El botón ❤️ guarda favoritos en SQLite (`data/bot.db`).
 - Repo actual: SpiderSound (público; se llamaba SpiderSoundJs hasta el 2026-11-17, GitHub redirige los links viejos). Migración en PR #38 y paso a Bun en PR #40. MultiPurposeBotTS queda como respaldo privado (falta archivarlo).
 - Licencia: **Apache 2.0** con archivo `NOTICE` (crédito a BrayanBCode), desde 2026-11-15. Antes era una licencia propia sin uso comercial.
-- Última release: [v3.3.0](https://github.com/BrayanBCode/SpiderSound/releases/tag/v3.3.0) (2026-11-18): `/volume` con volumen por defecto por servidor (10% si no se elige), volumen en el mensaje "Escuchando" y la música sigue al reiniciar el bot (resume de Lavalink + parche de moonlink.js). Antes: v3.2.1 (repo renombrado a SpiderSound) y v3.2.0 (Spotify, cola nueva, `/loop`, `/shuffle`, `/move`).
+- Última release: [v3.3.1](https://github.com/BrayanBCode/SpiderSound/releases/tag/v3.3.1) (2026-11-19): avisos de releases y commits en Discord con embeds propios (GitHub Actions). Antes: v3.3.0 (`/volume`, volumen por defecto por servidor y la música sigue al reiniciar el bot), v3.2.1 (repo renombrado a SpiderSound) y v3.2.0 (Spotify, cola nueva, `/loop`, `/shuffle`, `/move`).
 - Web: https://spidersound.netlify.app/ (repo privado `spider-bot-page`, con su propio roadmap).
 
 ---
