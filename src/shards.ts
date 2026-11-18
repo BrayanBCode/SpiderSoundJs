@@ -2,11 +2,12 @@ import { ShardingManager } from "discord.js";
 import { join } from "node:path";
 import { loadProcessErrorHandlers } from "./core/handler/error/processErrorHandler.js";
 import logger from "./core/client/logger.js";
+import pkg from "../package.json" with { type: "json" };
 
 // Bun carga el .env por su cuenta (y los shards heredan process.env): no hace falta dotenv.
 loadProcessErrorHandlers();
 
-logger.info(`[Shards] Iniciando Araña Sound con Bun ${Bun.version}`);
+logger.info(`[Shards] Iniciando Araña Sound v${pkg.version} con Bun ${Bun.version}`);
 
 if (!process.env.token) {
     throw new Error("[Shards] Falta la variable token en el .env (token del bot de Discord).");
