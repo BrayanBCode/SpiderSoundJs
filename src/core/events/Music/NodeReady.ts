@@ -15,6 +15,8 @@ export default class NReady extends MEvent<"nodeReady"> {
     }
     execute(client: BClient, node: INode): Promise<void> | void {
         logger.debug(`Node ready: ${node.identifier}`);
+        // Con resume, Lavalink devuelve resumed=true si el bot volvió a tiempo: los reproductores siguieron sin cortarse
+        logger.info(`[Lavalink] Nodo ${node.identifier} listo (${node.resumed ? "sesión reanudada: la música siguió" : "sesión nueva"})`);
         if (!failedNodes.delete(node.identifier)) return;
 
         logger.info(`[Lavalink] El nodo ${node.identifier} volvió después de un error`);

@@ -102,6 +102,9 @@ export class BClient extends Client {
 
         return new Manager({
             nodes: [node],
+            // Lavalink guarda la sesión 60 s si el bot se cae o se reinicia: al volver con el mismo Session-Id
+            // los reproductores siguen (misma canción y posición) en vez de rearmar la cola desde .moonlink/
+            options: { resume: true, resumeTimeout: 60000 },
             send: (guildID: string, payload: any) => {
                 const guild = this.guilds.cache.get(guildID);
                 if (guild) guild.shard.send(payload);
