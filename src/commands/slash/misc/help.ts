@@ -8,7 +8,7 @@ import { packLines } from "../../../utils/tools.js";
 const SECTIONS: { title: string; commands: string[] }[] = [
     { title: "▶️ Reproducción", commands: ["play", "playnext", "forceplay", "pause", "resume", "stop"] },
     { title: "📃 Cola", commands: ["queue", "skip", "move", "remove", "shuffle", "clear"] },
-    { title: "🎛️ Control", commands: ["loop", "forward", "backward"] },
+    { title: "🎛️ Control", commands: ["loop", "volume", "forward", "backward"] },
     { title: "❤️ Favoritos y playlists", commands: ["favoritos", "playlist"] },
 ];
 /** Un comando nuevo que no está en ninguna sección aparece igual, acá */

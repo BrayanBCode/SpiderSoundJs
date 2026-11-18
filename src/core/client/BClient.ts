@@ -7,6 +7,12 @@ import { SlashCommand } from "../classes/SlashCommand.js";
 import { PlayerMessage } from "../buttons/playerMessage.js";
 import { BotDatabase } from "../db/database.js";
 
+/** Volumen con el que arranca el reproductor si el servidor no eligió otro con /volume predeterminado */
+export const DEFAULT_VOLUME = 10;
+
+/** Mensajes de debug de moonlink.js que sirven para entender cortes al reanudar o reconectar */
+const MOONLINK_RECOVERY_DEBUG = /recover|restart|reconnect|connection lost|resum|voice data|disconnected|WebSocket closed/i;
+
 export class BClient extends Client {
     music: Manager;
     playerMessage: PlayerMessage;
@@ -33,6 +39,10 @@ export class BClient extends Client {
             this.music = this.createLavalinkConnection();
             this.on("raw", (packet) => this.music.packetUpdate(packet));
             this.playerMessage.watch(this.music);
+            // moonlink manda mucho por "debug" (cada mensaje del websocket): solo pasan los de reconexión y recuperación
+            this.music.on("debug", (msg: string) => {
+                if (MOONLINK_RECOVERY_DEBUG.test(msg)) logger.debug(`[Moonlink] ${msg}`);
+            });
 
         } catch (error) {
             logger.error('Lavalink connection failed', error as Error);
@@ -65,7 +75,7 @@ export class BClient extends Client {
             guildId,
             textChannelId: inter.channelId ?? undefined,
             voiceChannelId: (inter.member as any).voice.channelId,
-            volume: 20,
+            volume: this.db.getGuildVolume(guildId) ?? DEFAULT_VOLUME,
         });
 
         return player;
@@ -102,6 +112,9 @@ export class BClient extends Client {
 
         return new Manager({
             nodes: [node],
+            // Lavalink guarda la sesión 60 s si el bot se cae o se reinicia: al volver con el mismo Session-Id
+            // los reproductores siguen (misma canción y posición) en vez de rearmar la cola desde .moonlink/
+            options: { resume: true, resumeTimeout: 60000 },
             send: (guildID: string, payload: any) => {
                 const guild = this.guilds.cache.get(guildID);
                 if (guild) guild.shard.send(payload);

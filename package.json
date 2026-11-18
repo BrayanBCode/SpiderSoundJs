@@ -1,6 +1,6 @@
 {
   "name": "spidersound",
-  "version": "3.2.1",
+  "version": "3.3.0",
   "type": "module",
   "main": "src/shards.ts",
   "scripts": {
@@ -11,15 +11,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/BrayanBCode/MultiPurposeBotTS.git"
+    "url": "git+https://github.com/BrayanBCode/SpiderSound.git"
   },
-  "author": "Codu",
+  "author": "BrayanBCode",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/BrayanBCode/MultiPurposeBotTS/issues"
+    "url": "https://github.com/BrayanBCode/SpiderSound/issues"
   },
-  "homepage": "https://github.com/BrayanBCode/MultiPurposeBotTS#readme",
-  "description": "",
+  "homepage": "https://spidersound.netlify.app/",
+  "description": "Araña Sound: bot de música para Discord en español con YouTube y Spotify, reproductor con botones, favoritos y playlists. Bun + discord.js + Lavalink, autoalojable con Docker.",
   "dependencies": {
     "discord.js": "^14.28.1",
     "moonlink.js": "^5.2.0",
@@ -28,5 +28,8 @@
   "devDependencies": {
     "@types/bun": "^1.4.4",
     "typescript": "^5.9.3"
+  },
+  "patchedDependencies": {
+    "moonlink.js@5.2.0": "patches/moonlink.js@5.2.0.patch"
   }
 }

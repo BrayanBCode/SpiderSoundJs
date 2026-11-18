@@ -4,7 +4,7 @@
 > Ramas: cada cambio sale de `Development` en una rama `categoria/implementacion` y vuelve por PR a `Development`. Antes de abrir el PR se trae lo último de `Development` a la rama (`git merge origin/Development`) y los conflictos se resuelven en la rama, así el merge a `Development` queda limpio. Cada release es un PR de `Development` a `main` (desde 2026-11-17).
 > Antes de sumar algo que no esté acá, anotarlo en [Ideas sueltas](#ideas-sueltas-no-planificadas) en vez de empezarlo.
 
-Última actualización: 2026-11-17
+Última actualización: 2026-11-18
 
 ---
 
@@ -15,7 +15,7 @@
 - Botones del reproductor con **emojis propios** (tema araña). El botón ❤️ guarda favoritos en SQLite (`data/bot.db`).
 - Repo actual: SpiderSound (público; se llamaba SpiderSoundJs hasta el 2026-11-17, GitHub redirige los links viejos). Migración en PR #38 y paso a Bun en PR #40. MultiPurposeBotTS queda como respaldo privado (falta archivarlo).
 - Licencia: **Apache 2.0** con archivo `NOTICE` (crédito a BrayanBCode), desde 2026-11-15. Antes era una licencia propia sin uso comercial.
-- Última release: [v3.2.1](https://github.com/BrayanBCode/SpiderSound/releases/tag/v3.2.1) (2026-11-17): repo renombrado a SpiderSound, web en spidersound.netlify.app, flujo de ramas con `Development` y copyright completo en `LICENSE`. Antes: v3.2.0 (Spotify, cola nueva, `/loop`, `/shuffle`, `/move`).
+- Última release: [v3.3.0](https://github.com/BrayanBCode/SpiderSound/releases/tag/v3.3.0) (2026-11-18): `/volume` con volumen por defecto por servidor (10% si no se elige), volumen en el mensaje "Escuchando" y la música sigue al reiniciar el bot (resume de Lavalink + parche de moonlink.js). Antes: v3.2.1 (repo renombrado a SpiderSound) y v3.2.0 (Spotify, cola nueva, `/loop`, `/shuffle`, `/move`).
 - Web: https://spidersound.netlify.app/ (repo privado `spider-bot-page`, con su propio roadmap).
 
 ---
@@ -121,6 +121,8 @@ Lo que vaya surgiendo de las etapas anteriores. Anotarlo acá a medida que apare
 - [x] Dependencia circular entre `BClient` y `PlayerMessage`: `PlayerMessage` solo usaba el tipo, así que pasa a `import type` y el ciclo desaparece en tiempo de ejecución. No hizo falta reestructurar.
 - [x] Tests en una carpeta aparte, como en Maven: `src/` con el código y `test/` con la misma estructura (`src/core/music/timing.ts` → `test/core/music/timing.test.ts`). `test/` está en el `include` del `tsconfig.json` para el typecheck; `bun test` los encuentra solo. La imagen de Docker solo copia `src/`, así que los tests ya no entran en ella (2026-11-17).
 - [x] Mejoras visibles (2026-11-17): estado del bot "Escuchando /play · N servidores" (se actualiza al entrar o salir de un servidor), comandos `/loop` (con `modo` opcional) y `/shuffle` (antes solo eran botones), `/move` para reordenar la cola, y `/skip` con el mismo formato que los avisos de agregar a la cola. El botón 🔁 y `/loop` comparten la lógica (`nextLoopMode`, `loopMessage`).
+- [x] Reanudar la sesión de Lavalink (2026-11-18): `resume: true` en el `Manager` de moonlink.js. Si el bot se reinicia (por ejemplo, al reconstruir el contenedor) y vuelve en menos de 60 s, Lavalink mantiene los reproductores y la canción sigue donde iba; antes se cortaba y moonlink rearmaba la cola desde `.moonlink/` arrancando por la siguiente. El log `[Lavalink] Nodo … listo` dice si la sesión se reanudó. Al reanudar (evento `playerResumed`), el mensaje "Escuchando" del proceso anterior queda con botones muertos: se busca entre los últimos 50 mensajes del canal, se borra y se manda uno nuevo (`PlayerMessage.adopt`, log `[Resume]`).
+- [x] `/volume [nivel] [predeterminado]` (2026-11-18): cambia el volumen de 1 a 100 (misma regla que los otros controles: hay que estar en el canal del bot); sin nivel muestra el actual y el del servidor. Con `predeterminado`, quien puede **Gestionar el servidor** guarda el volumen con el que arranca el reproductor en ese servidor (tabla `guild_settings` de `data/bot.db`). Sin elegir, el bot arranca en 10% (antes 20%, se escuchaba fuerte). El mensaje "Escuchando" muestra el volumen junto al loop (`• Loop: OFF · Volumen: 10%`) y se edita solo cuando cambia (evento `playerChangedVolume`).
 - [x] `/queue` y el botón 📜 con diseño nuevo (2026-11-17): lo que suena, 10 canciones por página en una línea cada una (título hasta 32 caracteres, artista hasta 18), pie con página, total y loop, y botones ⏮ ◀ `1/N` ▶ ⏭ que se desactivan en los bordes (Discord admite 5 por fila). Solo la ve quien la pide y cada página se arma con la cola del momento (`src/core/music/queueView.ts`).
 - [x] Logs de `[PlayerMessage]` con el `#canal` y aviso cuando el mensaje "Escuchando" cambia de canal (PR #43).
 - [x] `/help` (lista generada con los comandos cargados) y `/ping` (latencia de respuesta y del gateway); se quitó `/hi` (PR #50).
@@ -155,6 +157,7 @@ Lo que vaya surgiendo de las etapas anteriores. Anotarlo acá a medida que apare
 - Calidad de audio (opcional): `resamplingQuality: LOW → HIGH` en `application.yml`; lo que más pesa es el bitrate del canal de voz.
 - Si álbumes, playlists o artistas de Spotify dejan de cargar: revisar `docker compose logs spotify-tokener` y buscar `Partner API failed` en los logs de Lavalink. Puede que Spotify haya cambiado algo y haga falta actualizar la imagen (`docker compose pull spotify-tokener`) o LavaSrc.
 - **Límites de recursos** en `docker-compose.yml` (medidos el 2026-11-17 con una canción sonando): bot 256 MB / 0,5 núcleo, Lavalink 1 GB / 1,5 núcleos con heap de 512 MB (`-Xmx512m`; antes la JVM se reservaba ~4 GB), yt-cipher 384 MB / 1, spotify-tokener 512 MB / 1. Cada uno por encima del pico medido. Si un contenedor se reinicia solo, revisar `docker inspect -f '{{.State.OOMKilled}}'` y subirle el límite; con varios servidores escuchando a la vez, Lavalink va a necesitar más.
+- **Parche de moonlink.js** (`patches/moonlink.js@5.2.0.patch`, `bun patch`, 2026-11-18): al recuperar un reproductor (`restart`/`softRestart`) moonlink 5.2 mandaba la conexión de voz sin `channelId`, que Lavalink 4.2 exige (400 cuatro veces y la canción se cortaba ~20 s). El parche lo manda siempre. Además, cuando Discord cierra la conexión de voz (pasa al reanudar: el bot vuelve con otra sesión del gateway), moonlink reconectaba la voz y 20 s después reiniciaba el reproductor aunque ya estuviera conectado, cortando la canción (y a veces saltándola): el parche solo reinicia si sigue desconectado. Al actualizar moonlink.js, ver si ya lo trae arreglado y borrar el parche (si no, `bun install` falla al aplicarlo y hay que rehacerlo con `bun patch moonlink.js`).
 - No probado aún: mover el bot de canal con música sonando.
 
 ---
