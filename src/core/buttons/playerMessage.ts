@@ -544,19 +544,22 @@ export class PlayerMessage {
                 async (client, inter, col) => {
                     const player = client.getPlayer(inter.guildId)!
 
-                    if (!player.queue.tracks.length) {
+                    if (player.queue.size < 2) {
                         const emptyQueue = await replyEmbed({
                             interaction: inter as ButtonInteraction<"cached">,
                             embed: EmptyEmbed()
-                                .setDescription("❌ No hay canciones en la lista para mezclar")
-                                .setColor("Yellow")
+                                .setDescription("❌ Hacen falta al menos 2 canciones en la cola para mezclar")
+                                .setColor("Yellow"),
+                            ephemeral: true
                         })
 
                         deleteAfterTimer(emptyQueue, 10000)
                         return
                     }
 
-                    await player.queue.shuffle();
+                    // player.shuffle (no queue.shuffle): emite playerTriggeredShuffle y este mensaje actualiza "Siguiente"
+                    player.shuffle();
+                    logger.info(`[PlayerButtons] Cola mezclada (${player.queue.size} canciones) en ${inter.guild?.name}`)
                     await inter.reply({
                         embeds: [
                             EmptyEmbed()
