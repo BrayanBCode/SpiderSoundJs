@@ -1,0 +1,43 @@
+# Anuncia cada release en el servidor de soporte con un embed (la integración de GitHub para Discord solo manda el título).
+# Necesita en Settings → Secrets and variables → Actions:
+#   - secret DISCORD_RELEASE_WEBHOOK: URL del webhook del canal (el repo es público: nunca en el código)
+#   - variable DISCORD_BOT_AVATAR_URL (opcional): imagen del bot para el mensaje
+# En el webhook de GitHub del canal, destildar el evento "Releases" para que no llegue dos veces.
+name: Release a Discord
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  anunciar:
+    runs-on: ubuntu-latest
+    steps:
+      # Solo hace falta el armado del mensaje (.github/release-discord.jq)
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+
+      - name: Mandar el embed al webhook
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
+          AVATAR: ${{ vars.DISCORD_BOT_AVATAR_URL }}
+          # Los datos del release entran como variables y no dentro del script: así un título o unas notas raras no pueden ejecutar nada
+          RELEASE: ${{ toJson(github.event.release) }}
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "::warning::Falta el secret DISCORD_RELEASE_WEBHOOK, no se anuncia el release"
+            exit 0
+          fi
+          tag=$(jq -r .tag_name <<< "$RELEASE")
+          # Versión anterior publicada: la comparación de cambios va de esa a esta
+          prev=$(gh release list -R "$REPO" --exclude-drafts --limit 20 --json tagName -q "map(.tagName) | map(select(. != \"$tag\")) | .[0] // \"\"")
+          echo "[ReleaseDiscord] Anunciando $tag (anterior: ${prev:-ninguna}) en Discord"
+          jq -f .github/release-discord.jq --arg prev "$prev" --arg repo "$REPO" --arg avatar "$AVATAR" <<< "$RELEASE" > payload.json
+          curl -fsS -H "Content-Type: application/json" --data @payload.json "$WEBHOOK" \
+            && echo "[ReleaseDiscord] Mensaje enviado"
