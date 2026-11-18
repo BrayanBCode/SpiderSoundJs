@@ -5,6 +5,7 @@ import { DEvent } from "../../classes/events/DEvent.js"
 import logger from "../../client/logger.js";
 import { BClient } from "../../client/BClient.js";
 import { registerSlashCommands } from "../../handler/command/slashCommandHandler.js";
+import pkg from "../../../../package.json" with { type: "json" };
 
 export default class Ready extends DEvent<'clientReady'> {
     constructor() {
@@ -12,7 +13,7 @@ export default class Ready extends DEvent<'clientReady'> {
     }
 
     async execute(BClient: BClient, client: Client<true>): Promise<void> {
-        logger.info(`Bot ${client.user.displayName} Online`);
+        logger.info(`Bot ${client.user.displayName} v${pkg.version} Online`);
         logger.info(`[Servidores] En ${client.guilds.cache.size} servidores (este shard): ${client.guilds.cache.map(g => g.name).join(", ")}`);
 
         initDevNotifier(client);
@@ -27,7 +28,7 @@ export default class Ready extends DEvent<'clientReady'> {
         notifyDev(new EmbedBuilder()
             .setTitle("🟢 Bot en línea")
             .setColor("Green")
-            .setDescription(`**${client.guilds.cache.size}** servidores en este shard · **${BClient.slashCommands.size}** comandos · Bun ${Bun.version}`));
+            .setDescription(`**${client.guilds.cache.size}** servidores en este shard · **${BClient.slashCommands.size}** comandos · v${pkg.version} · Bun ${Bun.version}`));
 
     }
 
