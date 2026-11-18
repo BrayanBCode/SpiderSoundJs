@@ -2,3 +2,5 @@
 * text=auto
 # se ejecuta con sh dentro del contenedor: CRLF lo rompería
 *.sh text eol=lf
+# Los parches de bun patch se aplican sobre archivos con LF: con CRLF (autocrlf en Windows) fallarían
+patches/*.patch text eol=lf

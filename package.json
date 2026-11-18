@@ -28,5 +28,8 @@
   "devDependencies": {
     "@types/bun": "^1.4.4",
     "typescript": "^5.9.3"
+  },
+  "patchedDependencies": {
+    "moonlink.js@5.2.0": "patches/moonlink.js@5.2.0.patch"
   }
 }

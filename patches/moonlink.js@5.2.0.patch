@@ -1,0 +1,40 @@
+diff --git a/dist/src/entities/Node.js b/dist/src/entities/Node.js
+index c3fb3231413284c06cc08accbfc5aa6e65dab944..704f617e45bd67d2375f10caa6d020e29d8d22e0 100644
+--- a/dist/src/entities/Node.js
++++ b/dist/src/entities/Node.js
+@@ -1027,7 +1027,7 @@ class Node {
+                 await player.connect();
+                 const timeout = voiceOptions.timeout ?? 15000;
+                 await new Promise(resolve => setTimeout(resolve, timeout));
+-                if (player.playing && player.current) {
++                if (player.playing && player.current && !player.connected) {
+                     this.manager.emit("debug", `Moonlink.js > Node#handleWebSocketClosed -> Step 2: Restarting player ${player.guildId} after voice reconnect.`);
+                     await player.restart();
+                 }
+diff --git a/dist/src/entities/Player.js b/dist/src/entities/Player.js
+index 25e8660ca0abcc113f045f1e6b895326947e7c06..4f441cf55b536201cc9ce2e70300b5ba40cd2541 100644
+--- a/dist/src/entities/Player.js
++++ b/dist/src/entities/Player.js
+@@ -163,11 +163,9 @@ class Player {
+                 const voicePayload = {
+                     sessionId: this.voice.sessionId,
+                     token: this.voice.token,
+-                    endpoint: this.voice.endpoint
++                    endpoint: this.voice.endpoint,
++                    channelId: this.voiceChannelId
+                 };
+-                if (this.node.isNodeLink) {
+-                    voicePayload.channelId = this.voiceChannelId;
+-                }
+                 await this.sendPlayerUpdate({ voice: voicePayload }, true);
+             }
+             this.queue.unshift(currentTrack);
+@@ -731,7 +729,7 @@ class Player {
+                 sessionId: this.voice.sessionId,
+                 token: this.voice.token,
+                 endpoint: this.voice.endpoint,
+-                ...(this.node.isNodeLink ? { channelId: this.voiceChannelId } : {})
++                channelId: this.voiceChannelId
+             }
+             : null;
+         if (voicePayload) {
