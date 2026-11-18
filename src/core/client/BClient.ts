@@ -7,6 +7,9 @@ import { SlashCommand } from "../classes/SlashCommand.js";
 import { PlayerMessage } from "../buttons/playerMessage.js";
 import { BotDatabase } from "../db/database.js";
 
+/** Mensajes de debug de moonlink.js que sirven para entender cortes al reanudar o reconectar */
+const MOONLINK_RECOVERY_DEBUG = /recover|restart|reconnect|connection lost|resum|voice data|disconnected/i;
+
 export class BClient extends Client {
     music: Manager;
     playerMessage: PlayerMessage;
@@ -33,6 +36,10 @@ export class BClient extends Client {
             this.music = this.createLavalinkConnection();
             this.on("raw", (packet) => this.music.packetUpdate(packet));
             this.playerMessage.watch(this.music);
+            // moonlink manda mucho por "debug" (cada mensaje del websocket): solo pasan los de reconexión y recuperación
+            this.music.on("debug", (msg: string) => {
+                if (MOONLINK_RECOVERY_DEBUG.test(msg)) logger.debug(`[Moonlink] ${msg}`);
+            });
 
         } catch (error) {
             logger.error('Lavalink connection failed', error as Error);
