@@ -1,8 +1,8 @@
 # Anuncia cada release en el servidor de soporte con un embed (la integración de GitHub para Discord solo manda el título).
 # Necesita en Settings → Secrets and variables → Actions:
-#   - secret DISCORD_WEBHOOK: URL del webhook del canal (el repo es público: nunca en el código)
+#   - secret DISCORD_RELEASE_WEBHOOK: URL del webhook del canal de releases (el repo es público: nunca en el código)
 #   - variable DISCORD_BOT_AVATAR_URL (opcional): imagen del bot para el mensaje
-# (los mismos que usa push-discord.yml)
+# (los commits van a otro canal: ver push-discord.yml)
 # En el webhook de GitHub del canal, destildar el evento "Releases" para que no llegue dos veces.
 name: Release a Discord
 
@@ -24,13 +24,13 @@ jobs:
 
       - name: Mandar el embed al webhook
         env:
-          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          WEBHOOK: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
           AVATAR: ${{ vars.DISCORD_BOT_AVATAR_URL }}
           REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
         run: |
           if [ -z "$WEBHOOK" ]; then
-            echo "::warning::Falta el secret DISCORD_WEBHOOK, no se anuncia el release"
+            echo "::warning::Falta el secret DISCORD_RELEASE_WEBHOOK, no se anuncia el release"
             exit 0
           fi
           # El release se lee del archivo del evento: el título y las notas nunca pasan por el script

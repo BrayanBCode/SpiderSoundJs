@@ -1,5 +1,6 @@
 # Avisa los commits nuevos en el servidor de soporte, agrupados por tipo (feat, fix y el resto) y sin los merges.
-# Usa el mismo secret y variable que release-discord.yml. En el webhook de GitHub del canal, destildar "Pushes".
+# Necesita el secret DISCORD_COMMITS_WEBHOOK (URL del webhook del canal de commits) y la variable opcional DISCORD_BOT_AVATAR_URL.
+# En el webhook de GitHub del canal, destildar "Pushes".
 name: Commits a Discord
 
 on:
@@ -22,11 +23,11 @@ jobs:
 
       - name: Mandar el embed al webhook
         env:
-          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          WEBHOOK: ${{ secrets.DISCORD_COMMITS_WEBHOOK }}
           AVATAR: ${{ vars.DISCORD_BOT_AVATAR_URL }}
         run: |
           if [ -z "$WEBHOOK" ]; then
-            echo "::warning::Falta el secret DISCORD_WEBHOOK, no se avisan los commits"
+            echo "::warning::Falta el secret DISCORD_COMMITS_WEBHOOK, no se avisan los commits"
             exit 0
           fi
           # El evento se lee del archivo que deja GitHub: los mensajes de commit nunca pasan por el script
