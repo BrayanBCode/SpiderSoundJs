@@ -1,0 +1,36 @@
+# Avisa los commits nuevos en el servidor de soporte, agrupados por tipo (feat, fix y el resto) y sin los merges.
+# Usa el mismo secret y variable que release-discord.yml. En el webhook de GitHub del canal, destildar "Pushes".
+name: Commits a Discord
+
+on:
+  push:
+    branches: ["**"]
+
+permissions:
+  contents: read
+
+jobs:
+  avisar:
+    # Borrar una rama o crearla sin commits nuevos también es un push: no hay nada que contar
+    if: ${{ !github.event.deleted && github.event.commits[0] }}
+    runs-on: ubuntu-latest
+    steps:
+      # Solo hace falta el armado del mensaje (.github/push-discord.jq)
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+
+      - name: Mandar el embed al webhook
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          AVATAR: ${{ vars.DISCORD_BOT_AVATAR_URL }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "::warning::Falta el secret DISCORD_WEBHOOK, no se avisan los commits"
+            exit 0
+          fi
+          # El evento se lee del archivo que deja GitHub: los mensajes de commit nunca pasan por el script
+          jq -f .github/push-discord.jq --arg avatar "$AVATAR" "$GITHUB_EVENT_PATH" > payload.json
+          echo "[PushDiscord] $(jq -r '.embeds[0].title' payload.json)"
+          curl -fsS -H "Content-Type: application/json" --data @payload.json "$WEBHOOK" \
+            && echo "[PushDiscord] Mensaje enviado"
