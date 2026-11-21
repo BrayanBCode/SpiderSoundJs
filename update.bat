@@ -71,5 +71,6 @@ goto :eof
 
 :end
 rem Con doble clic la ventana se cerraría sin dejar leer el resultado
-echo %cmdcmdline% | find /i "/c" >nul && pause
+rem find con ruta completa: si Git agrega sus herramientas al PATH, "find" sería el de Unix
+echo %cmdcmdline% | "%SystemRoot%\System32\find.exe" /i "/c" >nul && pause
 exit /b %EXIT_CODE%
