@@ -95,6 +95,21 @@ En el [Developer Portal](https://discord.com/developers/applications) creá una 
 
    Opcional: con `DEV_GUILD_ID` en el `.env` (ID de tu servidor), el bot crea ahí `#notificaciones-bot` y avisa arranques, servidores nuevos o perdidos, errores no controlados y caídas de Lavalink. El canal es privado: solo lo ven el dueño del bot (`ownerID`) y los administradores. Necesita el permiso Gestionar canales.
 
+### Actualizar
+
+En la carpeta del proyecto:
+
+```bash
+./update.sh      # Linux / macOS
+update.bat       # Windows (o doble clic)
+```
+
+El script baja la última versión del repo (`git pull`), las imágenes nuevas de Lavalink, yt-cipher y spotify-tokener, reconstruye el bot y reinicia solo lo que cambió. Al final muestra la versión en marcha y borra las imágenes viejas del bot. No toca `.env`, `application.yml` ni `data/`.
+
+- Si cambiaron `.env.example` o `application.example.yml`, avisa: compará con tus copias por si hay opciones nuevas.
+- Si modificaste archivos del repo, frena antes de actualizar para no pisarlos (guardalos con `git stash`).
+- Si había música sonando y solo se actualizó el bot, la retoma sola después del reinicio; si se actualizó Lavalink, la reproducción se corta.
+
 ### Desarrollo sin Docker (opcional)
 
 Con [Bun](https://bun.sh) 1.4+ instalado: `bun install`, levantar solo Lavalink con `docker compose up -d lavalink` (en el `.env`, `lavalinkHost="localhost"`) y correr el bot con `bun start`. Bun lee el `.env` solo y ejecuta TypeScript directo, sin compilar. Para revisar tipos: `bun run typecheck`; para los tests: `bun test`.
