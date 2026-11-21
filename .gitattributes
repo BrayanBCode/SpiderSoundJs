@@ -4,3 +4,5 @@
 *.sh text eol=lf
 # Los parches de bun patch se aplican sobre archivos con LF: con CRLF (autocrlf en Windows) fallarían
 patches/*.patch text eol=lf
+# Scripts de Windows: cmd necesita CRLF
+*.bat text eol=crlf
